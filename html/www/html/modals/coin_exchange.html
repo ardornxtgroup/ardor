@@ -1,0 +1,182 @@
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ~ Copyright © 2013-2016 The Nxt Core Developers.                            ~
+  ~ Copyright © 2016-2017 Jelurida IP B.V.                                    ~
+  ~                                                                           ~
+  ~ See the LICENSE.txt file at the top-level directory of this distribution  ~
+  ~ for licensing information.                                                ~
+  ~                                                                           ~
+  ~ Unless otherwise agreed in a custom licensing agreement with Jelurida B.V.,
+  ~ no part of this software, including this file, may be copied, modified,   ~
+  ~ propagated, or distributed except according to the terms contained in the ~
+  ~ LICENSE.txt file.                                                         ~
+  ~                                                                           ~
+  ~ Removal or modification of this copyright notice is prohibited.           ~
+  ~                                                                           ~
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+
+<div class="modal fade" id="coin_order_modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <!-- todo -->
+                <h4 class="modal-title"><span data-i18n="confirm_order">Confirm Order</span> (<span class="coin_order_modal_type"></span>)</h4>
+            </div>
+            <div class="modal-body">            
+                <form role="form" autocomplete="off">
+                    <div class="callout callout-danger error_message" style="display:none"></div>
+                    <div class="form-group">
+                        <label data-i18n="order_description">ORDER DESCRIPTION</label>
+                        <p id="coin_order_description"></p>
+                        <input type="hidden" name="exchange" id="coin_order_coin" value="" />
+                        <input type="hidden" name="quantityQNT" id="coin_order_quantity" value="" />
+                        <input type="hidden" name="priceNQTPerCoin" id="coin_order_price" value="" />
+                        <input type="hidden" name="deadline" id="coin_order_deadline" data-default="24" value="24" />
+                    </div>
+                    <div class="form-group">
+                        <label><span data-i18n="total">TOTAL</span> <i id="coin_order_total_tooltip" class="fa fa-question-circle" style="color:#4CAA6E" data-toggle="popover" data-placement="right" data-content=""></i></label>
+                        <p id="coin_order_total"></p>
+                    </div>
+                    <div data-replace-with-modal-template="fee_calculation_modal_template"></div>
+                    <div data-replace-with-modal-template="secret_phrase_modal_template"></div>
+                    <div data-replace-with-modal-template="advanced_deadline_template"></div>
+                    <div data-replace-with-modal-template="advanced_approve_template"></div>
+                    <div data-replace-with-modal-template="advanced_rt_hash_template"></div>
+                    <div data-replace-with-modal-template="advanced_broadcast_template"></div>
+                    <div data-replace-with-modal-template="advanced_note_to_self_template"></div>
+                    <input type="hidden" name="fee_decimals" value=""/>
+                    <input type="hidden" name="request_type" value="exchangeCoins"/>
+                </form>
+            </div>
+            <div class="modal-footer" style="margin-top:0;">
+                <div class="advanced_info"><a href="#" data-i18n="advanced">advanced</a></div>
+                <button type="button" class="btn btn-default" data-dismiss="modal" data-i18n="cancel">Cancel</button>
+                <button type="button" class="btn btn-primary" data-loading-text="Submitting..." id="coin_order_modal_button" data-i18n="[data-loading-text]submitting"></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="cancel_coin_order_modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" data-i18n="confirm_order_cancellation">Confirm Order Cancellation</h4>
+            </div>
+            <div class="modal-body">            
+                <form role="form" autocomplete="off">
+                    <div class="callout callout-danger error_message" style="display:none"></div>
+                    <p data-i18n="confirm_order_cancellation_help">If you are sure you want to cancel your order, type your passphrase to confirm.</p>
+                    <div data-replace-with-modal-template="fee_calculation_modal_template"></div>
+                    <div data-replace-with-modal-template="secret_phrase_modal_template"></div>
+                    <div data-replace-with-modal-template="advanced_deadline_template"></div>
+                    <div data-replace-with-modal-template="advanced_approve_template"></div>
+                    <div data-replace-with-modal-template="advanced_rt_hash_template"></div>
+                    <div data-replace-with-modal-template="advanced_broadcast_template"></div>
+                    <div data-replace-with-modal-template="advanced_note_to_self_template"></div>
+
+                    <input type="hidden" name="order" id="cancel_coin_order_order" value="" />
+                    <input type="hidden" name="request_type" value="cancelCoinExchange" />
+                </form>
+            </div>
+            <div class="modal-footer" style="margin-top:0;">
+                <div class="advanced_info"><a href="#" data-i18n="advanced">advanced</a></div>
+
+                <button type="button" class="btn btn-default" data-dismiss="modal" data-i18n="cancel">Cancel</button>
+                <button type="button" class="btn btn-primary" data-loading-text="Submitting..." data-i18n="submit;[data-loading-text]submitting">Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="add_coin_bookmark_modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" data-i18n="add_coin">Add Coin</h4>
+            </div>
+            <div class="modal-body">            
+                <form role="form" autocomplete="off">
+                    <div class="callout callout-danger error_message" style="display:none"></div>
+                    <div class="form-group">
+                        <label for="add_coin_bookmark_id" data-i18n="coin">COIN</label> <i class="fa fa-question-circle show_popover" style="color:#4CAA6E" data-content="Find the id of the chain representing the coin." data-container="body" data-i18n="[data-content]find_coin_id_help"></i>
+                        <input type="text" class="form-control" name="id" id="add_coin_bookmark_id" placeholder="Chain id or name" data-i18n="[placeholder]chain_id_or_name" autofocus tabindex="1" />
+                    </div>
+                    <input type="hidden" name="request_type" value="addCoinBookmark" />
+                </form>
+            </div>
+            <div class="modal-footer" style="margin-top:0;">
+                <button type="button" class="btn btn-default" data-dismiss="modal" data-i18n="cancel">Cancel</button>
+                <button type="button" class="btn btn-primary" data-loading-text="Submitting..." data-i18n="add_coin;[data-loading-text]submitting">Add Coin</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="coin_exchange_change_group_name_modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" data-i18n="change_group_name">Change Group Name</h4>
+            </div>
+            <div class="modal-body">            
+                <form role="form" autocomplete="off">
+                    <div class="callout callout-danger error_message" style="display:none"></div>
+                    <p data-i18n="change_group_name_help">Type a new group name.</p>
+                    <div class="form-group">
+                        <label data-i18n="old_group_name">OLD GROUP NAME</label>
+                        <p id="coin_exchange_change_group_name_old_display"></p>
+                        <input type="hidden" name="old_group_name" id="coin_exchange_change_group_name_old" value="" />
+                    </div>
+                    <div class="form-group">
+                        <label for="coin_exchange_change_group_name_new" data-i18n="new_group_name">NEW GROUP_NAME</label>
+                        <input type="text" class="form-control" name="new_group_name" id="coin_exchange_change_group_name_new" placeholder="New group name" data-i18n="[placeholder]new_group_name" />
+                    </div>
+                    <input type="hidden" name="request_type" value="coinExchangeChangeGroupName" />
+                </form>
+            </div>
+            <div class="modal-footer" style="margin-top:0;">
+                <button type="button" class="btn btn-default" data-dismiss="modal" data-i18n="cancel">Cancel</button>
+                <button type="button" class="btn btn-primary" id="coin_exchange_change_group_name_submit" data-loading-text="Submitting..." data-i18n="change_group_name;[data-loading-text]submitting">Change Group Name</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="coin_exchange_group_modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" data-i18n="group_coin">Group Coin</h4>
+            </div>
+            <div class="modal-body">            
+                <form role="form" autocomplete="off">
+                    <div class="callout callout-danger error_message" style="display:none"></div>
+                    <p data-i18n="group_coin_help">Choose a group for this coin.</p>
+                    <div class="form-group">
+                        <label data-i18n="coin">COIN</label>
+                        <p id="coin_exchange_group_title"></p>
+                        <input type="hidden" name="coin_exchange_group_coin" id="coin_exchange_group_coin" value="" />
+                    </div>
+                    <div class="form-group">
+                        <label for="coin_exchange_group_group" data-i18n="group">GROUP</label>
+                        <select name="coin_exchange_group_group" id="coin_exchange_group_group" class="form-control">
+                        </select>
+                    </div>
+                    <div class="form-group" id="coin_exchange_group_new_group_div" style="display:none">
+                        <input type="text" class="form-control" name="coin_exchange_group_new_group" id="coin_exchange_group_new_group" placeholder="New Group Title" data-i18n="new_group_title"/>
+                    </div>
+                    <input type="hidden" name="request_type" value="coinExchangeGroup" />
+                </form>
+            </div>
+            <div class="modal-footer" style="margin-top:0;">
+                <button type="button" class="btn btn-default" data-dismiss="modal" data-i18n="cancel">Cancel</button>
+                <button type="button" class="btn btn-primary" id="coin_exchange_group_submit" data-loading-text="Submitting..." data-i18n="add_to_group;[data-loading-text]submitting">Add to Group</button>
+            </div>
+        </div>
+    </div>
+</div>

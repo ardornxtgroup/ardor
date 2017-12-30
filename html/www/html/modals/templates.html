@@ -1,0 +1,192 @@
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ~ Copyright © 2013-2016 The Nxt Core Developers.                            ~
+  ~ Copyright © 2016-2017 Jelurida IP B.V.                                    ~
+  ~                                                                           ~
+  ~ See the LICENSE.txt file at the top-level directory of this distribution  ~
+  ~ for licensing information.                                                ~
+  ~                                                                           ~
+  ~ Unless otherwise agreed in a custom licensing agreement with Jelurida B.V.,
+  ~ no part of this software, including this file, may be copied, modified,   ~
+  ~ propagated, or distributed except according to the terms contained in the ~
+  ~ LICENSE.txt file.                                                         ~
+  ~                                                                           ~
+  ~ Removal or modification of this copyright notice is prohibited.           ~
+  ~                                                                           ~
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+
+<div id="recipient_modal_template">
+    <div class="form-group">
+        <label for="{{name}}_recipient" data-i18n="recipient">RECIPIENT</label>
+        <div id="{{name}}_account_id_reader" class="scan-qr-code-reader" style="display:none;margin:auto;width:384px;height:384px;"></div>
+        <button type="button" data-reader="{{name}}_account_id_reader" data-result="{{name}}_recipient" class="scan-qr-code btn btn-default btn-xs">
+            <i class="fa fa-qrcode"></i>
+        </button>
+        <div class="input-group">
+            <input type="text" class="form-control" name="recipient" id="{{name}}_recipient" placeholder="Recipient Account" data-i18n="[placeholder]recipient_account" autofocus tabindex="1" />
+            <span class="input-group-btn btn-group recipient_selector">
+                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown"><span class="glyphicon glyphicon-user"></span></button>
+                <!--suppress HtmlUnknownTag -->
+                <ul class="dropdown-menu scrollable-menu" role="menu" style="right:0;left:auto;"></ul>
+            </span>
+        </div>
+    </div>
+    <div class="form-group recipient_public_key">
+        <label for="{{name}}_recipient_public_key" data-i18n="recipient_public_key">Recipient Public Key</label>
+        <input type="text" class="form-control" name="recipientPublicKey" id="{{name}}_recipient_public_key" placeholder="Public Key" data-i18n="[placeholder]public_key" tabindex="2" spellcheck="false" />
+    </div>
+</div>
+
+
+<div id="add_message_modal_template">
+    <div class="form-group add_message_container">
+        <input type="checkbox" name="add_message" id="{{name}}_add_message" class="add_message" tabindex="101" /> <label for="{{name}}_add_message" style="font-weight:normal;margin-bottom:0;"> <span data-i18n="add_message_q">Add a Message?</span></label>
+    </div>
+    <div class="form-group optional_message">
+        <label for="{{name}}_message" data-i18n="message">MESSAGE</label>
+        <textarea class="form-control" id="{{name}}_message" name="message" rows="4" tabindex="102"></textarea>
+        <div style="margin-top:3px" id="{{name}}_to_specific_account_message_options">
+            <label for="{{name}}_encrypt_message" style="font-weight:normal;color:#666"><input type="checkbox" name="encrypt_message" id="{{name}}_encrypt_message" value="1" data-default="checked" checked="checked" /> <span data-i18n="encrypt_message">Encrypt Message</span></label>
+        </div>
+        <div style="margin-top:3px;display:none" id="{{name}}_to_anyone_message_options">
+            <label for="{{name}}_encrypt_message" style="font-weight:normal;color:#666" data-i18n="message_is_not_encrypted">This message is not encrypted.</label>
+        </div>
+        <div style="margin-top:3px">
+            <label for="{{name}}_message_permanent" style="font-weight:normal;color:#666"><input type="checkbox" name="permanent_message" id="{{name}}_message_permanent" value="1" data-default="unchecked" /> <span data-i18n="permanent_message">Message is Never Deleted</span></label>
+        </div>
+    </div>
+</div>
+
+
+<div id="add_public_message_modal_template">
+    <div class="form-group add_message_container">
+        <input type="checkbox" name="add_message" id="{{name}}_add_public_message" class="add_message" tabindex="101" /> <label for="{{name}}_add_public_message" style="font-weight:normal;margin-bottom:0;"> <span data-i18n="add_message_q">Add a Message?</span></label>
+    </div>
+    <div class="form-group optional_message">
+        <label for="{{name}}_public_message" data-i18n="message">MESSAGE</label>
+        <textarea class="form-control" id="{{name}}_public_message" name="message" rows="4" tabindex="102"></textarea>
+    </div>
+</div>
+
+<div id="secret_phrase_modal_template">
+    <div class="form-group secret_phrase">
+        <label for="{{name}}_password" data-i18n="passphrase">PASSPHRASE</label>
+        <div id="{{name}}_secret_phrase_reader" class="scan-qr-code-reader" style="display:none;margin:auto;width:384px;height:384px;"></div>
+        <button id="{{name}}_secret_phrase_scan" type="button" data-reader="{{name}}_secret_phrase_reader" data-result="{{name}}_password" class="scan-qr-code btn btn-default btn-xs ">
+            <i class="fa fa-qrcode"></i>
+        </button>
+        <input type="password" name="secretPhrase" id="{{name}}_password" class="form-control" placeholder="" tabindex="111">
+    </div>
+</div>
+
+<div id="admin_password_modal_template">
+    <div class="form-group">
+        <label for="{{name}}_admin_password" data-i18n="admin_password">ADMIN PASSWORD</label>
+        <input type="password" name="adminPassword" id="{{name}}_admin_password" class="form-control" placeholder="" tabindex="112">
+    </div>
+</div>
+
+<div id="fee_calculation_modal_template">
+    <div class="row">
+        <div class="col-xs-12 col-sm-6 col-md-6">
+            <div class="form-group">
+                <label for="{{name}}_fee" data-i18n="fee">FEE</label>
+                <button type="button" class="btn btn-default btn-xs btn-calculate-fee" data-loading-text="Calculating..." data-i18n="[data-loading-text]calculating"><span data-i18n="calculate">CALCULATE</span><span class="warning-label" id="{{name}}_recalc"> *</span></button>
+                <div class="input-group">
+                    <input type="number" name="feeNXT" id="{{name}}_fee" class="form-control" step="any" placeholder="Minimum Fee" data-i18n="[placeholder]minimum_fee" tabindex="103">
+                    <span class="input-group-addon coin-symbol" id="{{name}}_fee_coin"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="advanced_deadline_template">
+    <div class="row advanced">
+        <div class="col-xs-6 col-sm-6 col-md-6">
+            <div class="form-group">
+                <label for="{{name}}_deadline" data-i18n="deadline_minutes">DEADLINE (Minutes)</label>
+                <input type="number" name="deadline" id="{{name}}_deadline" class="form-control" placeholder="Deadline" data-i18n="[placeholder]deadline" min="1" data-default="15" value="15" tabindex="122">
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div id="advanced_approve_template">
+    <div class="advanced_mandatory_approval" id="{{name}}_mandatory_approval" style="display:none;">
+        <div id="auto_phasing_possible_group" class="row">
+            <div class="col-xs-6">
+                <div class="form-group mandatory_approval_finish_height_group" data-modal-ui-element="block_height_modal_ui_element"></div>
+            </div>
+            <div class="col-xs-6">
+                <div class="phasing_only_enabled_info">
+                    <span id="account_control_enabled_info" data-i18n="mandatory_approval_enabled_info">
+                        Mandatory Approval account control is enabled. Please set Finish Height.</span>
+                    <span id="asset_control_enabled_info" data-i18n="asset_control_enabled_info">
+                        Asset Control is enabled for this transaction. Please set Finish Height.</span>
+                    <br/>
+
+                    <a id="account_control_details_link" href="#" data-toggle="modal" data-target="#account_details_modal" data-i18n="mandatory_approval_details" data-detailstab="account_control">Account Control Details</a>
+                </div>
+            </div>
+        </div>
+        <div id="auto_phasing_not_possible_group" class="row">
+            <div class="col-xs-12">
+                <div class="phasing_only_manual_setup_warning" data-i18n="auto_phasing_not_possible_warning">
+                    Can't automatically build phasing that satisfies both account and asset controls. Please manually set the appropriate phasing in Advanced section</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="advanced approve_modal" id="{{name}}_approve_modal">
+        <div class="phasing_safe_alert alert alert-warning" role="alert" style="margin-left:0;display:none;">
+            <span style="font-weight:bold;" data-i18n="warning">Warning</span>!
+            <span data-i18n="transaction_type_not_phasing_safe">Transaction type not safe for phasing/approval.</span>
+        </div>
+        <div class="row">
+            <div class="col-xs-6">
+                <div class="form-group phasing_model_group" data-modal-ui-element="approval_model_modal_ui_element"></div>
+            </div>
+            <div class="col-xs-6">
+                <div class="form-group phasing_finish_height_group" data-modal-ui-element="block_height_modal_ui_element"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="advanced_rt_hash_template">
+    <div class="form-group advanced">
+        <label for="{{name}}_referenced_transaction" data-i18n="referenced_transaction_hash">REFERENCED TRANSACTION HASH</label>
+        <input type="text" class="form-control" name="referencedTransaction" id="{{name}}_referenced_transaction" placeholder="Referenced Transaction Full Hash" data-i18n="[placeholder]referenced_transaction_full_hash" tabindex="131" spellcheck="false" />
+    </div>
+</div>
+
+
+<div id="advanced_broadcast_template">
+    <div class="form-group advanced" style="margin-bottom:0;">
+        <input type="checkbox" name="doNotBroadcast" id="{{name}}_do_not_broadcast" class="do_not_broadcast" value="1" tabindex="141"/> <label for="{{name}}_do_not_broadcast" style="font-weight:normal;" data-i18n="do_not_broadcast">Do Not Broadcast</label>
+        <div class="form-group advanced optional_do_not_sign">
+            <input type="checkbox" name="doNotSign" id="{{name}}_do_not_sign" class="do_not_sign" value="1" tabindex="142"/> <label for="{{name}}_do_not_sign" style="font-weight:normal;" data-i18n="do_not_sign">DO NOT SIGN</label>
+        </div>
+        <div class="form-group advanced optional_public_key">
+            <label data-i18n="public_key">PUBLIC KEY</label>
+            <div class="form-group">
+                <textarea class="form-control" name="publicKey" rows="1"></textarea>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div id="advanced_note_to_self_template">
+    <div class="form-group advanced">
+        <input type="checkbox" name="add_note_to_self" id="{{name}}_add_note_to_self" class="add_note_to_self" tabindex="151" /> <label for="{{name}}_add_note_to_self" style="font-weight:normal;margin-bottom:0;"> <span data-i18n="add_note_to_self">Add Note to Self?</span></label>
+    </div>
+    <div class="form-group advanced optional_note">
+        <label for="{{name}}_note_to_self" data-i18n="note_to_self">Note to Self</label>
+        <textarea class="form-control" id="{{name}}_note_to_self" name="note_to_self" rows="4" tabindex="152"></textarea>
+        <div style="margin-top:3px;">
+            <label style="font-weight:normal;color:#666" data-i18n="note_is_encrypted">This note is encrypted.</label>
+        </div>
+    </div>
+</div>

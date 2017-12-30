@@ -1,0 +1,57 @@
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ~ Copyright © 2013-2016 The Nxt Core Developers.                            ~
+  ~ Copyright © 2016-2017 Jelurida IP B.V.                                    ~
+  ~                                                                           ~
+  ~ See the LICENSE.txt file at the top-level directory of this distribution  ~
+  ~ for licensing information.                                                ~
+  ~                                                                           ~
+  ~ Unless otherwise agreed in a custom licensing agreement with Jelurida B.V.,
+  ~ no part of this software, including this file, may be copied, modified,   ~
+  ~ propagated, or distributed except according to the terms contained in the ~
+  ~ LICENSE.txt file.                                                         ~
+  ~                                                                           ~
+  ~ Removal or modification of this copyright notice is prohibited.           ~
+  ~                                                                           ~
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+
+<div id="approval_models_page" class="page">
+    <section class="content-header">
+        <h1 data-i18n="approval_models">Approval Models</h1>
+        <p></p>
+        <div class="approval-models-btn">
+            <button id="add_approval_model_button" type="button" class="btn btn-default" data-toggle="modal" data-target="#add_approval_model_modal" data-i18n="add_approval_model">Add Approval Model</button>
+            <button id="export_approval_models_button" type="button" class="btn btn-default" data-i18n="export_approval_models">Export Approval Models</button>
+            <input type="file" id="import_approval_models_button_field" />
+            <button id="import_approval_models_button" type="button" class="btn btn-default" data-i18n="import_approval_models">Import Approval Models</button>
+            <button id="import_account_control_approval_models_button" type="button" class="btn btn-default"
+                    data-i18n="import_account_control_approval_models">Import from Account Control</button>
+            <button id="import_asset_control_approval_models_button" type="button" class="btn btn-default"
+                    data-toggle="modal" data-target="#import_asset_control_approval_model_modal"
+                    data-i18n="import_asset_control_approval_models">Import from Asset Control</button>
+        </div>
+    </section>
+    <section class="content">
+        <div class="data-container data-loading" id="approval_models_table_container">
+            <table class="table table-striped" id="approval_models_table">
+                <thead>
+                <tr>
+                    <th data-i18n="name">Name</th>
+                    <th data-i18n="description">Description</th>
+                    <th data-i18n="approval_model">Approval Model</th>
+                    <th data-i18n="actions">actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                
+                </tbody>
+            </table>
+            <div class="data-loading-container"><img src="img/loading_indicator.gif" alt="Loading..." width="32" height="32" /></div>
+            <div class="data-empty-container">
+                <p>
+                    <span data-i18n="no_approval_models">No Approval Models</span>,
+                    <a href="#" data-toggle="modal" data-target="#add_approval_model_modal" data-i18n="add_approval_model">Add Approval Model</a>.
+                </p>
+            </div>
+        </div>
+    </section>
+</div>

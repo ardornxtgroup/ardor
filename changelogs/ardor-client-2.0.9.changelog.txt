@@ -1,0 +1,13 @@
+First production release of the Ardor Blockchain Platform.
+
+The Ardor Genesis Snapshot has been taken at Nxt blockchain height of 1636363.
+
+The Genesis timestamp is set to 00:00:00 UTC, Jan 1st 2018. Everyone with ARDR
+balance >= 1000 is invited to setup a node and start forging. Block generation
+will start automatically when the Genesis timestamp is reached. In the meantime,
+please check your balances and report any discrepancies from what you expected.
+
+To simplify processing of phased transactions, the getExecutedTransactions API
+now returns the transactions ordered by the height at which they were executed,
+not at which they were included in the blockchain.
+

@@ -1,0 +1,17 @@
+{
+  "genesisSecretPhrase": "unit.test.genesis.creator",
+  "genesisRecipientSecretPhrases":[
+	"hope peace happen touch easy pretend worthless talk them indeed wheel state",
+    "rshw9abtpsa2",
+    "eOdBVLMgySFvyiTy8xMuRXDTr45oTzB7L5J",
+    "t9G2ymCmDsQij7VtYinqrbGCOAtDDA3WiNr",
+	"aSykrgKGZNlSVOMDxkZZgbTvQqJPGtsBggb"
+  ],
+  "genesisAmounts":[
+    400000000,
+    200000000,
+    200000000,
+    100000000,
+	100000000
+  ],
+}

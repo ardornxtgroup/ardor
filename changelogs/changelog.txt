@@ -1,0 +1,635 @@
+ardor-client-2.0.8e:
+
+This release is a mandatory upgrade for all Ardor testnet nodes. It involves a
+reset of the existing testnet and starts from a new genesis block.
+
+The new testnet genesis block is based on a snapshot of the Nxt blockchain at
+height 1631000. Forging on testnet is set to start at 14:00 UTC, Dec 26.
+
+The number of decimals for the AEUR child chain has been changed to 4.
+
+Login UI bugfixes and improvements. Increased initial heap size to 256M.
+
+As this release requires a full reset of testnet, the nxt_test_db folder must
+be deleted before installation.
+
+
+--------------------------------------------------------------------------------
+ardor-client-2.0.7e:
+
+This release is a mandatory upgrade for all Ardor testnet nodes. It involves a
+reset of the existing testnet and starts from a new genesis block.
+
+The new testnet genesis block is based on a snapshot of the Nxt blockchain at
+height 1624000. Forging on testnet is set to start at midnight UTC, Dec 22.
+
+The BTC and USD testnet child chains have been removed, for consistency with
+the expected production child chains. The EUR child chain has been renamed to
+AEUR, with 2 decimals. Child chain ids for AEUR and Bitswift have changed to 3
+and 4 respectively.
+
+The child chain transaction types that affect only global platform entities and
+do not involve pricing or transfer of value are now allowed only on the IGNIS
+child chain. Such transactions currently are: asset issuance, setting account
+info, setting account properties, asset share increase, setting asset control,
+setting account control.
+
+All fees have been reviewed and updated. Most fees have been decreased
+significantly, with the default Ardor chain fee set to 1 ARDR, and the default
+child chain fee to 0.01 ARDR.
+
+Node JS module bugfixes.
+
+Updated Lucene to version 7.1.0.
+
+As this release requires a full reset of testnet, the nxt_test_db and the lib
+folders must be deleted before installation.
+
+
+--------------------------------------------------------------------------------
+ardor-client-2.0.6e:
+
+This is a feature-freeze release for the Ardor testnet. No more API changes or
+feature additions are planned before launch, only bug fixes.
+
+The source code is now included in the package, for a public review, under a
+temporary evaluation license only.
+
+Added getExecutedTransactions API. This new API accepts parameters: "chain",
+"height", "numberOfConfirmations", "type", "subtype", "sender", "recipient",
+"firstIndex", "lastIndex", and returns the transactions from the specified
+chain executed at this height, or executed with at least that many number of
+confirmations.
+Both non-phased and phased transactions are returned. For phased transactions,
+only those approved and executed at the specified height, or approved with at
+least that many confirmations of the final approval transaction, are returned.
+If height is specified, sender or recipient parameters are optional, otherwise
+at least one of them is required.
+
+Fixed UI bugs - base target calculation, missing asset control setup, asset
+control local signing, calculation of deadline when doing manual transaction
+bundling.
+
+
+--------------------------------------------------------------------------------
+ardor-client-2.0.5e:
+
+This release is a mandatory update for all Ardor testnet nodes. It will perform
+a rescan on first start.
+
+Client UI improvements for the new asset control, composite phasing, and asset
+increase features.
+
+The default transaction deadline has been reduced to 15 min instead of 24 h.
+
+Mobile app now connects to ardor.jelurida.com by default.
+
+Use ARDOR as default account prefix. Using NXT or any other prefix continues to
+be supported for logging in.
+
+Allow whitelisting of specific bundler accounts using the property
+nxt.bestBundlerRateWhitelist. If set, only bundler rates announced by the
+whitelisted accounts will be used.
+
+Fixed bugs in peer networking, parsing genesis block json, by-property voting.
+
+
+--------------------------------------------------------------------------------
+ardor-client-2.0.4e:
+
+This Ardor platform release introduces several important new features.
+It is for testnet only, and involves a reset of the existing testnet and
+starting from a new Genesis block.
+
+
+Major new features:
+
+- Asset Control.
+
+Similar to Account Control which once set requires all transactions of an
+account to be subject to approval (i.e. to use phasing), the new Asset Control
+feature allows imposing such restriction to all transactions involving a given
+asset - such as placing bid and ask orders, transfers, share deletions, and
+dividend payments that use the asset as a dividend.
+This feature enables for example a private company to issue its shares on the
+Ardor blockchain, yet to impose control over who can purchase or sell them, for
+example requiring asset transactions to be approved by its board of directors,
+or a shareholder voting.
+It also allows asset issuers to be KYC compliant, by only allowing verified
+accounts to transact with their assets.
+
+- Composite Phasing
+
+The Composite Phasing ("Smart Phasing") is a very powerful new feature that
+allows approval models for conditional transactions to be defined in terms of a
+Boolean combination of other approval models, i.e. allows joining the current
+primitive approval models such as by whitelist, by asset balance, by hash, etc,
+using the AND, OR, and NOT operators.
+This allows the new Asset Control feature to be used in combination with the
+Account Control feature when required, the transaction execution being made
+conditional on satisfying both the Asset Control and Account Control settings.
+It also allows for example combining the existing by hash or by transaction
+approval models with by whitelist, by balance, etc, approvals, which enables
+doing atomic coupling of transactions (including cross-blockchain) even for
+multisignature accounts (i.e. subject to Account Control), or with assets
+subject to Asset Control.
+The NOT operator allows for dead-man-switch type conditions, where a
+transaction is executed only if some condition (e.g. revealing a secret) is not
+satisfied.
+
+- By-Property phasing
+
+The new by-property approval model allows the transaction execution to be made
+conditional on the sender account or the recipient account having a specific
+account property set. If this property is set, the transaction will be executed
+immediately, else, a second check whether the property is set is performed at
+the finish height defined. This allows for example enforcing KYC by asset
+issuers, who can define in their Asset Control settings that only KYC-verified
+accounts, labelled with a predefined account property by a trusted authority
+(or the asset issuer itself), to perform transactions with their assets.
+
+- Asset share increase
+
+A new transaction type has been added, allowing the asset issuer to increase
+the total number of asset shares in existence. The new shares are allocated to
+the asset issuer account, but can be then distributed to shareholders using
+a separate dividend payment transaction. This allows corporate actions such as
+capital increases or stock splits to be performed.
+
+
+Imports from Nxt blockchain:
+
+To test the snapshot process planned for the production Ardor release, this
+testnet release is based on a Genesis block created from a snapshot of the
+production Nxt blockchain as of block height 1558030. The following records
+have been imported:
+
+- Accounts public keys
+
+- Account balances. ARDOR chain balances are based on ARDR asset balances, and
+IGNIS chain balances are based on NXT balances divided by 2, plus JLRDA asset
+balances. Each of those has been additionally divided by 2, in order to
+allocate 50% of the testnet coins to developer accounts for testing purposes.
+BITSWIFT chain balances are based on Bitswift asset balances, plus a 10%
+airdrop distributed proportionately to all IGNIS holders.
+
+- Account info (name and description)
+
+- Account properties
+
+- Account control settings, but only for account control by whitelist with no
+minimum balance. Other types of account control will not be imported.
+
+- Account aliases have been imported to the IGNIS child chain.
+
+- Assets. Only the Janus, JanusXT, and ComJNSXT assets have been imported, with
+their asset ids preserved.
+
+- Monetary system currencies have been imported to the IGNIS child chain, but
+only the currency code and name, in order to reserve those. It would be up to
+each currency issuer to re-issue the currency with the appropriate properties
+and re-distribute it to users.
+
+
+Modified APIs:
+
+GetAssetDeletes has been replaced with GetAssetHistory, with "deletesOnly", and
+"increasesOnly" optional parameters to retrieve only share delete or share
+increase history events.
+
+ApproveTransaction now takes multivalued revealedSecret parameter, to allow
+revealing multiple secrets for transactions using composite phasing.
+
+SetPhasingOnlyControl now optionally also accepts the account control phasing
+parameters in a JSON format, as a single "controlPhasing" parameter.
+
+All CreateTransaction API now optionally also accept the transaction phasing
+parameters in a JSON format as "phasingParams" and "phasingSubPolls" parameters.
+
+For by-property phasing, the following new parameters have been added:
+"phasingSenderPropertySetter", "phasingSenderPropertyName",
+"phasingSenderPropertyValue", "phasingRecipientPropertySetter",
+"phasingRecipientPropertyName", "phasingRecipientPropertyValue".
+
+For composite phasing, the boolean expression can be supplied in Disjunctive
+Normal Form as "phasingExpression" parameter, with no parentheses, variables
+in format [a-zA-Z][a-zA-Z0-9]* and operators "&" (AND), "|" (OR), "!" (NOT).
+
+For each variable appearing in the boolean expression, the phasing parameters
+of its sub-poll can be specified as separate parameter with prefix
+"phasing<variable name>", or as JSON in the "phasingSubPolls" parameter.
+
+
+New APIs:
+
+IncreaseAssetShares - create new asset shares. Only the asset issuer can submit
+a share increase transaction.
+
+EvaluateExpression - evaluates a Boolean expression, for use in composite
+phasing.
+
+ParsePhasingParams - converts phasing parameters, submitted as HTTP request
+parameters, to a JSON format.
+
+GetPhasingAssetControl - returns the phasing control for a given asset, if set.
+
+SetPhasingAssetControl - set or unset phasing control for an asset. Only the
+asset issuer can change asset control settings. If an asset is not under asset
+control, a new asset control can only be set if all shares are currently owned
+by the asset issuer.
+
+
+Ported various bugfixes and improvements from Nxt up to version 1.11.9.
+
+Updated jetty to version 9.3.22, bouncycastle to 1.58, and the izpack installer
+to version 5.1.2.
+
+Since this release requires a full reset of testnet starting from a new Genesis
+block, if upgrading from 2.0.3e or earlier, in addition to the lib folder the
+nxt_test_db folder must also be deleted. The import of snapshot balances on
+first start may take a few minutes and should not be interrupted.
+
+The testnet Genesis block timestamp has been set to 00:00 (midnight) UTC time
+on Monday, Nov 6th, in order to allow time for users to setup nodes check their
+balances, and start forging.
+Block generation will commence automatically once that time has been reached,
+and only then it will become possible to create and send new transactions.
+
+
+--------------------------------------------------------------------------------
+ardor-client-2.0.3e:
+
+Minor unconfirmed transaction processing improvements.
+
+Coin Exchange UI improvements and bugfixes.
+
+Updated jetty to version 9.3.17.
+
+
+--------------------------------------------------------------------------------
+ardor-client-2.0.2e:
+
+This release introduces an incompatible networking change in bundler rates
+propagation and is therefore a mandatory update for all Ardor testnet nodes.
+
+Improvements in bundler rates handling and APIs:
+
+The GetBundlerRates API now also returns the bundler account and the remaining
+fee limit for each bundler as currentFeeLimitFQT.
+
+The new GetAllBundlerRates API returns all bundler rates known to the node, for
+all child chains, subject to optional minBundlerBalanceFXT limit on the bundler
+effective Ardor balance.
+
+The new BlacklistBundler API allows manual blacklisting of bundler accounts.
+Rates advertised by such accounts will not be added to the local list of known
+rates each node maintains. Blacklisting of bundler accounts is also possible
+using the new nxt.blacklistedBundlerAccounts property.
+
+Bundler rates are now broadcasted every 30 min instead of once an hour.
+
+The new nxt.minBundlerFeeLimitFXT property allows skipping bundler rates that
+are announced by bundlers with lower remaining current fee limit, default 10
+Ardor.
+
+Added peer authentication and encryption framework for the peer networking, to
+be used for permissioned blockchains.
+
+Added Bundle action for child chain transactions in the UI. Added visual
+representation of transaction bundling and confirmation status.
+
+Client UI and peer networking bugfixes and improvements.
+
+Updated H2 to version 1.4.194.
+
+
+--------------------------------------------------------------------------------
+ardor-client-2.0.1e:
+
+This is a bugfix release, for testnet only.
+
+Added Node JS module, see html/www/js/README.
+
+Multiple bugs fixed and improvements added in client UI, peer networking,
+blockchain download.
+
+Removed obsolete news page, added About modal.
+
+This release will force a rescan, deleting blocks after height 11619.
+
+
+--------------------------------------------------------------------------------
+ardor-client-2.0.0e:
+
+This is the first release of the Ardor software, for testnet only. It represents
+the first milestone in the building of the Ardor platform.
+
+
+== New Features ==
+
+The main new user-visible feature is the existence of a single forging chain,
+using the ARDR token, and multiple child chains, each with its own token.
+
+
+== Forging Chain ==
+
+The Ardor chain is used to establish the proof-of-stake consensus, using ARDR
+balances only. It supports only a few transaction types: ordinary payments,
+balance leasing, and coin exchange. Prunable plain or encrypted message
+attachments are also supported, but not permanent or standalone arbitrary
+message transactions.
+
+
+== Child Chains ==
+
+The child chains support all transaction types as previously implemented on the
+Nxt platform, with the exception of balance leasing which is only available on
+the Ardor chain, and tagged data extend transaction which has been removed as
+unnecessary. A child chain can optionally be configured to disable certain
+transaction types, which has been done for testing purposes on the EUR child
+chain, disabling the Asset Exchange and Digital Marketplace.
+
+
+== Coin Exchange ==
+
+To allow trading of child chain coins to each other, and also between child
+chains and the Ardor chain, a new Coin Exchange module has been implemented.
+
+For trading between child chain coins, the coin exchange transactions are
+submitted on the child chain of the coin being sold. For trading between a child
+chain coin and Ardor, the transaction is submitted on the Ardor chain regardless
+of whether it is a buy or sell, and the fees for such transactions are higher.
+
+
+== Bundling ==
+
+The bundling process is used to group child chain transactions from a child
+chain into a transaction on the Ardor chain. Bundlers accept the fees from
+those child chain transactions, in the corresponding child chain coin, and
+pay fees in ARDR to the parent chain forgers. Bundlers can be started from
+the cogwheel/bundlers menu, defining the coin to ARDR exchange rate they accept,
+a limit on the total fees in ARDR a bundler will pay, and an optional overpay
+amount.
+
+When a bundler is running, it checks the unconfirmed transactions pool every
+time a new transaction from the child chain being bundled arrives. If the
+transaction fee included by the transaction sender, in child chain coins, when
+converted to Ardor using the exchange rate accepted by the bundler is at least
+equal to the minimum Ardor fee required for this transaction, the bundler will
+generate a ChildBlock transaction, including in it this and all other currently
+unconfirmed child chain transactions satisfying this requirement. The Ardor fee
+the bundler will include for the ChildBlock transaction is equal to the sum of
+the minimum required Ardor fees for each, plus the calculated overpay amount, if
+any. Such overpay amount is optional, and may be used by bundlers willing to pay
+more in order to have their transactions included in block instead of those of
+competing bundlers.
+The new ChildBlock transaction will displace from the unconfirmed pool any
+ChildBlock transactions of the same child chain that include only a subset of
+the same child transactions.
+When propagating through the network, ChildBlock transactions will only be
+accepted by peers if they either include child transactions not already included
+in other ChildBlock transactions the peer already has in its pool, or offer to
+pay a higher fee for the same transactions. This ensures the network is not
+flooded with ChildBlock transactions even if every node is running a bundler,
+and allows bundlers to compete for propagating their transactions through the
+network by offering to pay higher fees.
+
+It is now possible for child transactions to be submitted with zero fees, in
+child chain coins. If a bundler is willing to pay the Ardor fees for those,
+they will be included in the blockchain in the ChildBlock created by such
+bundler.
+
+To prevent the unconfirmed pool from being overfilled with such zero-fees child
+chain transactions, once the maxUnconfirmedTransactions limit (configured in
+nxt.properties, default 2000) has been exceeded, child chain transactions will
+be dropped unless a bundler has already submitted a ChildBlock transaction which
+includes them.
+
+Bundlers advertise their accepted bundling rates to other peers, signing such
+rates announcements with the private key of the bundler's account. To prevent
+fake rates announcements, they can be filtered based on this account effective
+balance (default set in nxt.minBundlerBalanceFXT is 1000 ARDR).
+The GetBundlerRates API can be used to retrieve known bundlers rates, again
+with optional filtering by minimum bundler effective balance.
+
+
+== Peer Networking ==
+
+The peer networking has been fully re-written and optimized to use socket
+connections and binary messages instead of http and JSON.
+
+Block and transaction propagation through the network has been optimized, by
+sharing with peers the inventory of transaction IDs in the unconfirmed pool or
+in recent blocks, and only propagating the missing ones, if any, when a new
+block is generated, or a child block is bundled.
+
+The hallmark feature has been removed as it is not needed anymore, hallmarks are
+no longer supported.
+
+
+== New APIs ==
+
+APIs of the new Coin Exchange feature:
+ExchangeCoins, CancelCoinExchange, GetCoinExchangeOrder, GetCoinExchangeOrders,
+GetCoinExchangeOrderIds, GetCoinExchangeTrade, GetCoinExchangeTrades,
+GetExpectedCoinExchangeOrderCancellations, GetExpectedCoinExchangeOrders,
+GetLastCoinExchangeTrade.
+
+Bundling related APIs:
+BundleTransactions, GetBundlers, GetBundlerRates, StartBundler, StopBundler.
+
+Other new APIs:
+GetBalances, GetEffectiveBalance, GetFxtTransaction.
+
+
+== API changes ==
+
+All APIs that are now chain specific accept a new chain parameter. Either the
+chain name or the chain ID can be used.
+
+Transaction IDs are no longer 64-bit longs but 256-bit hashes, necessitating
+changes in all APIs that accept transaction ID parameters or return such in the
+JSON fields. For transactions on the Ardor chain, 64-bit long IDs can still be
+used with the getFxtTransaction API, as those are enforced to be unique. For
+child chain transactions, the getTransaction API now requires a fullHash
+parameter, in addition to specifying the chain.
+
+Prices and rates are now defined relative to a whole unit of the holding being
+bought or sold (asset, currency, coin), not to a QNT indivisible unit.
+
+All priceNQT and rateNQT parameters and JSON fields have been renamed where
+appropriate to priceNQTPerCoin, priceNQTPerShare, rateNQTPerUnit, etc., to
+reflect their changed meaning of price per whole unit of each holding rather
+than per QNT.
+
+All "units" parameters in the Monetary System APIs have been renamed to
+unitsQNT.
+
+DividendPayment API accepts holding and holdingType parameters to allow paying
+dividends in another asset or MS currency. The amountNQTPerQNT parameter has
+been renamed to amountNQTPerShare and now refers to dividend amount in NQT per
+a whole share of the asset rather than per QNT.
+
+The GetAccount API no longer returns balanceNQT and unconfirmedBalanceNQT, as
+balances are now chain specific. The GetBalance API should be used to get chain
+balances instead, or GetBalances for querying multiple chains.
+
+APIs which accept holding and holdingType parameters now require holding to be
+set to the chain ID when holdingType=0 (coin).
+
+Since 0 is now a valid fee value for child chains, all CreateTransaction APIs
+will accept it, instead of using it as a request for the server to calculate
+and use the minimum fee. To let the server calculate the child transaction fee,
+a value of feeNQT=-1 should be used, and a new feeRateNQTPerFXT parameter must
+be supplied, to indicate the exchange rate to use when calculating the fee
+(since minimum fees can only be calculated in ARDR). If feeRateNQTPerFXT is
+also set to -1, the server will query the currently known bundlers rates for
+this child chain, also subject to the minBundlerBalanceFXT limit on effective
+bundler account balance, and use the best one for the fee calculation. As
+bundlers rates cannot be trusted blindly, the transaction will not be
+broadcasted in this case, the returned transaction JSON including the fees
+calculated should be reviewed by the user. The bundler rate used will be
+returned in the bundlerRateNQTPerFXT JSON field, -1 if no bundlers are known for
+the chain.
+
+The following APIs have been removed: ExtendTaggedData, GetPhasingPolls,
+GetTaggedDataExtendTransactions, GetInboundPeers, MarkHost, DecodeHallmark.
+
+
+== Transaction types and bytes format ==
+
+The numbering of some transaction types has changed, due to the internal
+reorganizations of the TransactionType classes. Transaction types on the Ardor
+chain use negative numbers, e.g. -1 for ChildChainBlock, -2 for Ardor ordinary
+payment. Some transaction subtypes have been moved to a separate type, e.g.
+voting and phasing related transactions have been moved out of Messaging to a
+new Voting transaction type. The output of getConstants should be consulted for
+a full list of the current transaction types and subtypes.
+
+The transaction bytes format has also changed, adding a chain ID, reorganizing
+the ordering of attachment and appendix bytes, and allowing prunable attachment
+parts to also optionally be represented in the bytes format, for the purpose of
+sending them more efficiently over the peer to peer network.
+
+The JSON transaction representation is still supported, even though it is no
+longer used in the peer networking. Some attachment fields have been renamed
+for consistency with the API changes - units to unitsQNT, priceNQT to
+priceNQTPerShare, rateNQT to rateNQTPerUnit, amountNQT for dividend payments to
+amountNQTPerShare, etc.
+
+
+== Entity IDs ==
+
+As part of designing child chain transactions to be prunable, it is no longer
+possible to enforce uniqueness of the 64-bit transaction IDs for child chains.
+This affects the IDs of derived entities such as Assets, MS Currencies, Polls,
+Digital Goods, Shufflings, etc.
+
+For global derived entities such as Assets or Currencies, the 64-bit long IDs
+are still unique and used in the corresponding APIs. Note however that this
+uniqueness is now only within the same object type, i.e. it is not guaranteed
+that an Asset and a Currency will not happen to have the same 64-bit long ID.
+
+For child chain local entities, such as Polls and Digital Goods, the 64-bit IDs
+are still unique, but within the same child chain only, and still used in their
+APIs. Again, there is no uniqueness guarantee across different entity types
+anymore.
+
+For entities that are prunable, such as prunable messages, tagged data, and
+shufflings, the full 256-bit hash must be used as an ID now, and the appropriate
+APIs have been changed.
+
+
+== Phasing and Account control ==
+
+Only child chain transactions can be phased. Therefore, when account control
+is set for an account, it can no longer submit Ardor chain transactions.
+Phasing parameters which refer to transaction IDs must now use transaction
+full hashes instead, prefixed with the chain ID separated with ':'.
+It is possible to refer to transactions on other chains when approving a phased
+transaction, or setting up a by-transaction phasing voting model.
+The controlMaxFees parameter when setting mandatory approval now accepts
+multiple values, each fee being prefixed with the child chain ID and ':', to
+indicate which child chain the limit applies to. If no max fee has been set for
+a child chain, there is no phasing transactions fees total limit on it for the
+controlled account.
+
+
+== Transaction selection, sorting, limits and fees ==
+
+An Ardor chain block can contain up to 10 (ten) transactions, this including
+both native Ardor transactions and ChildBlock transactions. There is no total
+payload size limit.
+
+A ChildBlock can contain up to 100 (one hundred) child transactions, subject
+to a total payload limit of 128 kbytes. Prunable child transaction parts are
+also counted towards the payload size limit.
+
+There is a limit of one ChildBlock per Ardor block for each child chain.
+
+As in Nxt, it is up to a block forger which transactions to include in a block
+and how to sort them. The default forger behaviour is to select transactions
+ordered by Ardor fee (not fee per byte as in Nxt, since there is no block
+payload limit), and then sort them based on arrival timestamp.
+
+It is also up to the ChildBlock bundler which child transactions to include in
+a ChildBlock, and this selection can be customized by defining a custom filter
+in the nxt.bundlingFilter property. The default bundler behaviour is to select
+child transactions ordered by fee per byte, up to the count and payload limits
+of a child block, creating several child blocks if necessary. Within a child
+block, child transactions are sorted based on their full hash, but executed
+based on sorting them after adding the block hash to the child transaction hash,
+i.e. the execution order of child transactions within a block is deterministic
+but not predictable and not controllable by the bundler or by the forger. This
+is in order to prevent front-running of asset exchange and other trading orders.
+
+Ardor fees from ChildBlock transactions paid to the block forger are shared with
+the previous three block forgers in 1:1:1:1 ratio. Other Ardor chain fees are
+fully kept by the block forger, and child block transaction fees (in child chain
+coins) are fully kept by the ChildBlock bundler.
+
+The back fees sharing which was applied in Nxt for some other transactions types
+such as currency or asset issuance has been removed, however the limitations of
+one such transaction per block for scarce blockchain resources are preserved.
+
+Default fee for Ardor chain transactions is 10 ARDR. Default fee for child chain
+transactions is 0.1 ARDR. A ChildBlock must contain at least one child chain
+transaction, but there is no minimum ChildBlock fee requirement, i.e. such a
+ChildBlock with a single transaction in it would require only 0.1 ARDR fee if
+this is the minimum fee for the child transaction it contains.
+
+Fees for child chain transaction types have been scaled depending on their
+impact on the blockchain, e.g. asset issuance fees are still 1000 ARDR as assets
+are global and kept permanently. There is a 1 ARDR extra fee added to
+transactions that create a new account.
+
+The above fees and limits are set for the current testnet only and are subject
+to change before the production mainnet release.
+
+
+== Testnet accounts ==
+
+The testnet genesis block has been created based on account balances from the
+Nxt testnet, as of 2017/01/01 (block height 1061208). Users who had testnet
+accounts as of that height should find their ARDR and NXT testnet balances
+imported into this testnet, to ARDR and IGNIS tokens respectively, plus an
+approximately equivalent amount of BTC, USD, and EUR child chain coins for
+testing. To allow for developers testing and running forging and bundling nodes,
+account holdings have been reduced by 50% which have been allocated to
+developers accounts.
+
+
+== Upgrading from Nxt ==
+
+The Ardor release is not an upgrade and does not in any way affect your existing
+Nxt account or client installation. Both Ardor and Nxt should be possible to run
+simultaneously on the same machine, as long as the hardware capacity allows it.
+
+The included ArdorNxtComparison.pdf document summarizes the major differences
+between the Nxt and Ardor platforms, for those deciding which one is a better
+fit for their use case, or considering a migration from Nxt to Ardor. More
+documentation should be added as Ardor development and features mature and
+stabilize.
+
+
+--------------------------------------------------------------------------------

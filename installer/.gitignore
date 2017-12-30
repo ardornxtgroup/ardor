@@ -1,0 +1,4 @@
+*.log
+installer.iml
+/.idea/
+/panels/classes/

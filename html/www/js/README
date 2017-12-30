@@ -1,0 +1,26 @@
+Sample Ardor APIs for Node JS
+=============================
+
+The Node JS module performs local signing and encryption using the same code used by the official Ardor wallet.<br>
+
+Therefore:<br>
+Your passphrase is never sent to the remote node when submitting a transaction.<br>
+Transaction bytes returned by the remote node are parsed and validated against the submitted data.<br>
+Encryption is done locally.<br>
+<br>
+To use the Node JS module:<br>
+- Install the Ardor software (no need to download the blockchain)<br>
+- Install Node JS and NPM from https://nodejs.org/en/<br>
+- From the command prompt type:<br>
+npm install <ArdorRoot>/html/www/js<br>
+cd node_modules/ardor-blockchain/sample<br>
+- Configure the remote node, NXT account and default chain by editing the config.json file<br>
+- Run the samples using Node JS, for example:<br>
+node send.money.js<br>
+
+Once installed, the ardor-blockchain package no longer depends on a local Ardor node.<br>
+At this time we do not recommend publishing the package to a public NPM repository since there is no way to validate the authenticity of such downloaded package.<br>
+
+Warning:<br>
+Your passphrase is sent to the remote node only when invoking the /startForging API or other specific APIs which require sending the passphrase to the remote node.<br>
+We recommend that you do not use these APIs in your Node JS code.<br>

@@ -1,0 +1,443 @@
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ~ Copyright © 2013-2016 The Nxt Core Developers.                            ~
+  ~ Copyright © 2016-2017 Jelurida IP B.V.                                    ~
+  ~                                                                           ~
+  ~ See the LICENSE.txt file at the top-level directory of this distribution  ~
+  ~ for licensing information.                                                ~
+  ~                                                                           ~
+  ~ Unless otherwise agreed in a custom licensing agreement with Jelurida B.V.,
+  ~ no part of this software, including this file, may be copied, modified,   ~
+  ~ propagated, or distributed except according to the terms contained in the ~
+  ~ LICENSE.txt file.                                                         ~
+  ~                                                                           ~
+  ~ Removal or modification of this copyright notice is prohibited.           ~
+  ~                                                                           ~
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+
+<div class="modal fade" id="add_approval_model_modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" data-i18n="add_approval_model">Add Approval Model</h4>
+            </div>
+            <div class="modal-body">
+                <form role="form" autocomplete="off">
+                    <div class="callout callout-danger error_message" style="display:none"></div>
+                    <div class="form-group">
+                        <label for="add_approval_model_name" data-i18n="name">NAME</label>
+                        <input type="text" class="form-control" name="name" id="add_approval_model_name" placeholder="NAME" data-i18n="[placeholder]name" tabindex="1" />
+                    </div>
+                    <div class="form-group">
+                        <label for="add_approval_model_description" data-i18n="description">DESCRIPTION</label>
+                        <textarea class="form-control" name="description" id="add_approval_model_description" rows="3" tabindex="2"></textarea>
+                    </div>
+                    <div class="approve_modal" role="tabpanel" id="approval_model_modal">
+                        <!-- Nav tabs -->
+                        <ul class="nav nav-tabs approve_tab_list" role="tablist">
+                            <li role="presentation">
+                                <a href="#approve_tab_phased_no_approval" aria-controls="approve_tab_phased_no_approval" class="at_no_approval" role="tab" data-toggle="tab">
+                                    <span class="label label-warning">
+                                        <i class="ion-load-a"></i>
+                                    </span>
+                                </a>
+                            </li>
+                            <li role="presentation">
+                                <a href="#approve_tab_accounts" aria-controls="approve_tab_accounts" class="at_accounts" role="tab" data-toggle="tab">
+                                    <span class="label label-warning">
+                                        <i class="fa fa-group"></i>
+                                    </span>
+                                </a>
+                            </li>
+                            <li role="presentation">
+                                <a href="#approve_tab_balance" aria-controls="approve_tab_balance" class="at_balance" role="tab" data-toggle="tab">
+                                    <span class="label label-warning">
+                                        <i class="fa fa-money"></i>
+                                    </span>
+                                </a>
+                            </li>
+                            <li role="presentation">
+                                <a href="#approve_tab_asset_holders" aria-controls="approve_tab_asset_holders" class="at_asset_holders" role="tab" data-toggle="tab">
+                                    <span class="label label-warning">
+                                        <i class="fa fa-signal"></i>
+                                    </span>
+                                </a>
+                            </li>
+                            <li role="presentation">
+                                <a href="#approve_tab_currency_holders" aria-controls="approve_tab_currency_holders" class="at_currency_holders" role="tab" data-toggle="tab">
+                                    <span class="label label-warning">
+                                        <i class="fa fa-bank"></i>
+                                    </span>
+                                </a>
+                            </li>
+                            <li role="presentation">
+                                <a href="#approve_tab_account_property" aria-controls="approve_tab_account_property" role="tab" data-toggle="tab">
+                                    <span class="label label-warning">
+                                        <i class="fa fa-address-card"></i>
+                                    </span>
+                                </a>
+                            </li>
+                            <li role="presentation">
+                                <a href="#approve_tab_transaction" aria-controls="approve_tab_transaction" class="at_transaction" role="tab" data-toggle="tab">
+                                    <span class="label label-warning">
+                                        <i class="fa fa-thumbs-up"></i>
+                                    </span>
+                                </a>
+                            </li>
+                            <li role="presentation">
+                                <a href="#approve_tab_hash" aria-controls="approve_tab_hash" class="at_hash" role="tab" data-toggle="tab">
+                                    <span class="label label-warning">
+                                        <i class="fa fa-question"></i>
+                                    </span>
+                                </a>
+                            </li>
+                            <li role="presentation">
+                                <a href="#approve_tab_composite" aria-controls="approve_tab_composite" class="at_composite" role="tab" data-toggle="tab">
+                                    <span class="label label-warning">
+                                        <i class="fa fa-cubes"></i>
+                                    </span>
+                                </a>
+                            </li>
+                        </ul>
+
+                        <!-- Tab panes -->
+                        <div class="tab-content">
+                            <div role="tabpanel" class="tab-pane tab_pane_approve" id="approve_tab_phased_no_approval">
+                                <div class="form-group">
+                                    <span data-i18n="approve_modal_phased_no_approval_tab_help"></span>
+                                </div>
+                                <input type="hidden" name="phasingVotingModel" value="-1" disabled />
+                                <input type="hidden" name="phasingQuorum" value="0" disabled />
+                                <input type="hidden" name="phasingMinBalanceModel" value="0" disabled />
+                            </div>
+
+                            <div role="tabpanel" class="tab-pane tab_pane_approve" id="approve_tab_accounts">
+                                <div class="form-group">
+                                    <span data-i18n="approve_modal_by_account_tab_help"></span>
+                                </div>
+                                <div class="row">
+                                    <div class="col-xs-6">
+                                        <div class="form-group phasing_number_accounts_group">
+                                            <label data-i18n="approve_number_accounts">Number Accounts</label>
+                                            <i class="fa fa-question-circle modal-context-help" data-content="" data-toggle="popover" data-trigger="hover" data-i18n="[data-content]approve_transaction_amount_help"></i>
+                                            <input name="phasingQuorum" type="number" min="1" class="form-control" disabled />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group add_approval_whitelist_group" data-modal-ui-element="multi_accounts_modal_ui_element"></div>
+                                <div class="row">
+                                    <div class="col-xs-6">
+                                        <div class="form-group approve_min_balance_model_group approve_mb_accounts" data-modal-ui-element="min_balance_model_modal_ui_element"></div>
+                                    </div>
+                                    <div class="col-xs-6">
+                                        <div class="form-group approve_mb_model_1 approve_min_balance_nxt" data-modal-ui-element="simple_input_with_addon_modal_ui_element"></div>
+                                        <div class="form-group approve_mb_model_2 approve_min_balance_asset_quantity" data-modal-ui-element="simple_input_with_addon_modal_ui_element"></div>
+                                        <div class="form-group approve_mb_model_3 approve_min_balance_currency_units" data-modal-ui-element="simple_input_with_addon_modal_ui_element"></div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-xs-12">
+                                        <div class="form-group approve_holding_asset_optional approve_mb_model_2" data-modal-ui-element="add_asset_modal_ui_element"></div>
+                                        <div class="form-group approve_holding_currency_optional approve_mb_model_3" data-modal-ui-element="add_currency_modal_ui_element"></div>
+                                    </div>
+                                </div>
+                                <input type="hidden" name="phasingVotingModel" value="0" disabled />
+                            </div>
+
+                            <div role="tabpanel" class="tab-pane tab_pane_approve" id="approve_tab_balance">
+                                <div class="form-group">
+                                    <span data-i18n="approve_modal_by_balance_tab_help"></span>
+                                </div>
+                                <div class="row">
+                                    <div class="col-xs-6">
+                                        <div class="form-group approve_transaction_amount_nxt" data-modal-ui-element="simple_input_with_addon_modal_ui_element"></div>
+                                    </div>
+                                </div>
+                                <div class="form-group add_approval_whitelist_group" data-modal-ui-element="multi_accounts_modal_ui_element"></div>
+                                <div class="row">
+                                    <div class="col-xs-6">
+                                        <div class="form-group approve_min_balance_model_group approve_mb_balance" data-modal-ui-element="min_balance_model_modal_ui_element"></div>
+                                    </div>
+                                    <div class="col-xs-6">
+                                        <div class="form-group approve_mb_model_1 approve_min_balance_nxt" data-modal-ui-element="simple_input_with_addon_modal_ui_element"></div>
+                                    </div>
+                                </div>
+                                <input type="hidden" name="phasingVotingModel" value="1" disabled />
+                            </div>
+
+                            <div role="tabpanel" class="tab-pane tab_pane_approve" id="approve_tab_asset_holders">
+                                <div class="form-group">
+                                    <span data-i18n="approve_modal_by_asset_tab_help"></span>
+                                </div>
+                                <div class="row">
+                                    <div class="col-xs-6">
+                                        <div class="form-group approve_transaction_asset_quantity" data-modal-ui-element="simple_input_with_addon_modal_ui_element"></div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-xs-12">
+                                        <div class="form-group approve_holding_asset" data-modal-ui-element="add_asset_modal_ui_element"></div>
+                                    </div>
+                                </div>
+                                <div class="form-group add_approval_whitelist_group" data-modal-ui-element="multi_accounts_modal_ui_element"></div>
+                                <div class="row">
+                                    <div class="col-xs-6">
+                                        <div class="form-group approve_min_balance_model_group approve_mb_asset" data-modal-ui-element="min_balance_model_modal_ui_element"></div>
+                                    </div>
+                                    <div class="col-xs-6">
+                                        <div class="form-group approve_mb_model_2 approve_min_balance_asset_quantity" data-modal-ui-element="simple_input_with_addon_modal_ui_element"></div>
+                                    </div>
+                                </div>
+                                <input type="hidden" name="phasingVotingModel" value="2" disabled />
+                            </div>
+
+                            <div role="tabpanel" class="tab-pane tab_pane_approve" id="approve_tab_currency_holders">
+                                <div class="form-group">
+                                    <span data-i18n="approve_modal_by_currency_tab_help"></span>
+                                </div>
+                                <div class="row">
+                                    <div class="col-xs-6">
+                                        <div class="form-group approve_transaction_currency_units" data-modal-ui-element="simple_input_with_addon_modal_ui_element"></div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-xs-12">
+                                        <div class="form-group approve_holding_currency" data-modal-ui-element="add_currency_modal_ui_element"></div>
+                                    </div>
+                                </div>
+                                <div class="form-group add_approval_whitelist_group" data-modal-ui-element="multi_accounts_modal_ui_element"></div>
+                                <div class="row">
+                                    <div class="col-xs-6">
+                                        <div class="form-group approve_min_balance_model_group approve_mb_currency" data-modal-ui-element="min_balance_model_modal_ui_element"></div>
+                                    </div>
+                                    <div class="col-xs-6">
+                                        <div class="form-group approve_mb_model_3 approve_min_balance_currency_units" data-modal-ui-element="simple_input_with_addon_modal_ui_element"></div>
+                                    </div>
+                                </div>
+                                <input type="hidden" name="phasingVotingModel" value="3" disabled />
+                            </div>
+
+                            <div role="tabpanel" class="tab-pane tab_pane_approve" id="approve_tab_account_property">
+                                <div class="form-group">
+                                    <span data-i18n="approve_modal_by_property_tab_help"></span>
+                                </div>
+                                <div class="row">
+                                    <div class="col-xs-6">
+                                        <div class="form-group">
+                                            <label for="approved_by_sender_property_setter" data-i18n="approved_by_sender_property_setter">Sender Property Setter</label>
+                                            <i class="fa fa-question-circle modal-context-help" data-content="" data-toggle="popover" data-trigger="hover" data-i18n="[data-content]approve_transaction_sender_property_help"></i>
+                                            <input name="phasingSenderPropertySetter" id="approved_by_sender_property_setter" type="text" class="form-control account_id_mask"
+                                                   placeholder="Account ID" data-i18n="[placeholder]account_id" />
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-6">
+                                        <div class="form-group">
+                                            <label for="approved_by_recipient_property_setter" data-i18n="approved_by_recipient_property_setter">Recipient Property Setter</label>
+                                            <i class="fa fa-question-circle modal-context-help" data-content="" data-toggle="popover" data-trigger="hover" data-i18n="[data-content]approve_transaction_recipient_property_help"></i>
+                                            <input name="phasingRecipientPropertySetter" id="approved_by_recipient_property_setter" type="text" class="form-control account_id_mask"
+                                                   placeholder="Account ID" data-i18n="[placeholder]account_id"/>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-xs-6">
+                                        <div class="form-group">
+                                            <label for="approved_by_sender_property_name" data-i18n="approved_by_sender_property_name">Sender Property Name</label>
+                                            <input name="phasingSenderPropertyName" id="approved_by_sender_property_name" type="text" class="form-control"
+                                                   placeholder="Property" data-i18n="[placeholder]property"/>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-6">
+                                        <div class="form-group">
+                                            <label for="approved_by_recipient_property_name" data-i18n="approved_by_recipient_property_name">Recipient Property Name</label>
+                                            <input name="phasingRecipientPropertyName" id="approved_by_recipient_property_name" type="text" class="form-control"
+                                                   placeholder="Property" data-i18n="[placeholder]property"/>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-xs-6">
+                                        <div class="form-group">
+                                            <label for="approved_by_sender_property_value" data-i18n="approved_by_sender_property_value">Sender Property Value</label>
+                                            <input name="phasingSenderPropertyValue" id="approved_by_sender_property_value" type="text" class="form-control"
+                                                   placeholder="Value" data-i18n="[placeholder]value"/>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-6">
+                                        <div class="form-group">
+                                            <label for="approved_by_recipient_property_value" data-i18n="approved_by_recipient_property_value">Recipient Property Value</label>
+                                            <input name="phasingRecipientPropertyValue" id="approved_by_recipient_property_value" type="text" class="form-control"
+                                                   placeholder="Value" data-i18n="[placeholder]value"/>
+                                        </div>
+                                    </div>
+                                </div>
+                                <input type="hidden" name="phasingVotingModel" value="7" disabled />
+                                <input type="hidden" name="phasingQuorum" value="1" disabled />
+                            </div>
+
+                            <div role="tabpanel" class="tab-pane tab_pane_approve" id="approve_tab_transaction">
+                                <div class="form-group">
+                                    <span data-i18n="approve_modal_by_transaction_tab_help"></span>
+                                </div>
+                                <div class="form-group">
+                                    <label for="approved_by_transaction_hash" data-i18n="approved_by_transaction_hash">APPROVED BY TRANSACTION HASH</label>
+                                    <input type="text" class="form-control" name="phasingLinkedTransaction" id="approved_by_transaction_hash" placeholder="Approved By Transaction Full Hash" data-i18n="[placeholder]approved_by_transaction_full_hash" spellcheck="false" />
+                                </div>
+                                <input type="hidden" name="phasingVotingModel" value="4" disabled />
+                                <input type="hidden" name="phasingQuorum" value="1" disabled />
+                                <input type="hidden" name="phasingMinBalanceModel" value="0" disabled />
+                            </div>
+
+                            <div role="tabpanel" class="tab-pane tab_pane_approve" id="approve_tab_hash">
+                                <div class="form-group">
+                                    <span data-i18n="approve_modal_by_hash_tab_help"></span>
+                                </div>
+                                <div class="form-group">
+                                    <label for="approved_by_hashed_secret" data-i18n="approved_by_hashed_secret">APPROVED BY HASHED SECRET</label>
+                                    <input type="text" class="form-control" name="phasingHashedSecret" id="approved_by_hashed_secret" placeholder="Hashed Secret" data-i18n="[placeholder]approved_by_hashed_secret_placeholder" spellcheck="false" />
+                                </div>
+                                <div class="row">
+                                    <div class="col-xs-6">
+                                        <div class="form-group hash_algorithm_model_group" data-modal-ui-element="hash_algorithm_model_modal_ui_element"></div>
+                                    </div>
+                                </div>
+                                <input type="hidden" name="phasingVotingModel" value="5" disabled />
+                                <input type="hidden" name="phasingQuorum" value="1" disabled />
+                                <input type="hidden" name="phasingMinBalanceModel" value="0" disabled />
+                            </div>
+
+                            <div role="tabpanel" class="tab-pane tab_pane_approve" id="approve_tab_composite">
+                                <div class="form-group">
+                                    <span data-i18n="approve_modal_by_composite_tab_help"></span>
+                                </div>
+                                <div class="form-group">
+                                    <label for="approved_by_boolean_expression" data-i18n="boolean_expression"></label>
+                                    <input type="text" class="form-control" name="phasingExpression" id="approved_by_boolean_expression" placeholder="Boolean Expression" data-i18n="[placeholder]approved_by_boolean_expression_placeholder" spellcheck="false" />
+                                </div>
+                                <button id="add_approval_model_evaluate_button" type="button" class="btn btn-primary" data-ignore="true" data-loading-text="Evaluating..." data-i18n="evaluate;[placeholder]evaluating">Evaluate</button>
+                                <div id="add_approval_model_variables"></div>
+                                <div class="form-group">
+                                    <label for="approved_by_boolean_expression_evaluation" data-i18n="evaluation"></label>
+                                    <textarea class="form-control" id="approved_by_boolean_expression_evaluation" rows="12" readonly></textarea>
+                                </div>
+                                <input type="hidden" name="phasingVotingModel" value="6" disabled />
+                                <input type="hidden" name="phasingQuorum" value="1" disabled />
+                                <input type="hidden" name="phasingMinBalanceModel" value="0" disabled />
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" name="request_type" value="addApprovalModel" />
+                </form>
+            </div>
+            <div class="modal-footer" style="margin-top:0;">
+                <button type="button" class="btn btn-default" data-dismiss="modal" data-i18n="cancel">Cancel</button>
+                <button type="button" class="btn btn-primary" data-loading-text="Submitting..." data-i18n="submit;[placeholder]submitting">Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="view_approval_model_modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">
+                    <a href='#' class="fa fa-arrow-circle-left back-link"></a>
+                    <span data-i18n="view_approval_model">View Approval Model</span>
+                </h4>
+            </div>
+            <div class="modal-body">
+                <form role="form" autocomplete="off">
+                    <div class="form-group">
+                        <label for="view_approval_model_name" data-i18n="name"></label>
+                        <input type="text" class="form-control" id="view_approval_model_name" readonly/>
+                    </div>
+                    <div class="form-group">
+                        <label for="view_approval_model_content" data-i18n="content"></label>
+                        <textarea class="form-control" id="view_approval_model_content" rows="12" readonly></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer" style="margin-top:0;">
+                <button type="button" class="btn btn-default" data-dismiss="modal" data-i18n="close">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="delete_approval_model_modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" data-i18n="delete_approval_model">Delete Approval Model</h4>
+            </div>
+            <div class="modal-body">
+                <form role="form" autocomplete="off">
+                    <div class="callout callout-danger" data-i18n="delete_approval_model_confirmation">Are you sure you want to delete this approval model?</div>
+                    <div class="form-group">
+                        <label for="delete_approval_model_name" data-i18n="name">NAME</label>
+                        <input type="text" class="form-control" name="name" id="delete_approval_model_name" placeholder="NAME" data-i18n="[placeholder]name" readonly/>
+                    </div>
+                    <input type="hidden" name="request_type" value="deleteApprovalModel"/>
+                </form>
+            </div>
+            <div class="modal-footer" style="margin-top:0;">
+                <button type="button" class="btn btn-default" data-dismiss="modal" data-i18n="cancel">Cancel</button>
+                <button type="button" class="btn btn-primary" data-loading-text="Submitting..." data-i18n="submit;[placeholder]submitting">Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="rename_approval_model_modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" data-i18n="rename_approval_model">Rename Approval Model</h4>
+            </div>
+            <div class="modal-body">
+                <form role="form" autocomplete="off">
+                    <div class="form-group">
+                        <input type="hidden" name="old_name" id="old_approval_model_name"/>
+                        <label for="new_approval_model_name" data-i18n="name">NAME</label>
+                        <input type="text" class="form-control" name="name" id="new_approval_model_name" placeholder="NAME" data-i18n="[placeholder]name"/>
+
+                    </div>
+                    <input type="hidden" name="request_type" value="renameApprovalModel"/>
+                </form>
+            </div>
+            <div class="modal-footer" style="margin-top:0;">
+                <button type="button" class="btn btn-default" data-dismiss="modal" data-i18n="cancel">Cancel</button>
+                <button type="button" class="btn btn-primary" data-loading-text="Submitting..." data-i18n="submit;[placeholder]submitting">Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="import_asset_control_approval_model_modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" data-i18n="import_asset_control_approval_models">Import from Asset Control</h4>
+            </div>
+            <div class="modal-body">
+                <form role="form" autocomplete="off">
+                    <div class="callout callout-danger error_message" style="display:none"></div>
+                    <div class="form-group">
+                        <label for="imported_control_asset_id" data-i18n="asset_id">Asset Id</label>
+                        <input type="text" class="form-control" name="id" id="imported_control_asset_id" placeholder="ID" autofocus tabindex="1" />
+                    </div>
+                    <input type="hidden" name="request_type" value="importAssetControl" />
+                </form>
+            </div>
+            <div class="modal-footer" style="margin-top:0;">
+                <button type="button" class="btn btn-default" data-dismiss="modal" data-i18n="cancel">Cancel</button>
+                <button type="button" class="btn btn-primary" data-loading-text="Submitting..." data-i18n="import;[data-loading-text]submitting">Import</button>
+            </div>
+        </div>
+    </div>
+</div>
