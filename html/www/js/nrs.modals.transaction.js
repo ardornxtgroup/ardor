@@ -71,7 +71,8 @@ var NRS = (function (NRS, $, undefined) {
                 } else {
                     NRS.sendRequest("getTransaction", {
                         "fullHash": transaction,
-                        "chain": chain
+                        "chain": chain,
+                        "includePhasingResult": true
                     }, function (response) {
                         NRS.processTransactionModalData(response, sharedKey, fxtTransaction, isModalVisible);
                     });
@@ -224,6 +225,10 @@ var NRS = (function (NRS, $, undefined) {
             if (transactionDetails.feeNQT) {
                 transactionDetails.fee = transactionDetails.feeNQT;
                 delete transactionDetails.feeNQT;
+            }
+            if (transactionDetails.executionHeight !== undefined) {
+                transactionDetails.execution_height_formatted_html = NRS.getBlockLink(transactionDetails.executionHeight);
+                delete transactionDetails.executionHeight;
             }
             $("#transaction_info_tab_link").tab("show");
 
@@ -440,7 +445,7 @@ var NRS = (function (NRS, $, undefined) {
                 }
                 data = {
                     "type": $.t("vote_casting"),
-                    "poll_formatted_html": NRS.getEntityLink(transaction.attachment.poll, 4),
+                    "poll_formatted_html": NRS.getEntityLink({ request: "getPoll", key: "poll", id: transaction.attachment.poll }),
                     "vote": vote
                 };
                 data["sender"] = transaction.senderRS ? transaction.senderRS : transaction.sender;

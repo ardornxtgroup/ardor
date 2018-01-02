@@ -60,11 +60,11 @@ public final class ChildChain extends Chain {
 
     private static final Collection<ChildChain> allChildChains = Collections.unmodifiableCollection(childChains.values());
 
-    public static final ChildChain IGNIS = new ChildChain(2, "IGNIS", 8, (Constants.isTestnet ? 7 : 10) * 100000000,
+    public static final ChildChain IGNIS = new ChildChain(2, "IGNIS", 8, Constants.isTestnet ? 99972484729793502L : 99944969459860052L, (Constants.isTestnet ? 7 : 10) * 100000000,
             Collections.emptySet(), EnumSet.noneOf(APIEnum.class), EnumSet.noneOf(APITag.class));
-    public static final ChildChain AEUR = new ChildChain(3, "AEUR", 4, 0, new LinkedHashSet<>(Arrays.asList(ShufflingTransactionType.SHUFFLING_CREATION)),
+    public static final ChildChain AEUR = new ChildChain(3, "AEUR", 4, Constants.isTestnet ? 9997248455672L : 100000000000L, 0, new LinkedHashSet<>(Arrays.asList(ShufflingTransactionType.SHUFFLING_CREATION)),
                     EnumSet.noneOf(APIEnum.class), EnumSet.of(APITag.SHUFFLING));
-    public static final ChildChain BITSWIFT = new ChildChain(4, "BITSWIFT", 8, 10 * 100000000L,
+    public static final ChildChain BITSWIFT = new ChildChain(4, "BITSWIFT", 8, Constants.isTestnet ? 388463474549710L : 388463474539339L, 10 * 100000000L,
             new LinkedHashSet<>(Arrays.asList(DigitalGoodsTransactionType.LISTING)), EnumSet.noneOf(APIEnum.class), EnumSet.of(APITag.DGS));
 
     public static ChildChain getChildChain(String name) {
@@ -101,9 +101,9 @@ public final class ChildChain extends Chain {
     private final VoteHome voteHome;
     private final Set<TransactionType> disabledTransactionTypes;
 
-    private ChildChain(int id, String name, int decimals, long shufflingDepositNQT, Set<TransactionType> disabledTransactionTypes,
+    private ChildChain(int id, String name, int decimals, long totalAmount, long shufflingDepositNQT, Set<TransactionType> disabledTransactionTypes,
                        EnumSet<APIEnum> disabledAPIs, EnumSet<APITag> disabledAPITags) {
-        super(id, name, decimals, disabledAPIs, disabledAPITags);
+        super(id, name, decimals, totalAmount, disabledAPIs, disabledAPITags);
         this.SHUFFLING_DEPOSIT_NQT = shufflingDepositNQT;
         this.aliasHome = AliasHome.forChain(this);
         this.assetDividendHome = AssetDividendHome.forChain(this);

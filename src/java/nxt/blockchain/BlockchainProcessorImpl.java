@@ -207,30 +207,30 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                     return;
                 }
 
-                chainBlockIds = getBlockIdsAfterCommon(peer, commonMilestoneBlockId, false);
-                if (chainBlockIds.size() < 2 || !peerHasMore) {
-                    return;
-                }
-
-                final long commonBlockId = chainBlockIds.get(0);
-                final Block commonBlock = blockchain.getBlock(commonBlockId);
-                if (commonBlock == null || blockchain.getHeight() - commonBlock.getHeight() >= 720) {
-                    if (commonBlock != null) {
-                        Logger.logDebugMessage(peer + " advertised chain with better difficulty, but the last common block is at height " + commonBlock.getHeight());
-                    }
-                    return;
-                }
-                if (simulateEndlessDownload) {
-                    isDownloading = true;
-                    return;
-                }
-                if (!isDownloading && lastBlockchainFeederHeight - commonBlock.getHeight() > 10) {
-                    Logger.logMessage("Blockchain download in progress");
-                    isDownloading = true;
-                }
-
                 blockchain.updateLock();
                 try {
+                    chainBlockIds = getBlockIdsAfterCommon(peer, commonMilestoneBlockId, false);
+                    if (chainBlockIds.size() < 2 || !peerHasMore) {
+                        return;
+                    }
+
+                    final long commonBlockId = chainBlockIds.get(0);
+                    final Block commonBlock = blockchain.getBlock(commonBlockId);
+                    if (commonBlock == null || blockchain.getHeight() - commonBlock.getHeight() >= 720) {
+                        if (commonBlock != null) {
+                            Logger.logDebugMessage(peer + " advertised chain with better difficulty, but the last common block is at height " + commonBlock.getHeight());
+                        }
+                        return;
+                    }
+                    if (simulateEndlessDownload) {
+                        isDownloading = true;
+                        return;
+                    }
+                    if (!isDownloading && lastBlockchainFeederHeight - commonBlock.getHeight() > 10) {
+                        Logger.logMessage("Blockchain download in progress");
+                        isDownloading = true;
+                    }
+
                     if (betterCumulativeDifficulty.compareTo(blockchain.getLastBlock().getCumulativeDifficulty()) <= 0) {
                         return;
                     }

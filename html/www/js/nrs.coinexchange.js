@@ -60,7 +60,6 @@ var NRS = (function (NRS, $, undefined) {
             });
             return;
         }
-        page = page.escapeHTML();
         coin = coin.escapeHTML();
         var chain = NRS.getChain(coin);
         if (!chain) {
@@ -79,6 +78,10 @@ var NRS = (function (NRS, $, undefined) {
         NRS.storageSelect("coins", null, function(error, coins) {
             // select already bookmarked coins
             $.each(coins, function (index, coin) {
+                if (!coin.totalAmount) {
+                    coin.totalAmount = NRS.getChain(coin.id).totalAmount;
+                    NRS.storageUpdate("coins", coin, [{ "id": coin.id }]);
+                }
                 NRS.cacheCoin(coin);
             });
 
@@ -107,6 +110,7 @@ var NRS = (function (NRS, $, undefined) {
             "id": String(coin.id),
             "name": String(coin.name),
             "decimals": parseInt(coin.decimals, 10),
+            "totalAmount": parseInt(coin.totalAmount, 10),
             "ONE_COIN": coin.ONE_COIN,
             "groupName": String(coin.groupName).toLowerCase()
         };
@@ -181,6 +185,7 @@ var NRS = (function (NRS, $, undefined) {
             "id": String(coin.id),
             "name": String(coin.name),
             "decimals": parseInt(coin.decimals, 10),
+            "totalAmount": parseInt(coin.totalAmount, 10),
             "ONE_COIN": coin.ONE_COIN,
             "groupName": ""
         };
@@ -478,7 +483,7 @@ var NRS = (function (NRS, $, undefined) {
             $("#coin_details").show().parent().animate({
                 "scrollTop": 0
             }, 0);
-            $("#coin_quantity").html(NRS.formatQuantity("100000000000000000", coin.decimals));
+            $("#coin_quantity").html(NRS.formatQuantity(coin.totalAmount, coin.decimals));
             $("#coin_link").html(NRS.getChainLink(coinId));
             $("#coin_decimals").html(NRS.escapeRespStr(coin.decimals));
             $("#coin_name").html(NRS.escapeRespStr(coin.name));

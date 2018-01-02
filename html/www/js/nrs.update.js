@@ -21,14 +21,14 @@ var NRS = (function(NRS, $) {
 	var DOWNLOAD_REPOSITORY_URL = "https://bitbucket.org/Jelurida/ardor/downloads/";
 	var index = 0;
 	var bundles = [
-		{alias: "nrsVersion", status: "release", prefix: "nxt-client-", ext: "zip"},
-		{alias: "nrsBetaVersion", status: "beta", prefix: "nxt-client-", ext: "zip"},
-		{alias: "nrsVersionWin", status: "release", prefix: "nxt-client-", ext: "exe"},
-		{alias: "nrsBetaVersionWin", status: "beta", prefix: "nxt-client-", ext: "exe"},
-		{alias: "nrsVersionMac", status: "release", prefix: "nxt-installer-", ext: "dmg"},
-		{alias: "nrsBetaVersionMac", status: "beta", prefix: "nxt-installer-", ext: "dmg"},
-		{alias: "nrsVersionLinux", status: "release", prefix: "nxt-client-", ext: "sh"},
-		{alias: "nrsBetaVersionLinux", status: "beta", prefix: "nxt-client-", ext: "sh"}
+		{alias: "nrsVersion", status: "release", prefix: "ardor-client-", ext: "zip"},
+		{alias: "nrsBetaVersion", status: "beta", prefix: "ardor-client-", ext: "zip"},
+		{alias: "nrsVersionWin", status: "release", prefix: "ardor-client-", ext: "exe"},
+		{alias: "nrsBetaVersionWin", status: "beta", prefix: "ardor-client-", ext: "exe"},
+		{alias: "nrsVersionMac", status: "release", prefix: "ardor-installer-", ext: "dmg"},
+		{alias: "nrsBetaVersionMac", status: "beta", prefix: "ardor-installer-", ext: "dmg"},
+		{alias: "nrsVersionLinux", status: "release", prefix: "ardor-client-", ext: "sh"},
+		{alias: "nrsBetaVersionLinux", status: "beta", prefix: "ardor-client-", ext: "sh"}
 	];
 	NRS.isOutdated = false;
 
@@ -192,7 +192,8 @@ var NRS = (function(NRS, $) {
 		var aliasName = bundles[index].alias;
 		index ++;
         NRS.sendRequest("getAlias", {
-            "aliasName": aliasName
+            "aliasName": aliasName,
+			"chain": 2
         }, function (response) {
             if (response.aliasURI) {
                 var token = response.aliasURI.trim().split(" ");

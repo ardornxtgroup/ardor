@@ -15,7 +15,7 @@
  ******************************************************************************/
 
 const options = {
-    url: "http://localhost:16876", // URL of NXT remote node
+    url: "http://localhost:27876", // URL of NXT remote node
     secretPhrase: "", // Secret phrase of the current account
     isTestNet: false, // Select testnet or mainnet
     chain: "2", // Default to IGNIS chain

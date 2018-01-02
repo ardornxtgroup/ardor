@@ -167,8 +167,10 @@ public final class AliasHome {
         alias.timestamp = Nxt.getBlockchain().getLastBlockTimestamp();
         aliasTable.insert(alias);
         Offer offer = getOffer(alias);
-        offer.priceNQT = Long.MAX_VALUE;
-        offerTable.delete(offer);
+        if (offer != null) {
+            offer.priceNQT = Long.MAX_VALUE;
+            offerTable.delete(offer);
+        }
     }
 
 

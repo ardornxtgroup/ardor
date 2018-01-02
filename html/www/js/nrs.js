@@ -60,9 +60,9 @@ var NRS = (function(NRS, $, undefined) {
 	    is_check_remember_me: false,
 		is_store_remembered_passphrase: (window["cordova"] !== undefined), // too early to use feature detection
 	    is_simulate_app: false,
-        is_testnet: true,
-        remote_node_address: "ardor.jelurida.com",
-        remote_node_port: 443,
+        is_testnet: false,
+        remote_node_address: "",
+        remote_node_port: 27876,
         is_remote_node_ssl: true,
         validators_count: 3,
         bootstrap_nodes_count: 5,
@@ -491,8 +491,11 @@ var NRS = (function(NRS, $, undefined) {
 		}
 	};
 
-    NRS.connectionError = function(errorDescription) {
-        NRS.serverConnect = false;
+    NRS.connectionError = function(errorDescription, errorCode) {
+        if (errorCode != 19) {
+            NRS.serverConnect = false;
+        }
+
         var msg = $.t("error_server_connect", {url: NRS.getRequestPath()}) +
             (errorDescription ? " " + NRS.escapeRespStr(errorDescription) : "");
         $.growl(msg, {
@@ -508,7 +511,7 @@ var NRS = (function(NRS, $, undefined) {
 		}
 		NRS.sendRequest("getBlockchainStatus", {}, function(response) {
 			if (response.errorCode) {
-                NRS.connectionError(response.errorDescription);
+                NRS.connectionError(response.errorDescription, response.errorCode);
 			} else {
 				var clientOptionsLink = $("#header_client_options_link");
                 if (NRS.isMobileApp()) {
@@ -526,7 +529,7 @@ var NRS = (function(NRS, $, undefined) {
 						"firstIndex": 0, "lastIndex": 0
 					}, function(proxyBlocksResponse) {
 						if (proxyBlocksResponse.errorCode) {
-                            NRS.connectionError(proxyBlocksResponse.errorDescription);
+                            NRS.connectionError(proxyBlocksResponse.errorDescription, proxyBlocksResponse.errorCode);
 						} else {
 							_prevLastProxyBlock = NRS.lastProxyBlock;
 							var prevHeight = NRS.lastProxyBlockHeight;
@@ -1626,7 +1629,7 @@ var NRS = (function(NRS, $, undefined) {
 			$("#account_lessor_container").hide();
 		}
 
-		if (accountLeasingLabel) {
+		if (accountLeasingLabel && NRS.isParentChain()) {
 			$("#account_leasing").html(accountLeasingLabel).show();
 		} else {
 			$("#account_leasing").hide();

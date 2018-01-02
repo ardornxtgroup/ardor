@@ -22,6 +22,13 @@ import nxt.db.BasicDb;
 import nxt.db.DbVersion;
 import nxt.db.FullTextTrigger;
 
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
+
 public class FxtDbVersion extends DbVersion {
 
     FxtDbVersion(BasicDb db) {
@@ -109,7 +116,7 @@ public class FxtDbVersion extends DbVersion {
                 apply("INSERT INTO scan (rescan, height, validate) VALUES (false, 0, false)");
             case 27:
                 apply("CREATE TABLE IF NOT EXISTS public_key (db_id IDENTITY, account_id BIGINT NOT NULL, "
-                        + "public_key BINARY(32), height INT NOT NULL, FOREIGN KEY (height) REFERENCES block (height) ON DELETE CASCADE, "
+                        + "public_key BINARY(32), height INT NOT NULL, "
                         + "latest BOOLEAN NOT NULL DEFAULT TRUE)");
             case 28:
                 apply("CREATE INDEX IF NOT EXISTS account_guaranteed_balance_height_idx ON account_guaranteed_balance(height)");
@@ -342,8 +349,7 @@ public class FxtDbVersion extends DbVersion {
                 apply("CREATE TABLE IF NOT EXISTS prunable_message (db_id IDENTITY, id BIGINT NOT NULL, full_hash BINARY(32) NOT NULL, sender_id BIGINT NOT NULL, "
                         + "recipient_id BIGINT, message VARBINARY, message_is_text BOOLEAN NOT NULL, is_compressed BOOLEAN NOT NULL, "
                         + "encrypted_message VARBINARY, encrypted_is_text BOOLEAN DEFAULT FALSE, "
-                        + "block_timestamp INT NOT NULL, transaction_timestamp INT NOT NULL, height INT NOT NULL, "
-                        + "FOREIGN KEY (height) REFERENCES PUBLIC.block (height) ON DELETE CASCADE)");
+                        + "block_timestamp INT NOT NULL, transaction_timestamp INT NOT NULL, height INT NOT NULL)");
             case 117:
                 apply("CREATE INDEX IF NOT EXISTS prunable_message_id_idx ON prunable_message (id)");
             case 118:
@@ -387,14 +393,42 @@ public class FxtDbVersion extends DbVersion {
             case 130:
                 apply("CREATE INDEX IF NOT EXISTS asset_control_phasing_sub_poll_height_id_idx ON asset_control_phasing_sub_poll (height, asset_id)");
             case 131:
-                if (BlockDb.getBlockCount() > 0) {
-                    BlockchainProcessorImpl.getInstance().scheduleScan(0, true);
-                }
                 apply(null);
             case 132:
                 FullTextTrigger.migrateToV7(db);
                 apply(null);
             case 133:
+                apply("TRUNCATE TABLE coin_trade_fxt");
+            case 134:
+                apply("ALTER TABLE coin_trade_fxt ALTER COLUMN exchange_price BIGINT NOT NULL");
+            case 135:
+                if (BlockDb.getBlockCount() > 0) {
+                    BlockchainProcessorImpl.getInstance().scheduleScan(0, true);
+                }
+                apply(null);
+            case 136:
+                try (Connection con = db.getConnection(schema);
+                     Statement stmt = con.createStatement();
+                     ResultSet rs = stmt.executeQuery("SELECT CONSTRAINT_NAME, TABLE_NAME FROM INFORMATION_SCHEMA.CONSTRAINTS "
+                             + "WHERE TABLE_SCHEMA='PUBLIC' AND TABLE_NAME IN ('PUBLIC_KEY', 'PRUNABLE_MESSAGE') AND COLUMN_LIST='HEIGHT'")) {
+                    List<String> tables = new ArrayList<>();
+                    List<String> constraints = new ArrayList<>();
+                    while (rs.next()) {
+                        tables.add(rs.getString("TABLE_NAME"));
+                        constraints.add(rs.getString("CONSTRAINT_NAME"));
+                    }
+                    for (int i = 0; i < tables.size(); i++) {
+                        stmt.executeUpdate("ALTER TABLE " + tables.get(i) + " DROP CONSTRAINT " + constraints.get(i));
+                    }
+                    apply(null);
+                } catch (SQLException e) {
+                    throw new RuntimeException(e.toString(), e);
+                }
+            case 137:
+                apply("CREATE INDEX IF NOT EXISTS public_key_height_idx ON public_key (height)");
+            case 138:
+                apply("CREATE INDEX IF NOT EXISTS prunable_message_height_idx ON prunable_message (height)");
+            case 139:
                 return;
             default:
                 throw new RuntimeException("Forging chain database inconsistent with code, at update " + nextUpdate

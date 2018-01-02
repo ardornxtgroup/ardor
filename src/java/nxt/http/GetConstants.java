@@ -260,6 +260,7 @@ public final class GetConstants extends APIServlet.APIRequestHandler {
                     json.put("name", chain.getName());
                     json.put("id", chain.getId());
                     json.put("decimals", chain.getDecimals());
+                    json.put("totalAmount", String.valueOf(chain.getTotalAmount()));
                     json.put("ONE_COIN", String.valueOf(chain.ONE_COIN));
                     if (chain instanceof ChildChain) {
                         json.put("SHUFFLING_DEPOSIT_NQT", String.valueOf(((ChildChain) chain).SHUFFLING_DEPOSIT_NQT));

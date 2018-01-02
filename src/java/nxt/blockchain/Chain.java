@@ -56,17 +56,19 @@ public abstract class Chain {
     private final String name;
     private final int id;
     private final int decimals;
+    private final long totalAmount;
     private final TransactionHome transactionHome;
     private final BalanceHome balanceHome;
     private final PrunableMessageHome prunableMessageHome;
     private final Set<APIEnum> disabledAPIs;
     private final Set<APITag> disabledAPITags;
 
-    Chain(int id, String name, int decimals, EnumSet<APIEnum> disabledAPIs, EnumSet<APITag> disabledAPITags) {
+    Chain(int id, String name, int decimals, long totalAmount, EnumSet<APIEnum> disabledAPIs, EnumSet<APITag> disabledAPITags) {
         this.id = id;
         this.name = name;
         this.decimals = decimals;
         this.ONE_COIN = Convert.decimalMultiplier(decimals);
+        this.totalAmount = totalAmount;
         this.transactionHome = TransactionHome.forChain(this);
         this.balanceHome = BalanceHome.forChain(this);
         this.prunableMessageHome = PrunableMessageHome.forChain(this);
@@ -76,7 +78,6 @@ public abstract class Chain {
                 disabledAPIs.add(api);
             }
         }
-
         this.disabledAPIs = Collections.unmodifiableSet(disabledAPIs);
         this.disabledAPITags = Collections.unmodifiableSet(disabledAPITags);
 
@@ -92,6 +93,10 @@ public abstract class Chain {
 
     public final int getDecimals() {
         return decimals;
+    }
+
+    public final long getTotalAmount() {
+        return totalAmount;
     }
 
     public String getDbSchema() {

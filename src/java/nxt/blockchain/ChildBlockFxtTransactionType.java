@@ -104,7 +104,7 @@ public final class ChildBlockFxtTransactionType extends FxtTransactionType {
             try {
                 childTransaction.validate();
             } catch (NxtException.ValidationException e) {
-                Logger.logDebugMessage("Validation failed for transaction " + JSON.toJSONString(childTransaction.getJSONObject()));
+                Logger.logDebugMessage("Validation failed for transaction " + JSON.toJSONString(childTransaction.getJSONObject()), e);
                 throw e;
             }
             if (transaction.getTimestamp() < childTransaction.getTimestamp()) {

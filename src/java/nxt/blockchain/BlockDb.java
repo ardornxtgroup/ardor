@@ -242,7 +242,7 @@ public final class BlockDb {
         BlockDb.deleteBlocksFrom(blockId);
     }
 
-    // relying on cascade triggers in the database to delete the transactions and public keys for all deleted blocks
+    // relying on cascade triggers in the database to delete the transactions for all deleted blocks
     static BlockImpl deleteBlocksFrom(long blockId) {
         if (!Db.db.isInTransaction()) {
             BlockImpl lastBlock;

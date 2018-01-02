@@ -2056,5 +2056,12 @@
   "light_client_connecting_to_network": "Connecting to the network... Please try again later.",
   "no_open_api_peers": "No openAPI peers found. Please wait or try to add an openAPI peer manually.",
   "account_public_key": "Account Public Key",
-  "status_new_account_no_pk_v3": "Welcome to your new account. Your account ID is __account_id__ - When funding your account for the first time, you can increase security by also providing your public key."
+  "status_new_account_no_pk_v3": "Welcome to your new account. Your account ID is __account_id__ - When funding your account for the first time, you can increase security by also providing your public key.",
+  "execution_height":	"Execution Height",
+  "coin_exchange": "Coin Exchange",
+  "changelly_url": "Changelly URL",
+  "child_blocks": "Child Blocks",
+  "exchange_using_changelly": "Exchange coins using Changelly",
+  "bundle": "Bundle",
+  "evaluating": "Evaluating"
 }

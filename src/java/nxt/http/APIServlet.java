@@ -131,6 +131,14 @@ public final class APIServlet extends HttpServlet {
         protected boolean isChainSpecific() {
             return true;
         }
+        
+        protected boolean isTextArea(String parameter) {
+            return false;
+        }
+
+        protected boolean isPassword(String parameter) {
+            return false;
+        }
 
     }
 

@@ -7,7 +7,7 @@
     <author email="info@jelurida.com" href="https://jelurida.com/">
         Jelurida
     </author>
-    <version>2.0.4</version>
+    <version>2.0.10</version>
     <content src="index.html" />
     <access origin="*" />
     <preference name="webviewbounce" value="false" />

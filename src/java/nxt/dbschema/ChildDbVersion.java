@@ -19,6 +19,13 @@ package nxt.dbschema;
 import nxt.db.BasicDb;
 import nxt.db.DbVersion;
 
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
+
 public class ChildDbVersion extends DbVersion {
 
     ChildDbVersion(BasicDb db, String schema) {
@@ -277,8 +284,7 @@ public class ChildDbVersion extends DbVersion {
                 apply("CREATE TABLE IF NOT EXISTS prunable_message (db_id IDENTITY, id BIGINT NOT NULL, full_hash BINARY(32) NOT NULL, sender_id BIGINT NOT NULL, "
                         + "recipient_id BIGINT, message VARBINARY, message_is_text BOOLEAN NOT NULL, is_compressed BOOLEAN NOT NULL, "
                         + "encrypted_message VARBINARY, encrypted_is_text BOOLEAN DEFAULT FALSE, "
-                        + "block_timestamp INT NOT NULL, transaction_timestamp INT NOT NULL, height INT NOT NULL, "
-                        + "FOREIGN KEY (height) REFERENCES PUBLIC.block (height) ON DELETE CASCADE)");
+                        + "block_timestamp INT NOT NULL, transaction_timestamp INT NOT NULL, height INT NOT NULL)");
             case 89:
                 apply("CREATE INDEX IF NOT EXISTS prunable_message_id_idx ON prunable_message (id)");
             case 90:
@@ -293,7 +299,7 @@ public class ChildDbVersion extends DbVersion {
                 apply("CREATE TABLE IF NOT EXISTS tagged_data (db_id IDENTITY, id BIGINT NOT NULL, full_hash BINARY(32) NOT NULL, account_id BIGINT NOT NULL, "
                         + "name VARCHAR NOT NULL, description VARCHAR, tags VARCHAR, parsed_tags ARRAY, type VARCHAR, data VARBINARY NOT NULL, "
                         + "is_text BOOLEAN NOT NULL, channel VARCHAR, filename VARCHAR, block_timestamp INT NOT NULL, transaction_timestamp INT NOT NULL, "
-                        + "height INT NOT NULL, FOREIGN KEY (height) REFERENCES PUBLIC.block (height) ON DELETE CASCADE)");
+                        + "height INT NOT NULL)");
             case 95:
                 apply("CREATE INDEX IF NOT EXISTS tagged_data_id_idx ON tagged_data (id)");
             case 96:
@@ -304,7 +310,7 @@ public class ChildDbVersion extends DbVersion {
                 apply("CREATE INDEX IF NOT EXISTS tagged_data_block_timestamp_db_id_idx ON tagged_data (block_timestamp DESC, db_id DESC)");
             case 99:
                 apply("CREATE TABLE IF NOT EXISTS data_tag (db_id IDENTITY, tag VARCHAR NOT NULL, tag_count INT NOT NULL, "
-                        + "height INT NOT NULL, FOREIGN KEY (height) REFERENCES PUBLIC.block (height) ON DELETE CASCADE, latest BOOLEAN NOT NULL DEFAULT TRUE)");
+                        + "height INT NOT NULL, latest BOOLEAN NOT NULL DEFAULT TRUE)");
             case 100:
                 apply("CREATE UNIQUE INDEX IF NOT EXISTS data_tag_tag_height_idx ON data_tag (tag, height DESC)");
             case 101:
@@ -383,8 +389,7 @@ public class ChildDbVersion extends DbVersion {
                 apply("CREATE INDEX IF NOT EXISTS shuffling_participant_height_idx ON shuffling_participant (height, shuffling_id, account_id)");
             case 133:
                 apply("CREATE TABLE IF NOT EXISTS shuffling_data (db_id IDENTITY, shuffling_id BIGINT NOT NULL, shuffling_full_hash BINARY(32) NOT NULL, account_id BIGINT NOT NULL, "
-                        + "data ARRAY, transaction_timestamp INT NOT NULL, height INT NOT NULL, "
-                        + "FOREIGN KEY (height) REFERENCES PUBLIC.block (height) ON DELETE CASCADE)");
+                        + "data ARRAY, transaction_timestamp INT NOT NULL, height INT NOT NULL)");
             case 134:
                 apply("CREATE INDEX IF NOT EXISTS shuffling_data_id_height_idx ON shuffling_data (shuffling_id, height DESC)");
             case 135:
@@ -427,6 +432,32 @@ public class ChildDbVersion extends DbVersion {
             case 148:
                 apply("CREATE INDEX IF NOT EXISTS phasing_sub_poll_height_idx ON phasing_sub_poll(height)");
             case 149:
+                try (Connection con = db.getConnection(schema);
+                     Statement stmt = con.createStatement();
+                     ResultSet rs = stmt.executeQuery("SELECT CONSTRAINT_NAME, TABLE_NAME FROM INFORMATION_SCHEMA.CONSTRAINTS "
+                             + "WHERE TABLE_SCHEMA='" + schema + "' AND TABLE_NAME IN ('PRUNABLE_MESSAGE', 'TAGGED_DATA', 'DATA_TAG', 'SHUFFLING_DATA') AND COLUMN_LIST='HEIGHT'")) {
+                    List<String> tables = new ArrayList<>();
+                    List<String> constraints = new ArrayList<>();
+                    while (rs.next()) {
+                        tables.add(rs.getString("TABLE_NAME"));
+                        constraints.add(rs.getString("CONSTRAINT_NAME"));
+                    }
+                    for (int i = 0; i < tables.size(); i++) {
+                        stmt.executeUpdate("ALTER TABLE " + tables.get(i) + " DROP CONSTRAINT " + constraints.get(i));
+                    }
+                    apply(null);
+                } catch (SQLException e) {
+                    throw new RuntimeException(e.toString(), e);
+                }
+            case 150:
+                apply("CREATE INDEX IF NOT EXISTS prunable_message_height_idx ON prunable_message (height)");
+            case 151:
+                apply("CREATE INDEX IF NOT EXISTS tagged_data_height_idx ON tagged_data (height)");
+            case 152:
+                apply("CREATE INDEX IF NOT EXISTS data_tag_height_idx ON data_tag (height)");
+            case 153:
+                apply("CREATE INDEX IF NOT EXISTS shuffling_data_height_idx ON shuffling_data (height)");
+            case 154:
                 return;
             default:
                 throw new RuntimeException("Child chain " + schema + " database inconsistent with code, at update " + nextUpdate

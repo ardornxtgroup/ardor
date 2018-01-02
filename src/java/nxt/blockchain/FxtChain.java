@@ -16,6 +16,7 @@
 
 package nxt.blockchain;
 
+import nxt.Constants;
 import nxt.NxtException;
 import nxt.http.APIEnum;
 import nxt.http.APITag;
@@ -38,7 +39,7 @@ public final class FxtChain extends Chain {
     public static void init() {}
 
     private FxtChain() {
-        super(1, FXT_NAME, 8, EnumSet.of(APIEnum.SEND_MESSAGE), EnumSet.of(APITag.ALIASES, APITag.AE, APITag.DGS,
+        super(1, FXT_NAME, 8, Constants.isTestnet ? 99949858899030000L : 99846623125660000L, EnumSet.of(APIEnum.SEND_MESSAGE), EnumSet.of(APITag.ALIASES, APITag.AE, APITag.DGS,
                 APITag.DATA, APITag.MS, APITag.SHUFFLING, APITag.VS));
     }
 

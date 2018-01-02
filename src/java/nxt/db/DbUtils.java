@@ -105,7 +105,13 @@ public final class DbUtils {
         Array array = rs.getArray(columnName);
         if (array != null) {
             Object[] objects = (Object[]) array.getArray();
-            return Arrays.copyOf(objects, objects.length, cls);
+            if (Long[].class.equals(cls)) {
+                //H2 converts array of Long to array of Integer when compacting
+                Long[] result = Arrays.stream(objects).map(o -> ((Number) o).longValue()).toArray(Long[]::new);
+                return (T[]) result;
+            } else {
+                return Arrays.copyOf(objects, objects.length, cls);
+            }
         } else {
             return ifNull;
         }

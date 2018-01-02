@@ -204,6 +204,8 @@ var NRS = (function(NRS, $) {
         $("#account_balance, #account_balance_sidebar, #account_nr_assets, #account_assets_balance, #account_currencies_balance, #account_nr_currencies, #account_purchase_count, #account_pending_sale_count, #account_completed_sale_count, #account_message_count, #account_alias_count").html("0");
         $("#id_search").find("input[name=q]").val("");
         $('#transactions_type_navi').empty();
+        $("#account_leasing").hide();
+        delete NRS.accountInfo.currentLeasingHeightFrom; // Force refresh of leasing status
         NRS.resetEncryptionState();
         NRS.resetAssetExchangeState();
         NRS.resetPollsState();
@@ -335,7 +337,7 @@ var NRS = (function(NRS, $) {
 		console.log("login calling getBlockchainStatus, active chain is " + NRS.getActiveChainName());
 		NRS.sendRequest("getBlockchainStatus", {}, function(response) {
 			if (response.errorCode) {
-			    NRS.connectionError(response.errorDescription);
+			    NRS.connectionError(response.errorDescription, response.errorCode);
                 NRS.spinner.stop();
 				console.log("getBlockchainStatus returned error");
 				return;

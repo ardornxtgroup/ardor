@@ -13,9 +13,9 @@
 ## Tools and Tips ##
 ### Usable URLs ###
 
-  - **API** - http://localhost:26876/test
-  - **DB Interface** - http://localhost:26876/dbshell
-  - **Java Class Browser** - http://localhost:26876/doc
+  - **API** - http://localhost:27876/test
+  - **DB Interface** - http://localhost:27876/dbshell
+  - **Java Class Browser** - http://localhost:27876/doc
 
 ### Database ###
   

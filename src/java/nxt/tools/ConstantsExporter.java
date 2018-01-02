@@ -16,8 +16,10 @@
 
 package nxt.tools;
 
+import nxt.Nxt;
 import nxt.http.GetConstants;
 import nxt.util.JSON;
+import nxt.util.ThreadPool;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -31,22 +33,27 @@ public class ConstantsExporter {
             System.exit(1);
         }
 
-        Writer writer;
-        try {
-            writer = new FileWriter(new File(args[0]));
-            writer.write("if (!NRS) {\n" +
-                    "    var NRS = {};\n" +
-                    "    NRS.constants = {};\n" +
-                    "}\n\n");
-            writer.write("NRS.constants.SERVER = ");
-            JSON.writeJSONString(GetConstants.getConstants(), writer);
-            writer.write("\n\n" +
-                    "if (isNode) {\n" +
-                    "    module.exports = NRS.constants.SERVER;\n" +
-                    "}\n");
-            writer.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        ThreadPool.runBeforeStart(() -> {
+            Writer writer;
+            try {
+                writer = new FileWriter(new File(args[0]));
+                writer.write("if (!NRS) {\n" +
+                        "    var NRS = {};\n" +
+                        "    NRS.constants = {};\n" +
+                        "}\n\n");
+                writer.write("NRS.constants.SERVER = ");
+                JSON.writeJSONString(GetConstants.getConstants(), writer);
+                writer.write("\n\n" +
+                        "if (isNode) {\n" +
+                        "    module.exports = NRS.constants.SERVER;\n" +
+                        "}\n");
+                writer.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }, true);
+
+        Nxt.init();
+        Nxt.shutdown();
     }
 }

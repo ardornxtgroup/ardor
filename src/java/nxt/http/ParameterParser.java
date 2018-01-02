@@ -224,6 +224,14 @@ public final class ParameterParser {
         return (JSONObject)JSONValue.parse(paramValue);
     }
 
+    public static String getParameter(HttpServletRequest req, String name) throws ParameterException {
+        String value = Convert.emptyToNull(req.getParameter(name));
+        if (value == null) {
+            throw new ParameterException(missing(name));
+        }
+        return value;
+    }
+
     public static long getAccountId(HttpServletRequest req, boolean isMandatory) throws ParameterException {
         return getAccountId(req, "account", isMandatory);
     }

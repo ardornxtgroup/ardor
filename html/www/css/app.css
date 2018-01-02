@@ -47,9 +47,7 @@ body {
 /* preload images or they will flicker */
 body::after{
   position:absolute; width:0; height:0; overflow:hidden; z-index:-1;
-  content:url(../img/client_background.png)
-  url(../img/nxt-load-progress-logo-circle.png)
-  url(../img/nxt-load-progress-logo-circle.png);
+  content: url('../img/nxt-load-progress-logo-circle.png');
 }
 html.lockscreen, html.lockscreen body {
   height:100%;

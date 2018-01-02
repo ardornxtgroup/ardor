@@ -32,7 +32,6 @@ import nxt.util.Listener;
 import nxt.util.Listeners;
 
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.math.MathContext;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -634,7 +633,7 @@ public final class CoinExchange {
             this.orderId = rs.getLong("order_id");
             this.orderFullHash = rs.getBytes("order_full_hash");
             this.exchangeQuantityQNT = rs.getLong("exchange_quantity");
-            this.exchangePrice = new BigDecimal(new BigInteger(rs.getBytes("exchange_price")), 8);
+            this.exchangePrice = BigDecimal.valueOf(rs.getLong("exchange_price"), 8);
             this.matchId = rs.getLong("match_id");
             this.matchFullHash = rs.getBytes("match_full_hash");
         }
@@ -651,7 +650,7 @@ public final class CoinExchange {
                 pstmt.setInt(++i, height);
                 pstmt.setInt(++i, timestamp);
                 pstmt.setLong(++i, exchangeQuantityQNT);
-                pstmt.setBytes(++i, exchangePrice.movePointRight(8).unscaledValue().toByteArray());
+                pstmt.setLong(++i, exchangePrice.movePointRight(8).longValue());
                 pstmt.setLong(++i, accountId);
                 pstmt.setLong(++i, orderId);
                 pstmt.setBytes(++i, orderFullHash);
