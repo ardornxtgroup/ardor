@@ -261,6 +261,10 @@ var NRS = (function(NRS, $) {
             $('#login_password').parent().show();
         } else if (type == "scan" && !reader.is(':visible')) {
             NRS.scanQRCode(readerId, function(text) {
+            	// Hack to allow scanning old NXT account QR codes and convert them to ARDOR accounts
+            	if (text && text.indexOf(NRS.getLegacyAccountPrefix()) == 0) {
+            		text = NRS.getAccountMask() + text.substring(NRS.getLegacyAccountPrefix().length);
+				}
                 var nxtAddress = new NxtAddress();
                 if (nxtAddress.set(text)) {
                     if ($("#remember_me").is(":checked")) {

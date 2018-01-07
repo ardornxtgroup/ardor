@@ -25,7 +25,6 @@ var NRS = (function (NRS, $) {
         'MAX_SHORT_JAVA': 32767,
         'MAX_UNSIGNED_SHORT_JAVA': 65535,
         'MAX_INT_JAVA': 2147483647,
-        'MIN_PRUNABLE_MESSAGE_LENGTH': 28,
         'DISABLED_API_ERROR_CODE': 16,
         'MAX_ONE_COIN': 10000000000000000,
 
@@ -71,8 +70,8 @@ var NRS = (function (NRS, $) {
         'FORGING': 'forging',
         'NOT_FORGING': 'not_forging',
         'UNKNOWN': 'unknown',
-        'LAST_KNOWN_BLOCK': { id: "1937519087760562771", height: "0" },
-        'LAST_KNOWN_TESTNET_BLOCK': { id: "1318911886063902233", height: "0" },
+        'LAST_KNOWN_BLOCK': { id: "5659382559739578917", height: "6000" },
+        'LAST_KNOWN_TESTNET_BLOCK': { id: "7136116332013816990", height: "17000" },
         'INITIAL_BASE_TARGET': 153722867
     };
 

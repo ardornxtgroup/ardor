@@ -27,3 +27,4 @@ highlight.js - BSD - https://github.com/isagalaev/highlight.js/
 handlebars.js - MIT - http://handlebarsjs.com/
 moment.js - MIT - http://momentjs.com/
 html5-qrcode.min.js - MIT - https://github.com/dwa012/html5-qrcode
+iban.js - MIT - https://github.com/arhs/iban.js

@@ -1239,6 +1239,10 @@ var NRS = (function (NRS, $, undefined) {
         }
     };
 
+    NRS.getLegacyAccountPrefix = function() {
+        return "NXT-";
+    };
+
     NRS.nxtToAccountPrefix = function(account) {
         var nxtPrefix = "NXT-";
         if (!account || account.length <= nxtPrefix.length || account.substring(0, nxtPrefix.length).toUpperCase() !== nxtPrefix) {

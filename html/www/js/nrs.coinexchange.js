@@ -1110,13 +1110,21 @@ var NRS = (function (NRS, $, undefined) {
 
     NRS.getOpenCoinOrders = function() {
         NRS.sendRequest("getCoinExchangeOrders", {
-            "firstIndex": 0,
-            "lastIndex": 100
+            "account": NRS.account,
+            "firstIndex": NRS.pageNumber * NRS.itemsPerPage - NRS.itemsPerPage,
+            "lastIndex": NRS.pageNumber * NRS.itemsPerPage
         }, function (response) {
-            if (response["orders"] && response["orders"].length) {
-                var orders = response["orders"];
+            if (response.orders && response.orders.length) {
+                if (response.orders.length > NRS.itemsPerPage) {
+                    NRS.hasMorePages = true;
+                    response.orders.pop();
+                }
+                var orders = response.orders;
                 orders.sort(function (a, b) {
-                    return a.bidNQTPerCoin - b.bidNQTPerCoin;
+                    if (a.exchange == b.exchange) {
+                        return b.bidNQTPerCoin - a.bidNQTPerCoin;
+                    }
+                    return a.exchange - b.exchange;
                 });
 
                 var rows = "";
@@ -1182,7 +1190,7 @@ var NRS = (function (NRS, $, undefined) {
         };
         NRS.appendMenuItemToTSMenuItem(sidebarId, options);
         options = {
-            "titleHTML": '<span data-i18n="open_coin_orders">Open Coin Orders</span>',
+            "titleHTML": '<span data-i18n="my_coin_orders">My Coin Orders</span>',
             "type": 'PAGE',
             "page": 'open_coin_orders'
         };

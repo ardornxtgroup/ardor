@@ -16,6 +16,7 @@
 
 package nxt.dbschema;
 
+import nxt.Constants;
 import nxt.blockchain.BlockDb;
 import nxt.blockchain.BlockchainProcessorImpl;
 import nxt.db.BasicDb;
@@ -402,9 +403,6 @@ public class FxtDbVersion extends DbVersion {
             case 134:
                 apply("ALTER TABLE coin_trade_fxt ALTER COLUMN exchange_price BIGINT NOT NULL");
             case 135:
-                if (BlockDb.getBlockCount() > 0) {
-                    BlockchainProcessorImpl.getInstance().scheduleScan(0, true);
-                }
                 apply(null);
             case 136:
                 try (Connection con = db.getConnection(schema);
@@ -429,6 +427,11 @@ public class FxtDbVersion extends DbVersion {
             case 138:
                 apply("CREATE INDEX IF NOT EXISTS prunable_message_height_idx ON prunable_message (height)");
             case 139:
+                if (BlockDb.getBlockCount() > 0) {
+                    BlockchainProcessorImpl.getInstance().scheduleScan(Constants.CHECKSUM_BLOCK_1 - 1, true);
+                }
+                apply(null);
+            case 140:
                 return;
             default:
                 throw new RuntimeException("Forging chain database inconsistent with code, at update " + nextUpdate

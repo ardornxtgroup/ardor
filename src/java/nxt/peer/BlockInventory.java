@@ -148,7 +148,7 @@ final class BlockInventory {
                                 Nxt.getBlockchainProcessor().processPeerBlocks(blockList);
                             }
                         }
-                    } catch (BlockchainProcessor.BlockOutOfOrderException ignore) {}
+                    } catch (BlockchainProcessor.BlockOutOfOrderException | BlockchainProcessor.BlockOfLowerDifficultyException ignore) {}
                     if (block.getTimestamp() < Nxt.getEpochTime() + Constants.MAX_TIMEDRIFT) {
                         blockCache.put(block.getId(), block);
                     }

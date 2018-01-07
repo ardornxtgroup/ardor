@@ -73,9 +73,15 @@ import java.util.concurrent.ThreadLocalRandom;
 public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
     private static final byte[] CHECKSUM_1 = Constants.isTestnet ?
-            null
+            new byte[] {
+                    91, 30, -58, 23, 95, -59, -78, 22, -13, 31, -16, 102, 79, -87, 83, 64, 27,
+                    97, -67, -32, -96, 109, 103, 35, -87, 35, -16, -119, -25, 72, -128, 18
+            }
             :
-            null;
+            new byte[] {
+                    58, -59, 105, -15, 37, -75, 102, 83, -11, 89, 67, 44, 92, -70, -82, 123,
+                    83, 76, 44, 39, -41, 14, -17, 85, -80, 2, -67, -19, 28, -66, -2, -7
+            };
 
     private static final BlockchainProcessorImpl instance = new BlockchainProcessorImpl();
 
@@ -172,7 +178,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             try {
                 long startTime = System.currentTimeMillis();
                 int numberOfForkConfirmations = blockchain.getHeight() > Constants.LAST_CHECKSUM_BLOCK - 720 ?
-                        defaultNumberOfForkConfirmations : Math.min(1, defaultNumberOfForkConfirmations);
+                        defaultNumberOfForkConfirmations : Math.min(5, defaultNumberOfForkConfirmations);
                 connectedPublicPeers = Peers.getConnectedPeers();
                 if (connectedPublicPeers.size() <= numberOfForkConfirmations) {
                     return;
@@ -569,7 +575,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 }
             }
             if (lowerCumulativeDifficultyBlock != null) {
-                throw new BlockNotAcceptedException("Lower cumulative difficulty", lowerCumulativeDifficultyBlock);
+                throw new BlockOfLowerDifficultyException(lowerCumulativeDifficultyBlock);
             }
         } finally {
             if (pushedForkBlocks == 0) {
@@ -890,7 +896,11 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     private final Listener<Block> checksumListener = block -> {
         if (block.getHeight() == Constants.CHECKSUM_BLOCK_1) {
             if (! verifyChecksum(CHECKSUM_1, 0, Constants.CHECKSUM_BLOCK_1)) {
-                popOffTo(0);
+                if (isScanning) {
+                    throw new RuntimeException("Invalid checksum, interrupting rescan");
+                } else {
+                    popOffTo(0);
+                }
             }
         }
     };
@@ -1632,30 +1642,44 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                     Db.db.endTransaction();
                 }
             }
-            if (commonBlock.getHeight() < getMinRollbackHeight()) {
-                Logger.logMessage("Rollback to height " + commonBlock.getHeight() + " not supported, will do a full rescan");
-                popOffWithRescan(commonBlock.getHeight() + 1);
-                return Collections.emptyList();
-            }
             if (! blockchain.hasBlock(commonBlock.getId())) {
                 Logger.logDebugMessage("Block " + commonBlock.getStringId() + " not found in blockchain, nothing to pop off");
                 return Collections.emptyList();
             }
-            List<BlockImpl> poppedOffBlocks = new ArrayList<>();
             try {
-                BlockImpl block = blockchain.getLastBlock();
-                block.loadTransactions();
-                Logger.logDebugMessage("Rollback from block " + block.getStringId() + " at height " + block.getHeight()
-                        + " to " + commonBlock.getStringId() + " at " + commonBlock.getHeight());
-                while (block.getId() != commonBlock.getId() && block.getHeight() > 0) {
-                    poppedOffBlocks.add(block);
-                    block = popLastBlock();
+                if (commonBlock.getHeight() < getMinRollbackHeight()) {
+                    Logger.logMessage("Rollback to height " + commonBlock.getHeight() + " not supported, will do a full rescan");
+                    try {
+                        scheduleScan(0, false);
+                        BlockImpl lastBlock = BlockDb.deleteBlocksFrom(BlockDb.findBlockIdAtHeight(commonBlock.getHeight() + 1));
+                        blockchain.setLastBlock(lastBlock);
+                        for (DerivedDbTable table : derivedTables) {
+                            table.popOffTo(lastBlock.getHeight());
+                        }
+                        Db.db.clearCache();
+                        Db.db.commitTransaction();
+                        Logger.logDebugMessage("Deleted blocks starting from height %s", commonBlock.getHeight() + 1);
+                    } finally {
+                        scan(0, false);
+                    }
+                    return Collections.emptyList();
+                } else {
+                    List<BlockImpl> poppedOffBlocks = new ArrayList<>();
+                    BlockImpl block = blockchain.getLastBlock();
+                    block.loadTransactions();
+                    Logger.logDebugMessage("Rollback from block " + block.getStringId() + " at height " + block.getHeight()
+                            + " to " + commonBlock.getStringId() + " at " + commonBlock.getHeight());
+                    while (block.getId() != commonBlock.getId() && block.getHeight() > 0) {
+                        poppedOffBlocks.add(block);
+                        block = popLastBlock();
+                    }
+                    for (DerivedDbTable table : derivedTables) {
+                        table.popOffTo(commonBlock.getHeight());
+                    }
+                    Db.db.clearCache();
+                    Db.db.commitTransaction();
+                    return poppedOffBlocks;
                 }
-                for (DerivedDbTable table : derivedTables) {
-                    table.popOffTo(commonBlock.getHeight());
-                }
-                Db.db.clearCache();
-                Db.db.commitTransaction();
             } catch (RuntimeException e) {
                 Logger.logErrorMessage("Error popping off to " + commonBlock.getHeight() + ", " + e.toString());
                 Db.db.rollbackTransaction();
@@ -1664,7 +1688,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 popOffTo(lastBlock);
                 throw e;
             }
-            return poppedOffBlocks;
         } finally {
             blockchain.writeUnlock();
         }
@@ -1680,23 +1703,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         blockchain.setLastBlock(previousBlock);
         blockListeners.notify(block, Event.BLOCK_POPPED);
         return previousBlock;
-    }
-
-    private void popOffWithRescan(int height) {
-        blockchain.writeLock();
-        try {
-            try {
-                scheduleScan(0, false);
-                BlockImpl lastBlock = BlockDb.deleteBlocksFrom(BlockDb.findBlockIdAtHeight(height));
-                blockchain.setLastBlock(lastBlock);
-                popOffTo(lastBlock);
-                Logger.logDebugMessage("Deleted blocks starting from height %s", height);
-            } finally {
-                scan(0, false);
-            }
-        } finally {
-            blockchain.writeUnlock();
-        }
     }
 
     private int getBlockVersion(int previousBlockHeight) {
@@ -1993,8 +1999,10 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                                     Db.db.commitTransaction();
                                     blockListeners.notify(currentBlock, Event.AFTER_BLOCK_ACCEPT);
                                 }
+                                blockListeners.notify(currentBlock, Event.BLOCK_SCANNED);
+                                hasMore = true;
                                 currentBlockId = currentBlock.getNextBlockId();
-                            } catch(NxtException | RuntimeException e){
+                            } catch (NxtException | RuntimeException e) {
                                 Db.db.rollbackTransaction();
                                 Logger.logDebugMessage(e.toString(), e);
                                 Logger.logDebugMessage("Applying block " + Long.toUnsignedString(currentBlockId) + " at height "
@@ -2004,8 +2012,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                                 popOffTo(lastBlock);
                                 break outer;
                             }
-                            blockListeners.notify(currentBlock, Event.BLOCK_SCANNED);
-                            hasMore = true;
                         }
                         dbId = dbId + 1;
                     }

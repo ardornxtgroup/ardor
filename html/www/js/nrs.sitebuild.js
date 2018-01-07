@@ -209,16 +209,19 @@ var NRS = (function(NRS, $) {
         parentMenu.append(menuHTML);
     };
 
-    function widgetVisibility(widget, depends) {
-        if (NRS.isApiEnabled(depends)) {
+    function widgetVisibility(widget, depends, chain) {
+        if (NRS.isApiEnabled(depends) && chain === NRS.getActiveChainId()) {
             widget.show();
         } else {
             widget.hide();
         }
     }
     NRS.initHeader = function() {
-        widgetVisibility($("#header_send_money"), { apis: [NRS.constants.REQUEST_TYPES.sendMoney] });
-        widgetVisibility($("#header_send_message"), { apis: [NRS.constants.REQUEST_TYPES.sendMessage] });
+        var activeChainId = NRS.getActiveChainId();
+        var eurChainId = NRS.findChainByName("AEUR");
+        widgetVisibility($("#header_send_money"), { apis: [NRS.constants.REQUEST_TYPES.sendMoney] }, activeChainId);
+        widgetVisibility($("#header_send_message"), { apis: [NRS.constants.REQUEST_TYPES.sendMessage] }, activeChainId == eurChainId ? -1 : activeChainId);
+        widgetVisibility($("#header_withdraw_aeur"), { apis: [NRS.constants.REQUEST_TYPES.sendMessage] }, eurChainId);
     };
 
     NRS.getUrlParameter = function (param) {

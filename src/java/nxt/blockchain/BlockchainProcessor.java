@@ -128,4 +128,12 @@ public interface BlockchainProcessor extends Observable<Block,BlockchainProcesso
 
 	}
 
+	class BlockOfLowerDifficultyException extends BlockNotAcceptedException {
+
+        public BlockOfLowerDifficultyException(BlockImpl block) {
+            super("Lower cumulative difficulty", block);
+        }
+
+    }
+
 }
