@@ -2080,5 +2080,6 @@
   "mrtango_commission": "Commission: __commission__",
   "mrtango_final_amount": "EURO to receive: __euro__",
   "mrtango_too_small_amount": "Withdrawn amount is less than __min__",
-  "mrtango_too_big_amount": "Withdrawn amount exceeds __max__"
+  "mrtango_too_big_amount": "Withdrawn amount exceeds __max__",
+  "no_quantity_change_history": "No quantity change history available."
 }

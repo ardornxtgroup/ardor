@@ -59,6 +59,7 @@ var NRS = (function (NRS, $) {
         "MINTING_HASH_ALGORITHMS": {},
         "REQUEST_TYPES": {},
         "API_TAGS": {},
+        'LAST_KNOWN_BLOCK': {},
         "ASSET_EXCHANGE_REQUEST_TYPES": ["transferAsset", "deleteAssetShares", "increaseAssetShares", "placeAskOrder", "placeBidOrder"],
 
         'SERVER': {},
@@ -70,8 +71,6 @@ var NRS = (function (NRS, $) {
         'FORGING': 'forging',
         'NOT_FORGING': 'not_forging',
         'UNKNOWN': 'unknown',
-        'LAST_KNOWN_BLOCK': { id: "5659382559739578917", height: "6000" },
-        'LAST_KNOWN_TESTNET_BLOCK': { id: "7136116332013816990", height: "17000" },
         'INITIAL_BASE_TARGET': 153722867
     };
 
@@ -119,7 +118,8 @@ var NRS = (function (NRS, $) {
             NRS.constants.DISABLED_APIS = response.disabledAPIs;
             NRS.constants.DISABLED_API_TAGS = response.disabledAPITags;
             NRS.constants.PEER_STATES = response.peerStates;
-            NRS.constants.LAST_KNOWN_BLOCK.id = response.genesisBlockId;
+            NRS.constants.LAST_KNOWN_BLOCK.id = response.lastKnownBlock.id;
+            NRS.constants.LAST_KNOWN_BLOCK.height = response.lastKnownBlock.height;
             NRS.constants.PROXY_NOT_FORWARDED_REQUESTS = response.proxyNotForwardedRequests;
             NRS.constants.CHAINS = response.chains;
             NRS.constants.CHAIN_PROPERTIES = response.chainProperties;
@@ -148,7 +148,11 @@ var NRS = (function (NRS, $) {
         }
         if (NRS.isMobileApp()) {
             jQuery.ajaxSetup({ async: false });
-            $.getScript("js/data/constants.js" );
+            if (NRS.mobileSettings.is_testnet) {
+                $.getScript("js/data/constants.testnet.js");
+            } else {
+                $.getScript("js/data/constants.mainnet.js");
+            }
             jQuery.ajaxSetup({async: true});
             processConstants(NRS.constants.SERVER);
         } else {
@@ -201,10 +205,6 @@ var NRS = (function (NRS, $) {
 
     NRS.getPeerState = function (code) {
         return getKeyByValue(NRS.constants.PEER_STATES, code);
-    };
-
-    NRS.getECBlock = function(isTestNet) {
-        return isTestNet ? NRS.constants.LAST_KNOWN_TESTNET_BLOCK : NRS.constants.LAST_KNOWN_BLOCK;
     };
 
     NRS.isRequireBlockchain = function(requestType) {

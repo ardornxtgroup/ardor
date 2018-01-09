@@ -1223,6 +1223,9 @@ public final class Account {
                 lessors.add(iterator.next());
             }
         }
+        if (lessors.isEmpty()) {
+            return 0;
+        }
         Long[] lessorIds = new Long[lessors.size()];
         long[] balances = new long[lessors.size()];
         for (int i = 0; i < lessors.size(); i++) {

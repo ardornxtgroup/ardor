@@ -98,7 +98,12 @@ exports.load = function(callback) {
             // Now load the constants locally since we cannot trust the remote node to
             // return the correct constants.
 
-            var constants = require('./data/constants');
+            var constants;
+            if (options.isTestNet) {
+                constants = require('./data/constants.testnet');
+            } else {
+                constants = require('./data/constants.mainnet');
+            }
             global.client.processConstants(constants);
             setCurrentAccount(options.secretPhrase);
             callback(global.client);

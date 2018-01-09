@@ -268,15 +268,21 @@ var NRS = (function (NRS, $) {
         var formattedAmount = "";
         var locale = NRS.getLocale();
         var formattedMantissa = params.mantissa.replace(".", locale.decimal);
-        if (zeroPad) {
-            var mantissaLen = formattedMantissa.length;
+        var mantissaLen = formattedMantissa.length;
+        if (mantissaLen > decimals + 1) {
+            formattedMantissa = formattedMantissa.substring(0, decimals + 1);
+        }
+        if (zeroPad && zeroPad > 0) {
+            mantissaLen = formattedMantissa.length;
+            if (zeroPad > decimals) {
+                zeroPad = decimals;
+            }
             if (mantissaLen > 0) {
-                formattedMantissa += NRS.getOneCoin(decimals).substr(1, zeroPad - mantissaLen + 1);
-            } else {
-                formattedMantissa += NRS.getOneCoin(decimals).substr(1, zeroPad);
-                if (zeroPad != 0) {
-                    formattedMantissa = locale.decimal + formattedMantissa;
+                if (zeroPad + 1 > mantissaLen) {
+                    formattedMantissa += NRS.getOneCoin(decimals).substr(1, zeroPad + 1 - mantissaLen);
                 }
+            } else {
+                formattedMantissa += locale.decimal + NRS.getOneCoin(decimals).substr(1, zeroPad);
             }
         }
         for (var i = 0; i < digits.length; i++) {

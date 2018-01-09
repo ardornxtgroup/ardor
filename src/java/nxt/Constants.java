@@ -15,6 +15,8 @@
  */
 package nxt;
 
+import nxt.util.Convert;
+
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
 
@@ -155,8 +157,9 @@ public final class Constants {
     public static final int CHECKSUM_BLOCK_1 = Constants.isTestnet ? 17000 : 6000;
 
     public static final int LAST_CHECKSUM_BLOCK = CHECKSUM_BLOCK_1;
-    // LAST_KNOWN_BLOCK must also be set in html/www/js/nrs.constants.js
+
     public static final int LAST_KNOWN_BLOCK = CHECKSUM_BLOCK_1;
+    public static final long LAST_KNOWN_BLOCK_ID = Convert.parseUnsignedLong(isTestnet ? "7136116332013816990" : "5659382559739578917");
 
     public static final int[] MIN_VERSION = new int[] {2, 0, 10};
     public static final int[] MIN_PROXY_VERSION = new int[] {2, 0, 10};

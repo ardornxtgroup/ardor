@@ -1,3 +1,24 @@
+ardor-client-2.0.11:
+
+This release blacklists peers older than 2.0.10, and adds a checkpoint at
+height 6000.
+
+Changed Open Coin Orders to My Coin Orders in the Coin Exchange, sort orders
+per chain then per rate descending, added pagination.
+
+Always make prunable messages prunable regardless of their length, if the
+"message is never deleted" checkbox is not checked.
+
+Added Mistertango withdrawal UI to the AEUR child chain, not yet functional.
+
+Increased default number of fork confirmations to 5.
+
+Other minor bugfixes and improvements.
+
+This release will perform a database rescan.
+
+
+--------------------------------------------------------------------------------
 ardor-client-2.0.10:
 
 This is a bugfix release, mandatory update for all nodes.

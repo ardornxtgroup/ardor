@@ -62,6 +62,10 @@ public final class GetConstants extends APIServlet.APIRequestHandler {
                 response.put("maxChildBlockPayloadLength", Constants.MAX_CHILDBLOCK_PAYLOAD_LENGTH);
                 response.put("maxNumberOfFxtTransactions", Constants.MAX_NUMBER_OF_FXT_TRANSACTIONS);
                 response.put("maxNumberOfChildTransaction", Constants.MAX_NUMBER_OF_CHILD_TRANSACTIONS);
+                JSONObject lastKnownBlock = new JSONObject();
+                lastKnownBlock.put("id", Long.toUnsignedString(Constants.LAST_KNOWN_BLOCK_ID));
+                lastKnownBlock.put("height", Constants.LAST_KNOWN_BLOCK);
+                response.put("lastKnownBlock", lastKnownBlock);
 
                 JSONObject transactionJSON = new JSONObject();
                 JSONObject transactionSubTypesJSON = new JSONObject();
