@@ -6,9 +6,9 @@ loader.load(function(NRS) {
     var quantity = 2.5;
     var price = 1.3;
     var data = {
-        asset: "6146869985881051310",
+        asset: "16056551815000754623",
         quantityQNT: NRS.convertToQNT(quantity, decimals),
-        priceNQTPerShare: NRS.calculatePricePerWholeQNT(NRS.convertToNQT(price), decimals),
+        priceNQTPerShare: NRS.convertToNQT(price),
         secretPhrase: config.secretPhrase,
         chain: config.chain
     };

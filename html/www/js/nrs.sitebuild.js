@@ -1,6 +1,6 @@
 /******************************************************************************
  * Copyright © 2013-2016 The Nxt Core Developers.                             *
- * Copyright © 2016-2017 Jelurida IP B.V.                                     *
+ * Copyright © 2016-2018 Jelurida IP B.V.                                     *
  *                                                                            *
  * See the LICENSE.txt file at the top-level directory of this distribution   *
  * for licensing information.                                                 *
@@ -221,7 +221,7 @@ var NRS = (function(NRS, $) {
         var eurChainId = NRS.findChainByName("AEUR");
         widgetVisibility($("#header_send_money"), { apis: [NRS.constants.REQUEST_TYPES.sendMoney] }, activeChainId);
         widgetVisibility($("#header_send_message"), { apis: [NRS.constants.REQUEST_TYPES.sendMessage] }, activeChainId == eurChainId ? -1 : activeChainId);
-        widgetVisibility($("#header_withdraw_aeur"), { apis: [NRS.constants.REQUEST_TYPES.sendMessage] }, eurChainId);
+        widgetVisibility($("#header_withdraw_aeur"), { apis: [NRS.constants.REQUEST_TYPES.sendMoney] }, eurChainId);
     };
 
     NRS.getUrlParameter = function (param) {

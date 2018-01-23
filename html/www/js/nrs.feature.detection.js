@@ -1,6 +1,6 @@
 /******************************************************************************
  * Copyright © 2013-2016 The Nxt Core Developers.                             *
- * Copyright © 2016-2017 Jelurida IP B.V.                                     *
+ * Copyright © 2016-2018 Jelurida IP B.V.                                     *
  *                                                                            *
  * See the LICENSE.txt file at the top-level directory of this distribution   *
  * for licensing information.                                                 *
@@ -230,16 +230,6 @@ var NRS = (function (NRS) {
         return !isLocalHost || NRS.state && NRS.state.apiProxy || NRS.isMobileApp();
     };
 
-    NRS.getAdminPassword = function() {
-        if (window.java) {
-            return window.java.getAdminPassword();
-        }
-        if (isNode) {
-            return NRS.getModuleConfig().adminPassword;
-        }
-        return NRS.settings.admin_password;
-    };
-
     NRS.isWindowPrintSupported = function() {
         return !isDesktopApplication && !isMobileDevice;
     };
@@ -252,6 +242,14 @@ var NRS = (function (NRS) {
             return NRS.getModuleConfig().adminPassword;
         }
         return NRS.settings.admin_password;
+    };
+
+    NRS.isFileReaderSupported = function() {
+        return !isDesktopApplication;
+    };
+
+    NRS.isAnimationAllowed = function() {
+        return !isDesktopApplication;
     };
 
     return NRS;

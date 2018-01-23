@@ -1,6 +1,6 @@
 /*
  * Copyright © 2013-2016 The Nxt Core Developers.
- * Copyright © 2016-2017 Jelurida IP B.V.
+ * Copyright © 2016-2018 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
@@ -194,12 +194,12 @@ public abstract class CoinExchangeFxtTransactionType extends FxtTransactionType 
         }
 
         @Override
-        public OrderCancelFxtAttachment parseAttachment(ByteBuffer buffer) throws NxtException.NotValidException {
+        public OrderCancelFxtAttachment parseAttachment(ByteBuffer buffer) {
             return new OrderCancelFxtAttachment(buffer);
         }
 
         @Override
-        public OrderCancelFxtAttachment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        public OrderCancelFxtAttachment parseAttachment(JSONObject attachmentData) {
             return new OrderCancelFxtAttachment(attachmentData);
         }
 

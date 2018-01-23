@@ -1,6 +1,6 @@
 /*
  * Copyright © 2013-2016 The Nxt Core Developers.
- * Copyright © 2016-2017 Jelurida IP B.V.
+ * Copyright © 2016-2018 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
@@ -107,7 +107,7 @@ public abstract class AccountPropertyTransactionType extends ChildTransactionTyp
         }
 
         @Override
-        public AccountInfoAttachment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        public AccountInfoAttachment parseAttachment(JSONObject attachmentData) {
             return new AccountInfoAttachment(attachmentData);
         }
 
@@ -179,7 +179,7 @@ public abstract class AccountPropertyTransactionType extends ChildTransactionTyp
         }
 
         @Override
-        public AccountPropertyAttachment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        public AccountPropertyAttachment parseAttachment(JSONObject attachmentData) {
             return new AccountPropertyAttachment(attachmentData);
         }
 
@@ -239,12 +239,12 @@ public abstract class AccountPropertyTransactionType extends ChildTransactionTyp
         }
 
         @Override
-        public AccountPropertyDeleteAttachment parseAttachment(ByteBuffer buffer) throws NxtException.NotValidException {
+        public AccountPropertyDeleteAttachment parseAttachment(ByteBuffer buffer) {
             return new AccountPropertyDeleteAttachment(buffer);
         }
 
         @Override
-        public AccountPropertyDeleteAttachment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        public AccountPropertyDeleteAttachment parseAttachment(JSONObject attachmentData) {
             return new AccountPropertyDeleteAttachment(attachmentData);
         }
 

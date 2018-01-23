@@ -1,6 +1,6 @@
 /*
  * Copyright © 2013-2016 The Nxt Core Developers.
- * Copyright © 2016-2017 Jelurida IP B.V.
+ * Copyright © 2016-2018 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
@@ -137,37 +137,41 @@ public abstract class ShufflingTransactionType extends ChildTransactionType {
             ShufflingCreationAttachment attachment = (ShufflingCreationAttachment) transaction.getAttachment();
             HoldingType holdingType = attachment.getHoldingType();
             long amount = attachment.getAmount();
-            if (holdingType == HoldingType.COIN) {
-                if (attachment.getHoldingId() != transaction.getChain().getId()) {
-                    throw new NxtException.NotValidException("Holding id " + Long.toUnsignedString(attachment.getHoldingId())
-                            + " does not match chain id " + transaction.getChain().getId());
-                }
-                if (amount < transaction.getChain().SHUFFLING_DEPOSIT_NQT || amount > Constants.MAX_BALANCE_NQT) {
-                    throw new NxtException.NotValidException("Invalid NQT amount " + amount
-                            + ", minimum is " + transaction.getChain().SHUFFLING_DEPOSIT_NQT);
-                }
-            } else if (holdingType == HoldingType.ASSET) {
-                if (amount <= 0 || amount > Constants.MAX_ASSET_QUANTITY_QNT) {
-                    throw new NxtException.NotValidException("Invalid asset quantity " + amount);
-                }
-                Asset asset = Asset.getAsset(attachment.getHoldingId());
-                if (asset == null) {
-                    throw new NxtException.NotCurrentlyValidException("Unknown asset " + Long.toUnsignedString(attachment.getHoldingId()));
-                }
-                if (amount > asset.getQuantityQNT()) {
-                    throw new NxtException.NotCurrentlyValidException("Invalid asset quantity " + amount);
-                }
-            } else if (holdingType == HoldingType.CURRENCY) {
-                Currency currency = Currency.getCurrency(attachment.getHoldingId());
-                CurrencyType.validate(currency, transaction);
-                if (!currency.isActive()) {
-                    throw new NxtException.NotCurrentlyValidException("Currency is not active: " + currency.getCode());
-                }
-                if (amount <= 0 || amount > Constants.MAX_CURRENCY_TOTAL_SUPPLY) {
-                    throw new NxtException.NotValidException("Invalid currency amount " + amount);
-                }
-            } else {
-                throw new RuntimeException("Unsupported holding type " + holdingType);
+            switch (holdingType) {
+                case COIN:
+                    if (attachment.getHoldingId() != transaction.getChain().getId()) {
+                        throw new NxtException.NotValidException("Holding id " + Long.toUnsignedString(attachment.getHoldingId())
+                                + " does not match chain id " + transaction.getChain().getId());
+                    }
+                    if (amount < transaction.getChain().SHUFFLING_DEPOSIT_NQT || amount > Constants.MAX_BALANCE_NQT) {
+                        throw new NxtException.NotValidException("Invalid NQT amount " + amount
+                                + ", minimum is " + transaction.getChain().SHUFFLING_DEPOSIT_NQT);
+                    }
+                    break;
+                case ASSET:
+                    if (amount <= 0 || amount > Constants.MAX_ASSET_QUANTITY_QNT) {
+                        throw new NxtException.NotValidException("Invalid asset quantity " + amount);
+                    }
+                    Asset asset = Asset.getAsset(attachment.getHoldingId());
+                    if (asset == null) {
+                        throw new NxtException.NotCurrentlyValidException("Unknown asset " + Long.toUnsignedString(attachment.getHoldingId()));
+                    }
+                    if (amount > asset.getQuantityQNT()) {
+                        throw new NxtException.NotCurrentlyValidException("Invalid asset quantity " + amount);
+                    }
+                    break;
+                case CURRENCY:
+                    Currency currency = Currency.getCurrency(attachment.getHoldingId());
+                    CurrencyType.validate(currency, transaction);
+                    if (!currency.isActive()) {
+                        throw new NxtException.NotCurrentlyValidException("Currency is not active: " + currency.getCode());
+                    }
+                    if (amount <= 0 || amount > Constants.MAX_CURRENCY_TOTAL_SUPPLY) {
+                        throw new NxtException.NotValidException("Invalid currency amount " + amount);
+                    }
+                    break;
+                default:
+                    throw new RuntimeException("Unsupported holding type " + holdingType);
             }
             if (attachment.getParticipantCount() < Constants.MIN_NUMBER_OF_SHUFFLING_PARTICIPANTS
                     || attachment.getParticipantCount() > Constants.MAX_NUMBER_OF_SHUFFLING_PARTICIPANTS) {
@@ -376,7 +380,7 @@ public abstract class ShufflingTransactionType extends ChildTransactionType {
         }
 
         @Override
-        public Attachment.AbstractAttachment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        public Attachment.AbstractAttachment parseAttachment(JSONObject attachmentData) {
             return new ShufflingProcessingAttachment(attachmentData);
         }
 

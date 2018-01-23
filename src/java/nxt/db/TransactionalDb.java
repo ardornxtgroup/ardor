@@ -1,6 +1,6 @@
 /*
  * Copyright © 2013-2016 The Nxt Core Developers.
- * Copyright © 2016-2017 Jelurida IP B.V.
+ * Copyright © 2016-2018 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
@@ -172,12 +172,7 @@ public class TransactionalDb extends BasicDb {
         if (!isInTransaction()) {
             throw new IllegalStateException("Not in transaction");
         }
-        Map<DbKey,Object> cacheMap = transactionCaches.get().get(schemaTable);
-        if (cacheMap == null) {
-            cacheMap = new HashMap<>();
-            transactionCaches.get().put(schemaTable, cacheMap);
-        }
-        return cacheMap;
+        return transactionCaches.get().computeIfAbsent(schemaTable, k -> new HashMap<>());
     }
 
     void clearCache(String schemaTable) {
@@ -220,7 +215,7 @@ public class TransactionalDb extends BasicDb {
         }
 
         @Override
-        public void setAutoCommit(boolean autoCommit) throws SQLException {
+        public void setAutoCommit(boolean autoCommit) {
             throw new UnsupportedOperationException("Use Db.beginTransaction() to start a new transaction");
         }
 
@@ -331,7 +326,7 @@ public class TransactionalDb extends BasicDb {
         }
 
         @Override
-        public Connection getConnection() throws SQLException {
+        public Connection getConnection() {
             return con;
         }
 
@@ -385,7 +380,7 @@ public class TransactionalDb extends BasicDb {
         }
 
         @Override
-        public Connection getConnection() throws SQLException {
+        public Connection getConnection() {
             return con;
         }
 

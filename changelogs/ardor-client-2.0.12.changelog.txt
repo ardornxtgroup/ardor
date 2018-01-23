@@ -1,5 +1,0 @@
-Fixed setting the ecBlock parameter used when doing local signing for remote
-nodes, light clients, and mobile clients.
-
-Coin exchange totals are now trimmed according to the chain decimals.
-

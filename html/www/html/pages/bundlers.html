@@ -1,6 +1,6 @@
 <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   ~ Copyright © 2013-2016 The Nxt Core Developers.                            ~
-  ~ Copyright © 2016-2017 Jelurida IP B.V.                                    ~
+  ~ Copyright © 2016-2018 Jelurida IP B.V.                                    ~
   ~                                                                           ~
   ~ See the LICENSE.txt file at the top-level directory of this distribution  ~
   ~ for licensing information.                                                ~
@@ -15,16 +15,24 @@
   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
 
 <div id="bundlers_page" class="paginated page">
-    <script type="text/x-handlebars-template">
-        <section class="content-header">
-            <h1>{{i18n "bundlers"}}</h1>
-            <div style="position:absolute;top:9px;right:9px;">
-                <button type="button" class="btn btn-default" data-toggle="modal" data-target="#start_bundler_modal" data-i18n="start_bundler" {{when isParentChain 'disabled'}}>Start Bundler</button>
+    <section class="content-header">
+        <h1 data-i18n="bundlers">BUNDLERS</h1>
+        <div style="position:absolute;top:9px;right:9px;">
+            <div class="btn-group" data-toggle="buttons" id="bundlers_page_type">
+                <label class="btn btn-default active" data-type="all">
+                    <input type="radio" name="bundlers_page_type"> <span data-i18n="all">ALL</span>
+                </label>
+                <label class="btn btn-default" data-type="my">
+                    <input type="radio" name="bundlers_page_type"> <span data-i18n="my">MY</span>
+                </label>
+                <button id="bundlers_start_btn" type="button" class="btn btn-default" data-toggle="modal" data-target="#start_bundler_modal" data-i18n="start">Start</button>
             </div>
-        </section>
-        <section class="content">
+        </div>
+    </section>
+    <section class="content" id="bundlers_section">
+        <script type="text/x-handlebars-template">
             {{#if errorMessage}}
-            <div class="alert alert-danger" role="alert">{{{ errorMessage }}}</div>
+                <div class="alert alert-danger" role="alert">{{{ errorMessage }}}</div>
             {{/if}}
             <div class="data-container {{when isLoading 'data-loading' isEmpty 'data-empty'}}">
                 <table class="table table-striped">
@@ -58,11 +66,11 @@
                 <div class="data-loading-container"><img src="img/loading_indicator.gif" alt="Loading..." width="32" height="32" /></div>
                 <div class="data-empty-container">
                     <p>
-                        <span data-i18n="no_bundlers">There are no bundlers</span>.
+                        <span data-i18n="no_bundlers">There are no bundlers for this chain</span>.
                     </p>
                 </div>
-                <div class="data-pagination"></div>                
+                <div class="data-pagination"></div>
             </div>
-        </section>
-    </script>
+        </script>
+    </section>
 </div>

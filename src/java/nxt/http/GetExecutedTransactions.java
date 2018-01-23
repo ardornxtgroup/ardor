@@ -1,6 +1,6 @@
 /*
  * Copyright © 2013-2016 The Nxt Core Developers.
- * Copyright © 2016-2017 Jelurida IP B.V.
+ * Copyright © 2016-2018 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
@@ -29,10 +29,10 @@ import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
 
-public class GetExecutedTransactions extends APIServlet.APIRequestHandler {
+public final class GetExecutedTransactions extends APIServlet.APIRequestHandler {
     static final GetExecutedTransactions instance = new GetExecutedTransactions();
 
-    protected GetExecutedTransactions() {
+    private GetExecutedTransactions() {
         super(new APITag[] {APITag.TRANSACTIONS}, "height", "numberOfConfirmations", "type", "subtype", "sender", "recipient", "firstIndex", "lastIndex");
     }
 

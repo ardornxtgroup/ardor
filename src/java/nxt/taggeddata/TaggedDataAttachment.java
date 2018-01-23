@@ -1,6 +1,6 @@
 /*
  * Copyright © 2013-2016 The Nxt Core Developers.
- * Copyright © 2016-2017 Jelurida IP B.V.
+ * Copyright © 2016-2018 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
@@ -39,7 +39,7 @@ public final class TaggedDataAttachment extends Attachment.AbstractAttachment im
             return new TaggedDataAttachment(buffer);
         }
         @Override
-        public AbstractAppendix parse(JSONObject attachmentData) throws NxtException.NotValidException {
+        public AbstractAppendix parse(JSONObject attachmentData) {
             if (!Appendix.hasAppendix(TaggedDataTransactionType.TAGGED_DATA_UPLOAD.getName(), attachmentData)) {
                 return null;
             }

@@ -1,6 +1,6 @@
 /*
  * Copyright © 2013-2016 The Nxt Core Developers.
- * Copyright © 2016-2017 Jelurida IP B.V.
+ * Copyright © 2016-2018 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
@@ -24,6 +24,7 @@ import nxt.account.AccountRestrictions;
 import nxt.crypto.Crypto;
 import nxt.db.DbUtils;
 import nxt.util.Convert;
+import nxt.util.Logger;
 import org.json.simple.JSONObject;
 
 import java.nio.ByteBuffer;
@@ -127,36 +128,43 @@ public class FxtTransactionImpl extends TransactionImpl implements FxtTransactio
 
     @Override
     public void validate() throws NxtException.ValidationException {
-        super.validate();
-        if (FxtTransactionType.findTransactionType(getType().getType(), getType().getSubtype()) == null) {
-            throw new NxtException.NotValidException("Invalid transaction type " + getType().getName() + " for FxtTransaction");
-        }
-        int appendixType = -1;
-        for (Appendix.AbstractAppendix appendage : appendages()) {
-            if (appendage.getAppendixType() <= appendixType) {
-                throw new NxtException.NotValidException("Duplicate or not in order appendix " + appendage.getAppendixName());
+        try {
+            super.validate();
+            if (FxtTransactionType.findTransactionType(getType().getType(), getType().getSubtype()) == null) {
+                throw new NxtException.NotValidException("Invalid transaction type " + getType().getName() + " for FxtTransaction");
             }
-            appendixType = appendage.getAppendixType();
-            if (!appendage.isAllowed(FxtChain.FXT)) {
-                throw new NxtException.NotValidException("Appendix not allowed on Fxt chain " + appendage.getAppendixName());
+            int appendixType = -1;
+            for (Appendix.AbstractAppendix appendage : appendages()) {
+                if (appendage.getAppendixType() <= appendixType) {
+                    throw new NxtException.NotValidException("Duplicate or not in order appendix " + appendage.getAppendixName());
+                }
+                appendixType = appendage.getAppendixType();
+                if (!appendage.isAllowed(FxtChain.FXT)) {
+                    throw new NxtException.NotValidException("Appendix not allowed on Fxt chain " + appendage.getAppendixName());
+                }
+                appendage.loadPrunable(this);
+                if (!appendage.verifyVersion()) {
+                    throw new NxtException.NotValidException("Invalid attachment version " + appendage.getVersion());
+                }
+                appendage.validate(this);
             }
-            appendage.loadPrunable(this);
-            if (! appendage.verifyVersion()) {
-                throw new NxtException.NotValidException("Invalid attachment version " + appendage.getVersion());
+            if (getFullSize() > Constants.MAX_CHILDBLOCK_PAYLOAD_LENGTH) {
+                throw new NxtException.NotValidException("Transaction size " + getFullSize() + " exceeds maximum payload size");
             }
-            appendage.validate(this);
+            long minimumFeeFQT = getMinimumFeeFQT(Nxt.getBlockchain().getHeight());
+            if (feeFQT < minimumFeeFQT) {
+                throw new NxtException.NotCurrentlyValidException(String.format("Transaction fee %f %s less than minimum fee %f %s at height %d",
+                        ((double) feeFQT) / Constants.ONE_FXT, FxtChain.FXT_NAME, ((double) minimumFeeFQT) / Constants.ONE_FXT, FxtChain.FXT_NAME,
+                        Nxt.getBlockchain().getHeight()));
+            }
+            validateEcBlock();
+            AccountRestrictions.checkTransaction(this);
+        } catch (NxtException.NotValidException e) {
+            if (getSignature() != null) {
+                Logger.logMessage("Invalid transaction " + getStringId());
+            }
+            throw e;
         }
-        if (getFullSize() > Constants.MAX_CHILDBLOCK_PAYLOAD_LENGTH) {
-            throw new NxtException.NotValidException("Transaction size " + getFullSize() + " exceeds maximum payload size");
-        }
-        long minimumFeeFQT = getMinimumFeeFQT(Nxt.getBlockchain().getHeight());
-        if (feeFQT < minimumFeeFQT) {
-            throw new NxtException.NotCurrentlyValidException(String.format("Transaction fee %f %s less than minimum fee %f %s at height %d",
-                    ((double) feeFQT) / Constants.ONE_FXT, FxtChain.FXT_NAME, ((double) minimumFeeFQT) / Constants.ONE_FXT, FxtChain.FXT_NAME,
-                    Nxt.getBlockchain().getHeight()));
-        }
-        validateEcBlock();
-        AccountRestrictions.checkTransaction(this);
     }
 
     @Override

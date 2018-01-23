@@ -1,6 +1,6 @@
 /*
  * Copyright © 2013-2016 The Nxt Core Developers.
- * Copyright © 2016-2017 Jelurida IP B.V.
+ * Copyright © 2016-2018 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
@@ -237,11 +237,11 @@ public abstract class TransactionImpl implements Transaction {
     private final PrunablePlainMessageAppendix prunablePlainMessage;
     private final PrunableEncryptedMessageAppendix prunableEncryptedMessage;
 
-    private volatile int height = Integer.MAX_VALUE;
+    private volatile int height;
     private volatile long blockId;
     private volatile BlockImpl block;
-    private volatile int blockTimestamp = -1;
-    private volatile short index = -1;
+    private volatile int blockTimestamp;
+    private volatile short index;
     private volatile long id;
     private volatile String stringId;
     private volatile long senderId;
@@ -693,6 +693,14 @@ public abstract class TransactionImpl implements Transaction {
         } else {
             throw new NxtException.NotValidException("To prevent transaction replay attacks, using ecBlockId=0 is no longer allowed.");
         }
+    }
+
+    @Override
+    public final long getMinimumFeeFQT() {
+        if (blockId != 0) {
+            return getMinimumFeeFQT(height - 1);
+        }
+        return getMinimumFeeFQT(Nxt.getBlockchain().getHeight());
     }
 
     long getMinimumFeeFQT(int blockchainHeight) {

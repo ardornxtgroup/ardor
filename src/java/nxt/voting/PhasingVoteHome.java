@@ -1,6 +1,6 @@
 /*
  * Copyright © 2013-2016 The Nxt Core Developers.
- * Copyright © 2016-2017 Jelurida IP B.V.
+ * Copyright © 2016-2018 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
@@ -230,7 +230,7 @@ public final class PhasingVoteHome {
         private final long voterId;
         private final String subPollName;
 
-        public PhasingVoteSubPoll(byte[] phasedTransactionHash, Account voter, String subPollName) {
+        private PhasingVoteSubPoll(byte[] phasedTransactionHash, Account voter, String subPollName) {
             this.phasedTransactionHash = phasedTransactionHash;
             this.phasedTransactionId = Convert.fullHashToId(phasedTransactionHash);
             this.voterId = voter.getId();

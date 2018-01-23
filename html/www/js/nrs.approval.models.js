@@ -1,6 +1,6 @@
 /******************************************************************************
  * Copyright © 2013-2016 The Nxt Core Developers.                             *
- * Copyright © 2016-2017 Jelurida IP B.V.                                     *
+ * Copyright © 2016-2018 Jelurida IP B.V.                                     *
  *                                                                            *
  * See the LICENSE.txt file at the top-level directory of this distribution   *
  * for licensing information.                                                 *
@@ -71,8 +71,8 @@ var NRS = (function(NRS, $) {
 
 	NRS.forms.addApprovalModel = function($modal) {
 		var data = NRS.getFormData($modal.find("form:first"));
-		var name = data.name;
-		var description = data.description;
+		var name = NRS.escapeRespStr(data.name);
+		var description = NRS.escapeRespStr(data.description);
 		delete data.name;
 		if (!name) {
 			return { error: $.t("enter_unique_approval_model_name")}
@@ -192,7 +192,7 @@ var NRS = (function(NRS, $) {
 
         }
         return { stop: true };
-    }
+    };
 
     NRS.forms.importAssetControl = function ($modal) {
         var data = NRS.getFormData($modal.find("form:first"));
@@ -233,7 +233,7 @@ var NRS = (function(NRS, $) {
 
                 if ("semanticWarnings" in response) {
                     errorDesc += "\n\n";
-                    for (warning in response.semanticWarnings) {
+                    for (var warning in response.semanticWarnings) {
                         errorDesc += NRS.unescapeRespStr(response.semanticWarnings[warning]) + "\n";
                     }
                 }
@@ -297,7 +297,7 @@ var NRS = (function(NRS, $) {
     var importModelsButtonFieldClone = importModelsButtonField.clone(true);
 
 	$("#import_approval_models_button").on("click", function() {
-		if (window.FileReader) {
+		if (NRS.isFileReaderSupported()) {
             $("#import_approval_models_button_field").click();
         } else if (window.java) {
             var result = java.readApprovalModelsFile();

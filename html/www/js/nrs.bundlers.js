@@ -1,6 +1,6 @@
 /******************************************************************************
  * Copyright © 2013-2016 The Nxt Core Developers.                             *
- * Copyright © 2016-2017 Jelurida IP B.V.                                     *
+ * Copyright © 2016-2018 Jelurida IP B.V.                                     *
  *                                                                            *
  * See the LICENSE.txt file at the top-level directory of this distribution   *
  * for licensing information.                                                 *
@@ -31,17 +31,28 @@ var NRS = (function(NRS, $) {
 
     NRS.jsondata.bundlers = function (response) {
         var fxtDecimals = NRS.getChain(1).decimals;
+        var stopLinkFormatted = "";
+        if (response.bundlerRS == NRS.accountRS) {
+            stopLinkFormatted = "<a href='#' class='btn btn-xs' data-toggle='modal' data-target='#stop_bundler_modal' " +
+                "data-account='" + NRS.escapeRespStr(response.bundlerRS) + "' data-chain='" + NRS.escapeRespStr(response.chain) + "'>" + $.t("stop") + "</a>";
+        }
+        var currentFeeLimitFQT = "";
+        if (response.currentFeeLimitFQT) {
+            if (response.currentFeeLimitFQT !== NRS.constants.MAX_LONG_JAVA) {
+                currentFeeLimitFQT = NRS.formatQuantity(response.currentFeeLimitFQT, fxtDecimals);
+            }
+        } else {
+            currentFeeLimitFQT = NRS.formatQuantity(response.totalFeesLimitFQT - response.currentTotalFeesFQT, fxtDecimals)
+        }
         return {
             accountFormatted: NRS.getAccountLink(response, "bundler"),
             chainFormatted: NRS.getChainLink(response.chain),
             totalFeesLimitFQT: response.totalFeesLimitFQT ? NRS.formatQuantity(response.totalFeesLimitFQT, fxtDecimals) : "",
             currentTotalFeesFQT: response.currentTotalFeesFQT ? NRS.formatQuantity(response.currentTotalFeesFQT, fxtDecimals) : "",
-            currentFeeLimitFQT: response.currentFeeLimitFQT ? NRS.formatQuantity(response.currentFeeLimitFQT, fxtDecimals) :
-                NRS.formatQuantity(response.totalFeesLimitFQT - response.currentTotalFeesFQT, fxtDecimals),
+            currentFeeLimitFQT: currentFeeLimitFQT,
             minRateNQTPerFXT: NRS.formatQuantity(response.minRateNQTPerFXT, NRS.getChain(response.chain).decimals),
             overpayFQTPerFXT: response.overpayFQTPerFXT ? NRS.formatQuantity(response.overpayFQTPerFXT, fxtDecimals) : "",
-            stopLinkFormatted: "<a href='#' class='btn btn-xs' data-toggle='modal' data-target='#stop_bundler_modal' " +
-                "data-account='" + NRS.escapeRespStr(response.bundlerRS) + "' data-chain='" + NRS.escapeRespStr(response.chain) + "'>" + $.t("stop") + "</a>"
+            stopLinkFormatted: stopLinkFormatted
         };
     };
 
@@ -49,56 +60,46 @@ var NRS = (function(NRS, $) {
         NRS.loadPage("bundlers");
     };
 
-    NRS.pages.bundlers = function () {
+    NRS.pages.bundlers = function() {
+        NRS.renderBundlersTable($("#bundlers_page_type").find(".active").data("type"));
+    };
+
+    NRS.renderBundlersTable = function(type) {
         NRS.hasMorePages = false;
-        var view = NRS.simpleview.get('bundlers_page', {
+        var view = NRS.simpleview.get('bundlers_section', {
             errorMessage: null,
             isLoading: true,
             isEmpty: false,
             bundlers: []
         });
         var params = {
-            "nochain": true,
             "adminPassword": NRS.getAdminPassword(),
             "firstIndex": NRS.pageNumber * NRS.itemsPerPage - NRS.itemsPerPage,
             "lastIndex": NRS.pageNumber * NRS.itemsPerPage
         };
-        NRS.sendRequest("getBundlers", params, function(getBundlersResponse) {
-            if (isErrorResponse(getBundlersResponse)) {
-                view.render({
-                    errorMessage: getErrorMessage(getBundlersResponse),
-                    isLoading: false,
-                    isEmpty: false,
-                    isParentChain: NRS.isParentChain()
-                });
-                return;
-            }
-            var response = $.extend({}, getBundlersResponse);
-            if (response.bundlers.length > NRS.itemsPerPage) {
-                NRS.hasMorePages = true;
-                response.bundlers.pop();
-            }
-            NRS.sendRequest("getAllBundlerRates", params, function(getAllBundlerRatesResponse) {
-                if (isErrorResponse(getAllBundlerRatesResponse)) {
+        if (NRS.isParentChain()) {
+            // For Ardor show bundlers from all chains and disable the start button
+            params["nochain"] = true;
+            $("#bundlers_start_btn").prop("disabled", true);
+        } else {
+            $("#bundlers_start_btn").prop("disabled", false);
+        }
+        if (type === "my") {
+            params["account"] = NRS.accountRS;
+            NRS.sendRequest("getBundlers", params, function(getBundlersResponse) {
+                if (isErrorResponse(getBundlersResponse)) {
                     view.render({
-                        errorMessage: getErrorMessage(getAllBundlerRatesResponse),
+                        errorMessage: getErrorMessage(getBundlersResponse),
                         isLoading: false,
                         isEmpty: false,
                         isParentChain: NRS.isParentChain()
                     });
                     return;
                 }
-                for (var i=0; i<getAllBundlerRatesResponse.rates.length; i++) {
-                    var rateJson = getAllBundlerRatesResponse.rates[i];
-                    for (var j=0; j < rateJson.rates.length; j++) {
-                        response.bundlers.push({
-                            "bundler": rateJson.rates[j].account,
-                            "bundlerRS": rateJson.rates[j].accountRS,
-                            "chain": rateJson.chain,
-                            "minRateNQTPerFXT": rateJson.rates[j].minRateNQTPerFXT,
-                            "currentFeeLimitFQT": rateJson.rates[j].currentFeeLimitFQT
-                        });
-                    }
+                var response = $.extend({}, getBundlersResponse);
+                if (response.bundlers.length > NRS.itemsPerPage) {
+                    NRS.hasMorePages = true;
+                    response.bundlers.pop();
                 }
                 view.bundlers.length = 0;
                 response.bundlers.forEach(
@@ -112,10 +113,69 @@ var NRS = (function(NRS, $) {
                     isParentChain: NRS.isParentChain()
                 });
                 NRS.pageLoaded();
-
+            });
+        } else if (type === "all") {
+            NRS.sendRequest("getAllBundlerRates", params, function(getAllBundlerRatesResponse) {
+                if (isErrorResponse(getAllBundlerRatesResponse)) {
+                    view.render({
+                        errorMessage: getErrorMessage(getAllBundlerRatesResponse),
+                        isLoading: false,
+                        isEmpty: false,
+                        isParentChain: NRS.isParentChain()
+                    });
+                    return;
+                }
+                var response = $.extend({}, getAllBundlerRatesResponse);
+                response.bundlers = [];
+                for (var i=0; i < response.rates.length; i++) {
+                    var rate = response.rates[i];
+                    for (var j=0; j < rate.rates.length; j++) {
+                        if (rate.chain != NRS.getActiveChainId() && !NRS.isParentChain()) {
+                            continue;
+                        }
+                        response.bundlers.push({
+                            "bundler": rate.rates[j].account,
+                            "bundlerRS": rate.rates[j].accountRS,
+                            "chain": rate.chain,
+                            "minRateNQTPerFXT": rate.rates[j].minRateNQTPerFXT,
+                            "currentFeeLimitFQT": rate.rates[j].currentFeeLimitFQT
+                        });
+                    }
+                }
+                response.bundlers.sort(function (a, b) {
+                    if (a.chain > b.chain) {
+                        return 1;
+                    } else if (a.chain < b.chain) {
+                        return -1;
+                    } else {
+                        var rate1 = new BigInteger(NRS.floatToInt(a.minRateNQTPerFXT, NRS.getActiveChain().decimals));
+                        var rate2 = new BigInteger(NRS.floatToInt(b.minRateNQTPerFXT, NRS.getActiveChain().decimals));
+                        return rate1.compareTo(rate2);
+                    }
+                });
+                view.bundlers.length = 0;
+                response.bundlers.forEach(
+                    function (bundlerJson) {
+                        view.bundlers.push(NRS.jsondata.bundlers(bundlerJson))
+                    }
+                );
+                view.render({
+                    isLoading: false,
+                    isEmpty: view.bundlers.length == 0,
+                    isParentChain: NRS.isParentChain()
+                });
+                NRS.pageLoaded();
             })
-        })
+        }
     };
+
+    $("#bundlers_page_type").find(".btn").click(function (e) {
+        e.preventDefault();
+        var bundlersTable = $("#bundlers_table");
+        bundlersTable.find("tbody").empty();
+        bundlersTable.parent().addClass("data-loading").removeClass("data-empty");
+        NRS.renderBundlersTable($(this).data("type"));
+    });
 
     NRS.forms.startBundler = function($modal) {
         var data = NRS.getFormData($modal.find("form:first"));

@@ -1,6 +1,6 @@
 /*
  * Copyright © 2013-2016 The Nxt Core Developers.
- * Copyright © 2016-2017 Jelurida IP B.V.
+ * Copyright © 2016-2018 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
@@ -59,27 +59,27 @@ public final class FxtChain extends Chain {
     }
 
     @Override
-    public FxtTransactionImpl.BuilderImpl newTransactionBuilder(byte[] senderPublicKey, long amount, long fee, short deadline, Attachment attachment) throws NxtException.NotValidException {
+    public FxtTransactionImpl.BuilderImpl newTransactionBuilder(byte[] senderPublicKey, long amount, long fee, short deadline, Attachment attachment) {
         return FxtTransactionImpl.newTransactionBuilder((byte)1, senderPublicKey, amount, fee, deadline, (Attachment.AbstractAttachment)attachment);
     }
 
     @Override
     FxtTransactionImpl.BuilderImpl newTransactionBuilder(byte version, byte[] senderPublicKey, long amount, long fee, short deadline,
-                                                         List<Appendix.AbstractAppendix> appendages, JSONObject transactionData) throws NxtException.NotValidException {
+                                                         List<Appendix.AbstractAppendix> appendages, JSONObject transactionData) {
         return FxtTransactionImpl.newTransactionBuilder(version, senderPublicKey, amount, fee, deadline,
                 appendages, transactionData);
     }
 
     @Override
     FxtTransactionImpl.BuilderImpl newTransactionBuilder(byte version, byte[] senderPublicKey, long amount, long fee, short deadline,
-                                                         List<Appendix.AbstractAppendix> appendages, ByteBuffer buffer) throws NxtException.NotValidException {
+                                                         List<Appendix.AbstractAppendix> appendages, ByteBuffer buffer) {
         return FxtTransactionImpl.newTransactionBuilder(version, senderPublicKey, amount, fee, deadline,
                 appendages, buffer);
     }
 
     @Override
     FxtTransactionImpl.BuilderImpl newTransactionBuilder(byte version, long amount, long fee, short deadline,
-                                                         List<Appendix.AbstractAppendix> appendages, ResultSet rs) throws NxtException.NotValidException {
+                                                         List<Appendix.AbstractAppendix> appendages, ResultSet rs) {
         return FxtTransactionImpl.newTransactionBuilder(version, amount, fee, deadline, appendages, rs);
     }
 

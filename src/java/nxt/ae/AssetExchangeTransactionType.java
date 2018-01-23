@@ -1,6 +1,6 @@
 /*
  * Copyright © 2013-2016 The Nxt Core Developers.
- * Copyright © 2016-2017 Jelurida IP B.V.
+ * Copyright © 2016-2018 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
@@ -136,7 +136,7 @@ public abstract class AssetExchangeTransactionType extends ChildTransactionType 
         }
 
         @Override
-        public AssetIssuanceAttachment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        public AssetIssuanceAttachment parseAttachment(JSONObject attachmentData) {
             return new AssetIssuanceAttachment(attachmentData);
         }
 
@@ -230,12 +230,12 @@ public abstract class AssetExchangeTransactionType extends ChildTransactionType 
         }
 
         @Override
-        public AssetTransferAttachment parseAttachment(ByteBuffer buffer) throws NxtException.NotValidException {
+        public AssetTransferAttachment parseAttachment(ByteBuffer buffer) {
             return new AssetTransferAttachment(buffer);
         }
 
         @Override
-        public AssetTransferAttachment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        public AssetTransferAttachment parseAttachment(JSONObject attachmentData) {
             return new AssetTransferAttachment(attachmentData);
         }
 
@@ -329,12 +329,12 @@ public abstract class AssetExchangeTransactionType extends ChildTransactionType 
         }
 
         @Override
-        public AssetDeleteAttachment parseAttachment(ByteBuffer buffer) throws NxtException.NotValidException {
+        public AssetDeleteAttachment parseAttachment(ByteBuffer buffer) {
             return new AssetDeleteAttachment(buffer);
         }
 
         @Override
-        public AssetDeleteAttachment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        public AssetDeleteAttachment parseAttachment(JSONObject attachmentData) {
             return new AssetDeleteAttachment(attachmentData);
         }
 
@@ -430,12 +430,12 @@ public abstract class AssetExchangeTransactionType extends ChildTransactionType 
         }
 
         @Override
-        public AssetIncreaseAttachment parseAttachment(ByteBuffer buffer) throws NxtException.NotValidException {
+        public AssetIncreaseAttachment parseAttachment(ByteBuffer buffer) {
             return new AssetIncreaseAttachment(buffer);
         }
 
         @Override
-        public AssetIncreaseAttachment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        public AssetIncreaseAttachment parseAttachment(JSONObject attachmentData) {
             return new AssetIncreaseAttachment(attachmentData);
         }
 
@@ -576,12 +576,12 @@ public abstract class AssetExchangeTransactionType extends ChildTransactionType 
         }
 
         @Override
-        public AskOrderPlacementAttachment parseAttachment(ByteBuffer buffer) throws NxtException.NotValidException {
+        public AskOrderPlacementAttachment parseAttachment(ByteBuffer buffer) {
             return new AskOrderPlacementAttachment(buffer);
         }
 
         @Override
-        public AskOrderPlacementAttachment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        public AskOrderPlacementAttachment parseAttachment(JSONObject attachmentData) {
             return new AskOrderPlacementAttachment(attachmentData);
         }
 
@@ -637,12 +637,12 @@ public abstract class AssetExchangeTransactionType extends ChildTransactionType 
         }
 
         @Override
-        public BidOrderPlacementAttachment parseAttachment(ByteBuffer buffer) throws NxtException.NotValidException {
+        public BidOrderPlacementAttachment parseAttachment(ByteBuffer buffer) {
             return new BidOrderPlacementAttachment(buffer);
         }
 
         @Override
-        public BidOrderPlacementAttachment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        public BidOrderPlacementAttachment parseAttachment(JSONObject attachmentData) {
             return new BidOrderPlacementAttachment(attachmentData);
         }
 
@@ -742,12 +742,12 @@ public abstract class AssetExchangeTransactionType extends ChildTransactionType 
         }
 
         @Override
-        public AskOrderCancellationAttachment parseAttachment(ByteBuffer buffer) throws NxtException.NotValidException {
+        public AskOrderCancellationAttachment parseAttachment(ByteBuffer buffer) {
             return new AskOrderCancellationAttachment(buffer);
         }
 
         @Override
-        public AskOrderCancellationAttachment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        public AskOrderCancellationAttachment parseAttachment(JSONObject attachmentData) {
             return new AskOrderCancellationAttachment(attachmentData);
         }
 
@@ -796,12 +796,12 @@ public abstract class AssetExchangeTransactionType extends ChildTransactionType 
         }
 
         @Override
-        public BidOrderCancellationAttachment parseAttachment(ByteBuffer buffer) throws NxtException.NotValidException {
+        public BidOrderCancellationAttachment parseAttachment(ByteBuffer buffer) {
             return new BidOrderCancellationAttachment(buffer);
         }
 
         @Override
-        public BidOrderCancellationAttachment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        public BidOrderCancellationAttachment parseAttachment(JSONObject attachmentData) {
             return new BidOrderCancellationAttachment(attachmentData);
         }
 
@@ -938,24 +938,28 @@ public abstract class AssetExchangeTransactionType extends ChildTransactionType 
                         + ", current height is " + Nxt.getBlockchain().getHeight());
             }
             HoldingType holdingType = attachment.getHoldingType();
-            if (holdingType == HoldingType.COIN) {
-                if (attachment.getHoldingId() != transaction.getChain().getId()) {
-                    throw new NxtException.NotValidException("Holding id " + Long.toUnsignedString(attachment.getHoldingId())
-                            + " does not match chain id " + transaction.getChain().getId());
-                }
-            } else if (holdingType == HoldingType.ASSET) {
-                Asset dividendAsset = Asset.getAsset(attachment.getHoldingId());
-                if (dividendAsset == null) {
-                    throw new NxtException.NotCurrentlyValidException("Unknown asset " + Long.toUnsignedString(attachment.getHoldingId()));
-                }
-            } else if (holdingType == HoldingType.CURRENCY) {
-                Currency currency = Currency.getCurrency(attachment.getHoldingId());
-                CurrencyType.validate(currency, transaction);
-                if (!currency.isActive()) {
-                    throw new NxtException.NotCurrentlyValidException("Currency is not active: " + currency.getCode());
-                }
-            } else {
-                throw new RuntimeException("Unsupported holding type " + holdingType);
+            switch (holdingType) {
+                case COIN:
+                    if (attachment.getHoldingId() != transaction.getChain().getId()) {
+                        throw new NxtException.NotValidException("Holding id " + Long.toUnsignedString(attachment.getHoldingId())
+                                + " does not match chain id " + transaction.getChain().getId());
+                    }
+                    break;
+                case ASSET:
+                    Asset dividendAsset = Asset.getAsset(attachment.getHoldingId());
+                    if (dividendAsset == null) {
+                        throw new NxtException.NotCurrentlyValidException("Unknown asset " + Long.toUnsignedString(attachment.getHoldingId()));
+                    }
+                    break;
+                case CURRENCY:
+                    Currency currency = Currency.getCurrency(attachment.getHoldingId());
+                    CurrencyType.validate(currency, transaction);
+                    if (!currency.isActive()) {
+                        throw new NxtException.NotCurrentlyValidException("Currency is not active: " + currency.getCode());
+                    }
+                    break;
+                default:
+                    throw new RuntimeException("Unsupported holding type " + holdingType);
             }
         }
 
@@ -1013,7 +1017,7 @@ public abstract class AssetExchangeTransactionType extends ChildTransactionType 
         }
 
         @Override
-        public Attachment.AbstractAttachment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        public Attachment.AbstractAttachment parseAttachment(JSONObject attachmentData) {
             return new SetPhasingAssetControlAttachment(attachmentData);
         }
 

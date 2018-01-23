@@ -1,6 +1,6 @@
 /*
  * Copyright © 2013-2016 The Nxt Core Developers.
- * Copyright © 2016-2017 Jelurida IP B.V.
+ * Copyright © 2016-2018 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
@@ -709,9 +709,7 @@ public final class Peers {
             //
             if (peers.size() > maxNumberOfKnownPeers) {
                 int initialSize = peers.size();
-                PriorityQueue<PeerImpl> sortedPeers = new PriorityQueue<>(peers.size(), (o1, o2) ->
-                        o1.getLastUpdated() < o2.getLastUpdated() ? -1 :
-                                o1.getLastUpdated() > o2.getLastUpdated() ? 1 : 0);
+                PriorityQueue<PeerImpl> sortedPeers = new PriorityQueue<>(peers.size(), Comparator.comparingInt(PeerImpl::getLastUpdated));
                 sortedPeers.addAll(peers.values());
                 while (peers.size() > minNumberOfKnownPeers) {
                     sortedPeers.poll().remove();
@@ -738,7 +736,7 @@ public final class Peers {
                     if (!bundlerRates.isEmpty()) {
                         Logger.logDebugMessage("Broadcasting our bundler rates");
                         List<BundlerRate> rates = new ArrayList<>();
-                        bundlerRates.values().forEach(rateList -> rateList.forEach(rates::add));
+                        bundlerRates.values().forEach(rates::addAll);
                         NetworkHandler.broadcastMessage(new NetworkMessage.BundlerRateMessage(rates));
                     }
                 }
@@ -1089,9 +1087,8 @@ public final class Peers {
             }
         }
         List<BundlerRate> bestRates = new ArrayList<>();
-        rateMap.entrySet().forEach(entry ->
-                bestRates.add(new BundlerRate(entry.getKey(), entry.getValue().getAccountId(),
-                        entry.getValue().getRate(), entry.getValue().getFeeLimit())));
+        rateMap.forEach((key, value) -> bestRates.add(new BundlerRate(key, value.getAccountId(),
+                value.getRate(), value.getFeeLimit())));
         return bestRates;
     }
 

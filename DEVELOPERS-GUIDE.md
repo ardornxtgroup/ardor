@@ -56,7 +56,7 @@
 
 ### Testing ###
 
-  - all API calls can be tested manually from the auto-generated http://localhost:26876/test page
+  - all API calls can be tested manually from the auto-generated http://localhost:27876/test page
   - many tests need blocks to be generated, see the examples how to fake the forging process
   - write your tests against the http API or the public java API, which are relatively stable
   

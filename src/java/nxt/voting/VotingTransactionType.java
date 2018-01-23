@@ -1,6 +1,6 @@
 /*
  * Copyright © 2013-2016 The Nxt Core Developers.
- * Copyright © 2016-2017 Jelurida IP B.V.
+ * Copyright © 2016-2018 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
@@ -130,7 +130,7 @@ public abstract class VotingTransactionType extends ChildTransactionType {
         }
 
         @Override
-        public PollCreationAttachment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        public PollCreationAttachment parseAttachment(JSONObject attachmentData) {
             return new PollCreationAttachment(attachmentData);
         }
 
@@ -239,7 +239,7 @@ public abstract class VotingTransactionType extends ChildTransactionType {
         }
 
         @Override
-        public VoteCastingAttachment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        public VoteCastingAttachment parseAttachment(JSONObject attachmentData) {
             return new VoteCastingAttachment(attachmentData);
         }
 
@@ -343,7 +343,7 @@ public abstract class VotingTransactionType extends ChildTransactionType {
         }
 
         @Override
-        public PhasingVoteCastingAttachment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        public PhasingVoteCastingAttachment parseAttachment(JSONObject attachmentData) {
             return new PhasingVoteCastingAttachment(attachmentData);
         }
 

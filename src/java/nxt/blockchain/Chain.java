@@ -1,6 +1,6 @@
 /*
  * Copyright © 2013-2016 The Nxt Core Developers.
- * Copyright © 2016-2017 Jelurida IP B.V.
+ * Copyright © 2016-2018 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
@@ -134,16 +134,16 @@ public abstract class Chain {
         return disabledAPITags;
     }
 
-    public abstract TransactionImpl.BuilderImpl newTransactionBuilder(byte[] senderPublicKey, long amountFQT, long feeFQT, short deadline, Attachment attachment) throws NxtException.NotValidException;
+    public abstract TransactionImpl.BuilderImpl newTransactionBuilder(byte[] senderPublicKey, long amountFQT, long feeFQT, short deadline, Attachment attachment);
 
     abstract TransactionImpl.BuilderImpl newTransactionBuilder(byte version, byte[] senderPublicKey, long amount, long fee, short deadline,
-                                                               List<Appendix.AbstractAppendix> appendages, JSONObject transactionData) throws NxtException.NotValidException;
+                                                               List<Appendix.AbstractAppendix> appendages, JSONObject transactionData);
 
     abstract TransactionImpl.BuilderImpl newTransactionBuilder(byte version, byte[] senderPublicKey, long amount, long fee, short deadline,
-                                                               List<Appendix.AbstractAppendix> appendages, ByteBuffer buffer) throws NxtException.NotValidException;
+                                                               List<Appendix.AbstractAppendix> appendages, ByteBuffer buffer);
 
     abstract TransactionImpl.BuilderImpl newTransactionBuilder(byte version, long amount, long fee, short deadline,
-                                                               List<Appendix.AbstractAppendix> appendages, ResultSet rs) throws NxtException.NotValidException;
+                                                               List<Appendix.AbstractAppendix> appendages, ResultSet rs);
 
     abstract UnconfirmedTransaction newUnconfirmedTransaction(ResultSet rs) throws SQLException, NxtException.NotValidException;
 

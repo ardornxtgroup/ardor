@@ -1,3 +1,12 @@
+ardor-client-2.0.12:
+
+Fixed setting the ecBlock parameter used when doing local signing for remote
+nodes, light clients, and mobile clients.
+
+Coin exchange totals are now trimmed according to the chain decimals.
+
+
+--------------------------------------------------------------------------------
 ardor-client-2.0.11:
 
 This release blacklists peers older than 2.0.10, and adds a checkpoint at

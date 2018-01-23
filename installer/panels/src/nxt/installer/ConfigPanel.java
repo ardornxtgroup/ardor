@@ -1,6 +1,6 @@
 /*
  * Copyright © 2013-2016 The Nxt Core Developers.
- * Copyright © 2016-2017 Jelurida IP B.V.
+ * Copyright © 2016-2018 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
@@ -27,11 +27,8 @@ import com.izforge.izpack.installer.data.GUIInstallData;
 import com.izforge.izpack.installer.gui.InstallerFrame;
 import com.izforge.izpack.installer.gui.IzPanel;
 
-import static nxt.installer.ConfigHandler.*;
-
-import javax.swing.JCheckBox;
-import javax.swing.JPanel;
-import java.awt.LayoutManager2;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.HashMap;
@@ -39,8 +36,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import static nxt.installer.ConfigHandler.FILE_PATH;
+import static nxt.installer.ConfigHandler.Setting;
+import static nxt.installer.ConfigHandler.VAR_CLEAN_INSTALL_DIR;
+import static nxt.installer.ConfigHandler.VAR_FILE_CONTENTS;
+import static nxt.installer.ConfigHandler.VAR_SHUTDOWN_SERVER;
+
 public class ConfigPanel extends IzPanel implements ItemListener {
-    private ConfigHandler handler = new ConfigHandler();
+    private final ConfigHandler handler = new ConfigHandler();
     private List<JCheckBox> settingsChecks;
     private JCheckBox stopServerCheck;
     private JCheckBox uninstallCheck;

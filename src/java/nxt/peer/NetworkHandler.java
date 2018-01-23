@@ -1,6 +1,6 @@
 /*
  * Copyright © 2013-2016 The Nxt Core Developers.
- * Copyright © 2016-2017 Jelurida IP B.V.
+ * Copyright © 2016-2018 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
@@ -125,13 +125,10 @@ public final class NetworkHandler implements Runnable {
     private static final NetworkMessage.GetInfoMessage getInfoMessage;
 
     /** My address */
-    static String myAddress;
+    private static String myAddress;
 
     /** My host name */
-    static String myHost;
-
-    /** My port */
-    static int myPort = -1;
+    private static String myHost;
 
     /** Announced address */
     static String announcedAddress;
@@ -143,7 +140,8 @@ public final class NetworkHandler implements Runnable {
                 myAddress = myAddress.toLowerCase().trim();
                 URI uri = new URI("http://" + myAddress);
                 myHost = uri.getHost();
-                myPort = uri.getPort();
+                /* My port */
+                int myPort = uri.getPort();
                 if (myHost == null) {
                     throw new RuntimeException("nxt.myAddress is not a valid host address");
                 }
@@ -358,7 +356,7 @@ public final class NetworkHandler implements Runnable {
     /**
      * Wakes up the network listener
      */
-    static void wakeup() {
+    private static void wakeup() {
         if (Thread.currentThread() != listenerThread) {
             networkSelector.wakeup();
         }
@@ -609,10 +607,13 @@ public final class NetworkHandler implements Runnable {
      */
     private void processConnect(SelectionKey connectKey) {
         PeerImpl peer = (PeerImpl)connectKey.attachment();
-        if (peer == null || peer.getChannel() == null) {
-            return;                     // Channel has been closed
+        if (peer == null) {
+            return;
         }
         SocketChannel channel = peer.getChannel();
+        if (channel == null) {
+            return; // Channel has been closed
+        }
         try {
             channel.finishConnect();
             if (peer.getState() != Peer.State.CONNECTED) {
@@ -690,6 +691,9 @@ public final class NetworkHandler implements Runnable {
     private void processRead(SelectionKey readKey) {
         PeerImpl peer = (PeerImpl)readKey.attachment();
         SocketChannel channel = peer.getChannel();
+        if (channel == null) {
+            return; // Channel has been closed
+        }
         ByteBuffer buffer = peer.getInputBuffer();
         peer.setLastUpdated(Nxt.getEpochTime());
         try {
@@ -841,6 +845,9 @@ public final class NetworkHandler implements Runnable {
     private void processWrite(SelectionKey writeKey) {
         PeerImpl peer = (PeerImpl)writeKey.attachment();
         SocketChannel channel = peer.getChannel();
+        if (channel == null) {
+            return; // Channel has been closed
+        }
         ByteBuffer buffer = peer.getOutputBuffer();
         try {
             //

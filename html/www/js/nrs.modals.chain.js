@@ -1,6 +1,6 @@
 /******************************************************************************
  * Copyright © 2013-2016 The Nxt Core Developers.                             *
- * Copyright © 2016-2017 Jelurida IP B.V.                                     *
+ * Copyright © 2016-2018 Jelurida IP B.V.                                     *
  *                                                                            *
  * See the LICENSE.txt file at the top-level directory of this distribution   *
  * for licensing information.                                                 *
@@ -47,6 +47,8 @@ var NRS = (function(NRS, $) {
     		NRS.modalStack.push({ class: "show_chain_modal_action", key: "chain", value: { chain: chain.id }});
             var chainDetails = $.extend({}, chain);
             delete chainDetails.ONE_COIN;
+            chainDetails.total_amount_formatted_html = NRS.formatQuantity(chainDetails.totalAmount, chain.decimals);
+            delete chainDetails.totalAmount;
             if (chainDetails.SHUFFLING_DEPOSIT_NQT) {
                 chainDetails.shuffling_deposit_formatted_html = NRS.formatQuantity(chainDetails.SHUFFLING_DEPOSIT_NQT, chain.decimals);
                 delete chainDetails.SHUFFLING_DEPOSIT_NQT;
@@ -59,7 +61,7 @@ var NRS = (function(NRS, $) {
                     if (response.rates[i].chain == chain.id) {
                         chainDetails.bundler_formatted_html = NRS.getAccountLink(response.rates[i], "account");
                         chainDetails.bundling_rate_formatted_html = NRS.formatQuantity(response.rates[i].minRateNQTPerFXT, chain.decimals) +
-                            " [" + chain.name + "/" + NRS.getParentChainName() + "]";
+                            " [" + chain.name + " " + $.t("per") + " " + NRS.getParentChainName() + "]";
                         chainDetails.fee_limit_formatted_html = NRS.formatQuantity(response.rates[i].currentFeeLimitFQT, NRS.getChain(1).decimals) +
                             " [" + NRS.getParentChainName() + "]";
                         break;

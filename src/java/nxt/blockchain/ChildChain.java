@@ -1,6 +1,6 @@
 /*
  * Copyright © 2013-2016 The Nxt Core Developers.
- * Copyright © 2016-2017 Jelurida IP B.V.
+ * Copyright © 2016-2018 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
@@ -43,7 +43,6 @@ import org.json.simple.JSONObject;
 import java.nio.ByteBuffer;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -62,10 +61,10 @@ public final class ChildChain extends Chain {
 
     public static final ChildChain IGNIS = new ChildChain(2, "IGNIS", 8, Constants.isTestnet ? 99972484729793502L : 99944969459860052L, (Constants.isTestnet ? 7 : 10) * 100000000,
             Collections.emptySet(), EnumSet.noneOf(APIEnum.class), EnumSet.noneOf(APITag.class));
-    public static final ChildChain AEUR = new ChildChain(3, "AEUR", 4, Constants.isTestnet ? 9997248455672L : 100000000000L, 0, new LinkedHashSet<>(Arrays.asList(ShufflingTransactionType.SHUFFLING_CREATION)),
+    public static final ChildChain AEUR = new ChildChain(3, "AEUR", 4, Constants.isTestnet ? 9997248455672L : 100000000000L, 0, new LinkedHashSet<>(Collections.singletonList(ShufflingTransactionType.SHUFFLING_CREATION)),
                     EnumSet.noneOf(APIEnum.class), EnumSet.of(APITag.SHUFFLING));
     public static final ChildChain BITSWIFT = new ChildChain(4, "BITSWIFT", 8, Constants.isTestnet ? 388463474549710L : 388463474539339L, 10 * 100000000L,
-            new LinkedHashSet<>(Arrays.asList(DigitalGoodsTransactionType.LISTING)), EnumSet.noneOf(APIEnum.class), EnumSet.of(APITag.DGS));
+            new LinkedHashSet<>(Collections.singletonList(DigitalGoodsTransactionType.LISTING)), EnumSet.noneOf(APIEnum.class), EnumSet.of(APITag.DGS));
 
     public static ChildChain getChildChain(String name) {
         return childChains.get(name);
@@ -201,27 +200,27 @@ public final class ChildChain extends Chain {
     }
 
     @Override
-    public ChildTransactionImpl.BuilderImpl newTransactionBuilder(byte[] senderPublicKey, long amount, long fee, short deadline, Attachment attachment) throws NxtException.NotValidException {
+    public ChildTransactionImpl.BuilderImpl newTransactionBuilder(byte[] senderPublicKey, long amount, long fee, short deadline, Attachment attachment) {
         return ChildTransactionImpl.newTransactionBuilder(this.getId(), (byte)1, senderPublicKey, amount, fee, deadline, (Attachment.AbstractAttachment)attachment);
     }
 
     @Override
     ChildTransactionImpl.BuilderImpl newTransactionBuilder(byte version, byte[] senderPublicKey, long amount, long fee, short deadline,
-                                                           List<Appendix.AbstractAppendix> appendages, JSONObject transactionData) throws NxtException.NotValidException {
+                                                           List<Appendix.AbstractAppendix> appendages, JSONObject transactionData) {
         return ChildTransactionImpl.newTransactionBuilder(this.getId(), version, senderPublicKey, amount, fee, deadline,
                 appendages, transactionData);
     }
 
     @Override
     ChildTransactionImpl.BuilderImpl newTransactionBuilder(byte version, byte[] senderPublicKey, long amount, long fee, short deadline,
-                                                           List<Appendix.AbstractAppendix> appendages, ByteBuffer buffer) throws NxtException.NotValidException {
+                                                           List<Appendix.AbstractAppendix> appendages, ByteBuffer buffer) {
         return ChildTransactionImpl.newTransactionBuilder(this.getId(), version, senderPublicKey, amount, fee, deadline,
                 appendages, buffer);
     }
 
     @Override
     ChildTransactionImpl.BuilderImpl newTransactionBuilder(byte version, long amount, long fee, short deadline,
-                                                           List<Appendix.AbstractAppendix> appendages, ResultSet rs) throws NxtException.NotValidException {
+                                                           List<Appendix.AbstractAppendix> appendages, ResultSet rs) {
         return ChildTransactionImpl.newTransactionBuilder(this.getId(), version, amount, fee, deadline, appendages, rs);
     }
 

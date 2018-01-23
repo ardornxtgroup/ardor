@@ -1,6 +1,6 @@
 /*
  * Copyright © 2013-2016 The Nxt Core Developers.
- * Copyright © 2016-2017 Jelurida IP B.V.
+ * Copyright © 2016-2018 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
@@ -294,46 +294,53 @@ public final class ChildTransactionImpl extends TransactionImpl implements Child
 
     @Override
     public void validate() throws NxtException.ValidationException {
-        super.validate();
-        if (ChildTransactionType.findTransactionType(getType().getType(), getType().getSubtype()) == null) {
-            throw new NxtException.NotValidException("Invalid transaction type " + getType().getName() + " for ChildTransaction");
-        }
-        if (referencedTransactionId != null) {
-            if (referencedTransactionId.getFullHash().length != 32) {
-                throw new NxtException.NotValidException("Invalid referenced transaction full hash " + Convert.toHexString(referencedTransactionId.getFullHash()));
+        try {
+            super.validate();
+            if (ChildTransactionType.findTransactionType(getType().getType(), getType().getSubtype()) == null) {
+                throw new NxtException.NotValidException("Invalid transaction type " + getType().getName() + " for ChildTransaction");
             }
-            if (referencedTransactionId.getChain() == null) {
-                throw new NxtException.NotValidException("Invalid referenced transaction chain " + referencedTransactionId.getChainId());
+            if (referencedTransactionId != null) {
+                if (referencedTransactionId.getFullHash().length != 32) {
+                    throw new NxtException.NotValidException("Invalid referenced transaction full hash " + Convert.toHexString(referencedTransactionId.getFullHash()));
+                }
+                if (referencedTransactionId.getChain() == null) {
+                    throw new NxtException.NotValidException("Invalid referenced transaction chain " + referencedTransactionId.getChainId());
+                }
             }
-        }
-        boolean validatingAtFinish = phasing != null && getSignature() != null && childChain.getPhasingPollHome().getPoll(this) != null;
-        int appendixType = -1;
-        for (Appendix.AbstractAppendix appendage : appendages()) {
-            if (appendage.getAppendixType() <= appendixType) {
-                throw new NxtException.NotValidException("Duplicate or not in order appendix " + appendage.getAppendixName());
+            boolean validatingAtFinish = phasing != null && getSignature() != null && childChain.getPhasingPollHome().getPoll(this) != null;
+            int appendixType = -1;
+            for (Appendix.AbstractAppendix appendage : appendages()) {
+                if (appendage.getAppendixType() <= appendixType) {
+                    throw new NxtException.NotValidException("Duplicate or not in order appendix " + appendage.getAppendixName());
+                }
+                appendixType = appendage.getAppendixType();
+                if (!appendage.isAllowed(childChain)) {
+                    throw new NxtException.NotValidException("Appendix not allowed on child chain " + appendage.getAppendixName());
+                }
+                appendage.loadPrunable(this);
+                if (!appendage.verifyVersion()) {
+                    throw new NxtException.NotValidException("Invalid attachment version " + appendage.getVersion());
+                }
+                if (validatingAtFinish) {
+                    appendage.validateAtFinish(this);
+                } else {
+                    appendage.validate(this);
+                }
             }
-            appendixType = appendage.getAppendixType();
-            if (!appendage.isAllowed(childChain)) {
-                throw new NxtException.NotValidException("Appendix not allowed on child chain " + appendage.getAppendixName());
-            }
-            appendage.loadPrunable(this);
-            if (! appendage.verifyVersion()) {
-                throw new NxtException.NotValidException("Invalid attachment version " + appendage.getVersion());
-            }
-            if (validatingAtFinish) {
-                appendage.validateAtFinish(this);
-            } else {
-                appendage.validate(this);
-            }
-        }
 
-        if (getFullSize() > Constants.MAX_CHILDBLOCK_PAYLOAD_LENGTH) {
-            throw new NxtException.NotValidException("Transaction size " + getFullSize() + " exceeds maximum payload size");
-        }
-        if (!validatingAtFinish) {
-            validateEcBlock();
-            AccountRestrictions.checkTransaction(this);
-            AssetControl.checkTransaction(this);
+            if (getFullSize() > Constants.MAX_CHILDBLOCK_PAYLOAD_LENGTH) {
+                throw new NxtException.NotValidException("Transaction size " + getFullSize() + " exceeds maximum payload size");
+            }
+            if (!validatingAtFinish) {
+                validateEcBlock();
+                AccountRestrictions.checkTransaction(this);
+                AssetControl.checkTransaction(this);
+            }
+        } catch (NxtException.NotValidException e) {
+            if (getSignature() != null) {
+                Logger.logMessage("Invalid child transaction " + getStringId());
+            }
+            throw e;
         }
     }
 
@@ -442,7 +449,7 @@ public final class ChildTransactionImpl extends TransactionImpl implements Child
     }
 
     static ChildTransactionImpl.BuilderImpl newTransactionBuilder(int chainId, byte version, long amount, long fee, short deadline,
-                                                                  List<Appendix.AbstractAppendix> appendages, ResultSet rs) throws NxtException.NotValidException {
+                                                                  List<Appendix.AbstractAppendix> appendages, ResultSet rs) {
         try {
             ChildTransactionImpl.BuilderImpl builder = new ChildTransactionImpl.BuilderImpl(chainId, version, null,
                     amount, fee, deadline, appendages);
@@ -460,7 +467,7 @@ public final class ChildTransactionImpl extends TransactionImpl implements Child
     }
 
     static ChildTransactionImpl.BuilderImpl newTransactionBuilder(int chainId, byte version, byte[] senderPublicKey, long amount, long fee, short deadline,
-                                                                  List<Appendix.AbstractAppendix> appendages, ByteBuffer buffer) throws NxtException.NotValidException {
+                                                                  List<Appendix.AbstractAppendix> appendages, ByteBuffer buffer) {
         try {
             ChildTransactionImpl.BuilderImpl builder = new BuilderImpl(chainId, version, senderPublicKey, amount, fee, deadline, appendages);
             ChainTransactionId referencedTransaction = ChainTransactionId.parse(buffer);
@@ -473,7 +480,7 @@ public final class ChildTransactionImpl extends TransactionImpl implements Child
     }
 
     static ChildTransactionImpl.BuilderImpl newTransactionBuilder(int chainId, byte version, byte[] senderPublicKey, long amount, long fee, short deadline,
-                                                                  Attachment.AbstractAttachment attachment) throws NxtException.NotValidException {
+                                                                  Attachment.AbstractAttachment attachment) {
         return new BuilderImpl(chainId, version, senderPublicKey, amount, fee, deadline, attachment);
     }
 

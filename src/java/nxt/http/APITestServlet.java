@@ -1,6 +1,6 @@
 /*
  * Copyright © 2013-2016 The Nxt Core Developers.
- * Copyright © 2016-2017 Jelurida IP B.V.
+ * Copyright © 2016-2018 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
@@ -19,7 +19,6 @@ package nxt.http;
 import nxt.Constants;
 import nxt.util.Convert;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -133,11 +132,7 @@ public class APITestServlet extends HttpServlet {
             String requestType = entry.getKey();
             Set<APITag> apiTags = entry.getValue().getAPITags();
             for (APITag apiTag : apiTags) {
-                SortedSet<String> set = requestTags.get(apiTag.name());
-                if (set == null) {
-                    set = new TreeSet<>();
-                    requestTags.put(apiTag.name(), set);
-                }
+                SortedSet<String> set = requestTags.computeIfAbsent(apiTag.name(), k -> new TreeSet<>());
                 set.add(requestType);
             }
         }
@@ -171,7 +166,7 @@ public class APITestServlet extends HttpServlet {
         return buf.toString();
     }
 
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 
         resp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate, private");
         resp.setHeader("Pragma", "no-cache");

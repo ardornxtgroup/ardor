@@ -1,6 +1,6 @@
 /*
  * Copyright © 2013-2016 The Nxt Core Developers.
- * Copyright © 2016-2017 Jelurida IP B.V.
+ * Copyright © 2016-2018 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
@@ -121,7 +121,7 @@ public class DesktopApplication extends Application {
     }
 
     @Override
-    public void start(Stage stage) throws Exception {
+    public void start(Stage stage) {
         DesktopApplication.stage = stage;
         Rectangle2D primaryScreenBounds = Screen.getPrimary().getVisualBounds();
         WebView browser = new WebView();
@@ -204,13 +204,11 @@ public class DesktopApplication extends Application {
     private void updateClientState(BlockchainProcessor.Event blockEvent, Block block) {
         BlockchainProcessor blockchainProcessor = Nxt.getBlockchainProcessor();
         if (blockEvent == BlockchainProcessor.Event.BLOCK_PUSHED && blockchainProcessor.isDownloading()) {
-            if (!(block.getHeight() % 100 == 0)) {
-                return;
-            }
+            return;
         }
         if (blockEvent == BlockchainProcessor.Event.AFTER_BLOCK_APPLY) {
             if (blockchainProcessor.isScanning()) {
-                if (!(block.getHeight() % 100 == 0)) {
+                if (!(block.getHeight() % 1000 == 0)) {
                     return;
                 }
             } else {

@@ -1,0 +1,15 @@
+Bundlers page UI improvements and bugfixes.
+
+Added AccountPropertyBundler add-on, which only bundles transactions sent by
+accounts having the "bundling" property set on them by the bundler. To enable,
+set nxt.bundlingFilter=nxt.addons.AccountPropertyBundler. This will apply to
+all bundlers started on this node.
+
+Added minimumFeeFQT field to the response for all Create Transaction APIs,
+indicating the minimum required fee in ARDR, regardless of the actual fee
+specified by the sender.
+
+Desktop wallet performance optimizations to reduce excessive load.
+
+Local signing and validation bugfixes, other minor code improvements.
+

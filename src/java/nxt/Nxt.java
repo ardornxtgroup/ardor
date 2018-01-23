@@ -1,6 +1,6 @@
 /*
  * Copyright © 2013-2016 The Nxt Core Developers.
- * Copyright © 2016-2017 Jelurida IP B.V.
+ * Copyright © 2016-2018 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
@@ -81,7 +81,7 @@ import java.util.Properties;
 
 public final class Nxt {
 
-    public static final String VERSION = "2.0.12";
+    public static final String VERSION = "2.0.13";
     public static final String APPLICATION = "Ardor";
 
     private static volatile Time time = new Time.EpochTime();
@@ -147,7 +147,7 @@ public final class Nxt {
         loadProperties(properties, NXT_PROPERTIES, false);
     }
 
-    public static Properties loadProperties(Properties properties, String propertiesFile, boolean isDefault) {
+    public static void loadProperties(Properties properties, String propertiesFile, boolean isDefault) {
         try {
             // Load properties from location specified as command line parameter
             String configFile = System.getProperty(propertiesFile);
@@ -155,7 +155,6 @@ public final class Nxt {
                 System.out.printf("Loading %s from %s\n", propertiesFile, configFile);
                 try (InputStream fis = new FileInputStream(configFile)) {
                     properties.load(fis);
-                    return properties;
                 } catch (IOException e) {
                     throw new IllegalArgumentException(String.format("Error loading %s from %s", propertiesFile, configFile));
                 }
@@ -167,12 +166,12 @@ public final class Nxt {
                         System.out.printf("Loading %s from classpath\n", propertiesFile);
                         properties.load(is);
                         if (isDefault) {
-                            return properties;
+                            return;
                         }
                     }
                     // load non-default properties files from the user folder
                     if (!dirProvider.isLoadPropertyFileFromUserDir()) {
-                        return properties;
+                        return;
                     }
                     String homeDir = dirProvider.getUserHomeDir();
                     if (!Files.isReadable(Paths.get(homeDir))) {
@@ -202,7 +201,6 @@ public final class Nxt {
                         Files.createFile(propPath);
                         Files.write(propPath, Convert.toBytes("# use this file for workstation specific " + propertiesFile));
                     }
-                    return properties;
                 } catch (IOException e) {
                     throw new IllegalArgumentException("Error loading " + propertiesFile, e);
                 }
@@ -429,7 +427,7 @@ public final class Nxt {
                 Logger.logMessage("Initialization took " + (currentTime - startTime) / 1000 + " seconds");
                 Logger.logMessage("Ardor server " + VERSION + " started successfully.");
                 Logger.logMessage("Copyright © 2013-2016 The Nxt Core Developers.");
-                Logger.logMessage("Copyright © 2016-2017 Jelurida IP B.V.");
+                Logger.logMessage("Copyright © 2016-2018 Jelurida IP B.V.");
                 Logger.logMessage("Distributed under the Jelurida Public License version 1.1 for the Ardor Public Blockchain Platform, with ABSOLUTELY NO WARRANTY.");
                 if (API.getWelcomePageUri() != null) {
                     Logger.logMessage("Client UI is at " + API.getWelcomePageUri());

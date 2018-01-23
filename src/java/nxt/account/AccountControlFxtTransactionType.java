@@ -1,6 +1,6 @@
 /*
  * Copyright © 2013-2016 The Nxt Core Developers.
- * Copyright © 2016-2017 Jelurida IP B.V.
+ * Copyright © 2016-2018 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
@@ -69,12 +69,12 @@ public abstract class AccountControlFxtTransactionType extends FxtTransactionTyp
         }
 
         @Override
-        public EffectiveBalanceLeasingAttachment parseAttachment(ByteBuffer buffer) throws NxtException.NotValidException {
+        public EffectiveBalanceLeasingAttachment parseAttachment(ByteBuffer buffer) {
             return new EffectiveBalanceLeasingAttachment(buffer);
         }
 
         @Override
-        public EffectiveBalanceLeasingAttachment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        public EffectiveBalanceLeasingAttachment parseAttachment(JSONObject attachmentData) {
             return new EffectiveBalanceLeasingAttachment(attachmentData);
         }
 

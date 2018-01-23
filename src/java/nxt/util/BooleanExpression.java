@@ -1,6 +1,6 @@
 /*
  * Copyright © 2013-2016 The Nxt Core Developers.
- * Copyright © 2016-2017 Jelurida IP B.V.
+ * Copyright © 2016-2018 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
@@ -240,9 +240,9 @@ public class BooleanExpression {
     }
 
     public static class BooleanExpressionException extends Exception {
-        final int position;
+        private final int position;
 
-        protected BooleanExpressionException(int position, String message) {
+        BooleanExpressionException(int position, String message) {
             super(message);
             this.position = position;
         }
@@ -377,7 +377,7 @@ public class BooleanExpression {
             this.end = conjunctionEnd;
         }
 
-        boolean implies(Disjunction consequent) {
+        private boolean implies(Disjunction consequent) {
             // A -> (C1 | C2 | ... | Cn) =
             // !A | C1 | C2 | ... | Cn =
             // (!A | C1) | (!A | C2) | ... | (!A | Cn) =
@@ -390,7 +390,7 @@ public class BooleanExpression {
             return false;
         }
 
-        boolean implies(Conjunction consequent) {
+        private boolean implies(Conjunction consequent) {
             //(A1 & A2 & ... & An) -> (C1 & C2 & ... & Cm) =
             // !A1 | !A2 | ... | !An | (C1 & C2 & ... & Cm)
             // The later is guaranteed to be true if for all literals Ci exists a literal Aj equal to Ci
@@ -421,9 +421,9 @@ public class BooleanExpression {
      * Disjunction of conjunctions - conjunctions divided by the OR operator (|)
      */
     private static class Disjunction {
-        private List<Conjunction> conjunctions;
+        private final List<Conjunction> conjunctions;
 
-        Disjunction(String expression, List<SemanticWarning> semanticWarnings) throws BadSyntaxException {
+        private Disjunction(String expression, List<SemanticWarning> semanticWarnings) throws BadSyntaxException {
             conjunctions = new ArrayList<>();
             int start = 0;
             while (start <= expression.length()) {
@@ -444,7 +444,7 @@ public class BooleanExpression {
         }
 
 
-        Value evaluate(Map<String, Value> variableValues) {
+        private Value evaluate(Map<String, Value> variableValues) {
             boolean isResultUnknown = false;
             for (Conjunction c : conjunctions) {
                 Value conjunctionVal = c.evaluate(variableValues);

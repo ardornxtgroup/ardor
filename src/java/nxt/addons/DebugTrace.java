@@ -1,6 +1,6 @@
 /*
  * Copyright © 2013-2016 The Nxt Core Developers.
- * Copyright © 2016-2017 Jelurida IP B.V.
+ * Copyright © 2016-2018 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
@@ -19,7 +19,6 @@ package nxt.addons;
 import nxt.Nxt;
 import nxt.account.Account;
 import nxt.account.BalanceHome;
-import nxt.account.HoldingType;
 import nxt.ae.AskOrderPlacementAttachment;
 import nxt.ae.Asset;
 import nxt.ae.AssetDeleteAttachment;
@@ -514,18 +513,22 @@ public final class DebugTrace {
         map.put("shuffling", Long.toUnsignedString(shuffling.getId()));
         String amount = String.valueOf(isRecipient ? shuffling.getAmount() : -shuffling.getAmount());
         String deposit = String.valueOf(isRecipient ? childChain.SHUFFLING_DEPOSIT_NQT : -childChain.SHUFFLING_DEPOSIT_NQT);
-        if (shuffling.getHoldingType() == HoldingType.COIN) {
-            map.put("transaction amount", amount);
-        } else if (shuffling.getHoldingType() == HoldingType.ASSET) {
-            map.put("asset quantity", amount);
-            map.put("asset", Long.toUnsignedString(shuffling.getHoldingId()));
-            map.put("transaction amount", deposit);
-        } else if (shuffling.getHoldingType() == HoldingType.CURRENCY) {
-            map.put("currency units", amount);
-            map.put("currency", Long.toUnsignedString(shuffling.getHoldingId()));
-            map.put("transaction amount", deposit);
-        } else {
-            throw new RuntimeException("Unsupported holding type " + shuffling.getHoldingType());
+        switch (shuffling.getHoldingType()) {
+            case COIN:
+                map.put("transaction amount", amount);
+                break;
+            case ASSET:
+                map.put("asset quantity", amount);
+                map.put("asset", Long.toUnsignedString(shuffling.getHoldingId()));
+                map.put("transaction amount", deposit);
+                break;
+            case CURRENCY:
+                map.put("currency units", amount);
+                map.put("currency", Long.toUnsignedString(shuffling.getHoldingId()));
+                map.put("transaction amount", deposit);
+                break;
+            default:
+                throw new RuntimeException("Unsupported holding type " + shuffling.getHoldingType());
         }
         map.put("event", "shuffling distribute");
         return map;

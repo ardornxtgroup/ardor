@@ -1,6 +1,6 @@
 /*
  * Copyright © 2013-2016 The Nxt Core Developers.
- * Copyright © 2016-2017 Jelurida IP B.V.
+ * Copyright © 2016-2018 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
@@ -21,6 +21,7 @@ import nxt.account.AccountLedger.LedgerEvent;
 import nxt.account.BalanceHome;
 import nxt.blockchain.Block;
 import nxt.blockchain.Chain;
+import nxt.blockchain.FxtChain;
 import nxt.blockchain.Transaction;
 import nxt.db.DbClause;
 import nxt.db.DbIterator;
@@ -376,7 +377,7 @@ public final class CoinExchange {
                                     bidOrder.getAmountNQT() - askQuantityQNT);
             BalanceHome.Balance buyerBalance = chain.getBalanceHome().getBalance(bidOrder.getAccountId());
             AccountLedger.LedgerEventId bidEventId =
-                    AccountLedger.newEventId(bidOrder.getId(), bidOrder.getFullHash(), chain);
+                    AccountLedger.newEventId(bidOrder.getId(), bidOrder.getFullHash(), exchangeChain != FxtChain.FXT ? chain : FxtChain.FXT);
             buyerBalance.addToBalance(LedgerEvent.COIN_EXCHANGE_TRADE, bidEventId, -askQuantityQNT);
             if (bidOrder.getQuantityQNT() == 0) {
                 if (bidOrder.getAmountNQT() != 0) {
@@ -392,7 +393,7 @@ public final class CoinExchange {
                                     askOrder.getAmountNQT() - bidQuantityQNT);
             BalanceHome.Balance sellerBalance = exchangeChain.getBalanceHome().getBalance(askOrder.getAccountId());
             AccountLedger.LedgerEventId askEventId = AccountLedger.newEventId(askOrder.getId(),
-                    askOrder.getFullHash(), exchangeChain);
+                    askOrder.getFullHash(), chain != FxtChain.FXT ? exchangeChain : FxtChain.FXT);
             sellerBalance.addToBalance(LedgerEvent.COIN_EXCHANGE_TRADE, askEventId, -bidQuantityQNT);
             if (askOrder.getQuantityQNT() == 0) {
                 if (askOrder.getAmountNQT() != 0) {
@@ -534,8 +535,7 @@ public final class CoinExchange {
         public final long getAskPriceNQT() {
             BigDecimal[] amounts = askPrice.movePointRight(Chain.getChain(exchangeId).getDecimals())
                                         .divideAndRemainder(BigDecimal.ONE, MathContext.DECIMAL128);
-            long askPriceNQT = amounts[0].longValue() + (amounts[1].signum() != 0 ? 1 : 0);
-            return askPriceNQT;
+            return amounts[0].longValue() + (amounts[1].signum() != 0 ? 1 : 0);
         }
 
         public final BigDecimal getAskPrice() {

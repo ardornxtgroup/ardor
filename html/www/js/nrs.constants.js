@@ -1,6 +1,6 @@
 /******************************************************************************
  * Copyright © 2013-2016 The Nxt Core Developers.                             *
- * Copyright © 2016-2017 Jelurida IP B.V.                                     *
+ * Copyright © 2016-2018 Jelurida IP B.V.                                     *
  *                                                                            *
  * See the LICENSE.txt file at the top-level directory of this distribution   *
  * for licensing information.                                                 *
@@ -25,6 +25,7 @@ var NRS = (function (NRS, $) {
         'MAX_SHORT_JAVA': 32767,
         'MAX_UNSIGNED_SHORT_JAVA': 65535,
         'MAX_INT_JAVA': 2147483647,
+        'MAX_LONG_JAVA': "9223372036854775807",
         'DISABLED_API_ERROR_CODE': 16,
         'MAX_ONE_COIN': 10000000000000000,
 
@@ -142,13 +143,13 @@ var NRS = (function (NRS, $) {
         }
     };
 
-    NRS.loadServerConstants = function(resolve) {
+    NRS.loadServerConstants = function(resolve, isUnitTest) {
         function processConstants(response) {
             NRS.processConstants(response, resolve);
         }
-        if (NRS.isMobileApp()) {
+        if (NRS.isMobileApp() || isUnitTest) {
             jQuery.ajaxSetup({ async: false });
-            if (NRS.mobileSettings.is_testnet) {
+            if (NRS.mobileSettings && NRS.mobileSettings.is_testnet) {
                 $.getScript("js/data/constants.testnet.js");
             } else {
                 $.getScript("js/data/constants.mainnet.js");

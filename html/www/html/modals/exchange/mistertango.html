@@ -1,6 +1,6 @@
 <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   ~ Copyright © 2013-2016 The Nxt Core Developers.                            ~
-  ~ Copyright © 2016-2017 Jelurida IP B.V.                                    ~
+  ~ Copyright © 2016-2018 Jelurida IP B.V.                                    ~
   ~                                                                           ~
   ~ See the LICENSE.txt file at the top-level directory of this distribution  ~
   ~ for licensing information.                                                ~
@@ -31,7 +31,7 @@
                             <div class="form-group">
                                 <label for="withdraw_aeur_iban" data-i18n="mrtango_iban">Mistertango IBAN</label>
                                 <i class="fa fa-question-circle modal-context-help" data-content="" data-toggle="popover" data-trigger="hover" data-container="#withdraw_aeur_modal" data-i18n="[data-content]mrtango_iban_help"></i>
-                                <input type="text" name="recipientIBAN" id="withdraw_aeur_iban" step="any" min="0" class="form-control" placeholder="LT__35100___________" tabindex="1">
+                                <input type="text" name="recipientIBAN" id="withdraw_aeur_iban" class="form-control" placeholder="LT__35100___________" tabindex="1">
                             </div>
                         </div>
                     </div>
@@ -40,7 +40,7 @@
                             <div class="form-group">
                                 <label for="withdraw_aeur_recipient_name" data-i18n="mrtango_recipient">Recipient Full Name</label>
                                 <i class="fa fa-question-circle modal-context-help" data-content="" data-toggle="popover" data-trigger="hover" data-container="#withdraw_aeur_modal" data-i18n="[data-content]mrtango_recipient_help"></i>
-                                <input type="text" name="recipientName" id="withdraw_aeur_recipient_name" step="any" min="0" class="form-control" placeholder="Name" data-i18n="[placeholder]name" tabindex="2">
+                                <input type="text" name="recipientName" id="withdraw_aeur_recipient_name" class="form-control" placeholder="Name" data-i18n="[placeholder]name" tabindex="2">
                             </div>
                         </div>
                     </div>
@@ -49,7 +49,7 @@
                             <div class="form-group">
                                 <label for="withdraw_aeur_amount" data-i18n="amount">AMOUNT</label>
                                 <div class="input-group">
-                                    <input type="text" name="amountAEUR" id="withdraw_aeur_amount" step="any" min="0" class="form-control" placeholder="Amount" data-i18n="[placeholder]amount" tabindex="3">
+                                    <input type="text" name="amountAEUR" id="withdraw_aeur_amount" class="form-control" placeholder="Amount" data-i18n="[placeholder]amount" tabindex="3">
                                     <span class="input-group-addon coin-symbol"></span>
                                 </div>
                                 <span id="amount_info_min_max">Min: Max: </span><br/>

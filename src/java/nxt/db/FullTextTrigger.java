@@ -1,6 +1,6 @@
 /*
  * Copyright © 2013-2016 The Nxt Core Developers.
- * Copyright © 2016-2017 Jelurida IP B.V.
+ * Copyright © 2016-2018 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
@@ -588,11 +588,9 @@ public class FullTextTrigger implements Trigger, TransactionalDb.TransactionCall
 
     /**
      * Close the trigger (Trigger interface)
-     *
-     * @throws  SQLException        A SQL error occurred
      */
     @Override
-    public void close() throws SQLException {
+    public void close() {
         if (isEnabled) {
             isEnabled = false;
             indexTriggers.remove(schemaTable);
@@ -601,11 +599,9 @@ public class FullTextTrigger implements Trigger, TransactionalDb.TransactionCall
 
     /**
      * Remove the trigger (Trigger interface)
-     *
-     * @throws  SQLException        A SQL error occurred
      */
     @Override
-    public void remove() throws SQLException {
+    public void remove() {
         if (isEnabled) {
             isEnabled = false;
             indexTriggers.remove(schemaTable);
@@ -618,10 +614,9 @@ public class FullTextTrigger implements Trigger, TransactionalDb.TransactionCall
      * @param   conn                Database connection
      * @param   oldRow              The old row or null
      * @param   newRow              The new row or null
-     * @throws  SQLException        A SQL error occurred
      */
     @Override
-    public void fire(Connection conn, Object[] oldRow, Object[] newRow) throws SQLException {
+    public void fire(Connection conn, Object[] oldRow, Object[] newRow) {
         //
         // Ignore the trigger if it is not enabled
         //

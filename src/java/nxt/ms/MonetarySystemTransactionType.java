@@ -1,6 +1,6 @@
 /*
  * Copyright © 2013-2016 The Nxt Core Developers.
- * Copyright © 2016-2017 Jelurida IP B.V.
+ * Copyright © 2016-2018 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
@@ -159,7 +159,7 @@ public abstract class MonetarySystemTransactionType extends ChildTransactionType
         }
 
         @Override
-        public CurrencyIssuanceAttachment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        public CurrencyIssuanceAttachment parseAttachment(JSONObject attachmentData) {
             return new CurrencyIssuanceAttachment(attachmentData);
         }
 
@@ -262,12 +262,12 @@ public abstract class MonetarySystemTransactionType extends ChildTransactionType
         }
 
         @Override
-        public ReserveIncreaseAttachment parseAttachment(ByteBuffer buffer) throws NxtException.NotValidException {
+        public ReserveIncreaseAttachment parseAttachment(ByteBuffer buffer) {
             return new ReserveIncreaseAttachment(buffer);
         }
 
         @Override
-        public ReserveIncreaseAttachment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        public ReserveIncreaseAttachment parseAttachment(JSONObject attachmentData) {
             return new ReserveIncreaseAttachment(attachmentData);
         }
 
@@ -347,12 +347,12 @@ public abstract class MonetarySystemTransactionType extends ChildTransactionType
         }
 
         @Override
-        public ReserveClaimAttachment parseAttachment(ByteBuffer buffer) throws NxtException.NotValidException {
+        public ReserveClaimAttachment parseAttachment(ByteBuffer buffer) {
             return new ReserveClaimAttachment(buffer);
         }
 
         @Override
-        public ReserveClaimAttachment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        public ReserveClaimAttachment parseAttachment(JSONObject attachmentData) {
             return new ReserveClaimAttachment(attachmentData);
         }
 
@@ -424,12 +424,12 @@ public abstract class MonetarySystemTransactionType extends ChildTransactionType
         }
 
         @Override
-        public CurrencyTransferAttachment parseAttachment(ByteBuffer buffer) throws NxtException.NotValidException {
+        public CurrencyTransferAttachment parseAttachment(ByteBuffer buffer) {
             return new CurrencyTransferAttachment(buffer);
         }
 
         @Override
-        public CurrencyTransferAttachment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        public CurrencyTransferAttachment parseAttachment(JSONObject attachmentData) {
             return new CurrencyTransferAttachment(attachmentData);
         }
 
@@ -505,12 +505,12 @@ public abstract class MonetarySystemTransactionType extends ChildTransactionType
         }
 
         @Override
-        public PublishExchangeOfferAttachment parseAttachment(ByteBuffer buffer) throws NxtException.NotValidException {
+        public PublishExchangeOfferAttachment parseAttachment(ByteBuffer buffer) {
             return new PublishExchangeOfferAttachment(buffer);
         }
 
         @Override
-        public PublishExchangeOfferAttachment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        public PublishExchangeOfferAttachment parseAttachment(JSONObject attachmentData) {
             return new PublishExchangeOfferAttachment(attachmentData);
         }
 
@@ -671,12 +671,12 @@ public abstract class MonetarySystemTransactionType extends ChildTransactionType
         }
 
         @Override
-        public ExchangeBuyAttachment parseAttachment(ByteBuffer buffer) throws NxtException.NotValidException {
+        public ExchangeBuyAttachment parseAttachment(ByteBuffer buffer) {
             return new ExchangeBuyAttachment(buffer);
         }
 
         @Override
-        public ExchangeBuyAttachment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        public ExchangeBuyAttachment parseAttachment(JSONObject attachmentData) {
             return new ExchangeBuyAttachment(attachmentData);
         }
 
@@ -740,12 +740,12 @@ public abstract class MonetarySystemTransactionType extends ChildTransactionType
         }
 
         @Override
-        public ExchangeSellAttachment parseAttachment(ByteBuffer buffer) throws NxtException.NotValidException {
+        public ExchangeSellAttachment parseAttachment(ByteBuffer buffer) {
             return new ExchangeSellAttachment(buffer);
         }
 
         @Override
-        public ExchangeSellAttachment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        public ExchangeSellAttachment parseAttachment(JSONObject attachmentData) {
             return new ExchangeSellAttachment(attachmentData);
         }
 
@@ -798,12 +798,12 @@ public abstract class MonetarySystemTransactionType extends ChildTransactionType
         }
 
         @Override
-        public CurrencyMintingAttachment parseAttachment(ByteBuffer buffer) throws NxtException.NotValidException {
+        public CurrencyMintingAttachment parseAttachment(ByteBuffer buffer) {
             return new CurrencyMintingAttachment(buffer);
         }
 
         @Override
-        public CurrencyMintingAttachment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        public CurrencyMintingAttachment parseAttachment(JSONObject attachmentData) {
             return new CurrencyMintingAttachment(attachmentData);
         }
 
@@ -888,12 +888,12 @@ public abstract class MonetarySystemTransactionType extends ChildTransactionType
         }
 
         @Override
-        public CurrencyDeletionAttachment parseAttachment(ByteBuffer buffer) throws NxtException.NotValidException {
+        public CurrencyDeletionAttachment parseAttachment(ByteBuffer buffer) {
             return new CurrencyDeletionAttachment(buffer);
         }
 
         @Override
-        public CurrencyDeletionAttachment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        public CurrencyDeletionAttachment parseAttachment(JSONObject attachmentData) {
             return new CurrencyDeletionAttachment(attachmentData);
         }
 

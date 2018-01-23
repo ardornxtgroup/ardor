@@ -1784,7 +1784,7 @@
   "current_fee": "Current Fee",
   "min_rate": "Minimum Rate",
   "overpay": "Overpay",
-  "no_bundlers": "There are no bundlers",
+  "no_bundlers": "There are no bundlers for this chain",
   "stop_bundler": "Stop Bundler",
   "bundler_started": "Bundler Started",
   "bundler_stopped": "Bundler Stopped",
@@ -2081,5 +2081,13 @@
   "mrtango_final_amount": "EURO to receive: __euro__",
   "mrtango_too_small_amount": "Withdrawn amount is less than __min__",
   "mrtango_too_big_amount": "Withdrawn amount exceeds __max__",
-  "no_quantity_change_history": "No quantity change history available."
+  "mrtango_suspended": "Withdrawals are suspended by operator. Reason: __reason__",
+  "no_quantity_change_history": "No quantity change history available.",
+  "hashed_secret": "Hashed Secret",
+  "discussion_forum": "Discussion Forum",
+  "wiki": "Wiki",
+  "ardor_platform": "Ardor Platform",
+  "group_name": "Group Name",
+  "verify": "Verify",
+  "my": "My"
 }

@@ -1,6 +1,6 @@
 /*
  * Copyright © 2013-2016 The Nxt Core Developers.
- * Copyright © 2016-2017 Jelurida IP B.V.
+ * Copyright © 2016-2018 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
@@ -203,7 +203,7 @@ final class PeerImpl implements Peer {
      *
      * @param   state                   New state
      */
-    synchronized void setState(State state) {
+    private synchronized void setState(State state) {
         if (this.state != state) {
             if (this.state == State.NON_CONNECTED) {
                 this.state = state;
@@ -1075,8 +1075,6 @@ final class PeerImpl implements Peer {
 
     /**
      * Set the session key
-     *
-     * @return                          Session key
      */
     void setSessionKey(byte[] sessionKey) {
         this.sessionKey = sessionKey;
@@ -1270,7 +1268,7 @@ final class PeerImpl implements Peer {
          *
          * @return                              Response message or null if there is no message
          */
-        NetworkMessage responseWait() {
+        private NetworkMessage responseWait() {
             try {
                 if (!responseLatch.await(NetworkHandler.peerReadTimeout, TimeUnit.SECONDS)) {
                     Logger.logDebugMessage("Read from " + host + " timed out");
@@ -1286,7 +1284,7 @@ final class PeerImpl implements Peer {
          *
          * @param   responseMessage             Response message or null if there is no message
          */
-        void responseSignal(NetworkMessage responseMessage) {
+        private void responseSignal(NetworkMessage responseMessage) {
             this.responseMessage = responseMessage;
             responseLatch.countDown();
         }

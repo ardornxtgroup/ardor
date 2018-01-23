@@ -1,6 +1,6 @@
 /*
  * Copyright © 2013-2016 The Nxt Core Developers.
- * Copyright © 2016-2017 Jelurida IP B.V.
+ * Copyright © 2016-2018 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
@@ -925,12 +925,12 @@ public final class PhasingPollHome {
         private final long accountId;
         private final String subPollName;
 
-        public PhasingPollVoter(long accountId, String subPollName) {
+        private PhasingPollVoter(long accountId, String subPollName) {
             this.accountId = accountId;
             this.subPollName = subPollName;
         }
 
-        public PhasingPollVoter(ResultSet rs) throws SQLException {
+        PhasingPollVoter(ResultSet rs) throws SQLException {
             this.accountId = rs.getLong("voter_id");
             this.subPollName = rs.getString("sub_poll_name");
         }

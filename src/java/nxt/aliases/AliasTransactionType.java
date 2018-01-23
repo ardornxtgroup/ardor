@@ -1,6 +1,6 @@
 /*
  * Copyright © 2013-2016 The Nxt Core Developers.
- * Copyright © 2016-2017 Jelurida IP B.V.
+ * Copyright © 2016-2018 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
@@ -114,7 +114,7 @@ public abstract class AliasTransactionType extends ChildTransactionType {
         }
 
         @Override
-        public AliasAssignmentAttachment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        public AliasAssignmentAttachment parseAttachment(JSONObject attachmentData) {
             return new AliasAssignmentAttachment(attachmentData);
         }
 
@@ -198,7 +198,7 @@ public abstract class AliasTransactionType extends ChildTransactionType {
         }
 
         @Override
-        public AliasDeleteAttachment parseAttachment(final JSONObject attachmentData) throws NxtException.NotValidException {
+        public AliasDeleteAttachment parseAttachment(final JSONObject attachmentData) {
             return new AliasDeleteAttachment(attachmentData);
         }
 
@@ -267,7 +267,7 @@ public abstract class AliasTransactionType extends ChildTransactionType {
         }
 
         @Override
-        public AliasBuyAttachment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        public AliasBuyAttachment parseAttachment(JSONObject attachmentData) {
             return new AliasBuyAttachment(attachmentData);
         }
 
@@ -349,7 +349,7 @@ public abstract class AliasTransactionType extends ChildTransactionType {
         }
 
         @Override
-        public AliasSellAttachment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        public AliasSellAttachment parseAttachment(JSONObject attachmentData) {
             return new AliasSellAttachment(attachmentData);
         }
 

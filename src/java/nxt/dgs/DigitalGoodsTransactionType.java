@@ -1,6 +1,6 @@
 /*
  * Copyright © 2013-2016 The Nxt Core Developers.
- * Copyright © 2016-2017 Jelurida IP B.V.
+ * Copyright © 2016-2018 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
@@ -138,7 +138,7 @@ public abstract class DigitalGoodsTransactionType extends ChildTransactionType {
         }
 
         @Override
-        public ListingAttachment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        public ListingAttachment parseAttachment(JSONObject attachmentData) {
             return new ListingAttachment(attachmentData);
         }
 
@@ -213,12 +213,12 @@ public abstract class DigitalGoodsTransactionType extends ChildTransactionType {
         }
 
         @Override
-        public DelistingAttachment parseAttachment(ByteBuffer buffer) throws NxtException.NotValidException {
+        public DelistingAttachment parseAttachment(ByteBuffer buffer) {
             return new DelistingAttachment(buffer);
         }
 
         @Override
-        public DelistingAttachment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        public DelistingAttachment parseAttachment(JSONObject attachmentData) {
             return new DelistingAttachment(attachmentData);
         }
 
@@ -277,12 +277,12 @@ public abstract class DigitalGoodsTransactionType extends ChildTransactionType {
         }
 
         @Override
-        public PriceChangeAttachment parseAttachment(ByteBuffer buffer) throws NxtException.NotValidException {
+        public PriceChangeAttachment parseAttachment(ByteBuffer buffer) {
             return new PriceChangeAttachment(buffer);
         }
 
         @Override
-        public PriceChangeAttachment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        public PriceChangeAttachment parseAttachment(JSONObject attachmentData) {
             return new PriceChangeAttachment(attachmentData);
         }
 
@@ -343,12 +343,12 @@ public abstract class DigitalGoodsTransactionType extends ChildTransactionType {
         }
 
         @Override
-        public QuantityChangeAttachment parseAttachment(ByteBuffer buffer) throws NxtException.NotValidException {
+        public QuantityChangeAttachment parseAttachment(ByteBuffer buffer) {
             return new QuantityChangeAttachment(buffer);
         }
 
         @Override
-        public QuantityChangeAttachment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        public QuantityChangeAttachment parseAttachment(JSONObject attachmentData) {
             return new QuantityChangeAttachment(attachmentData);
         }
 
@@ -410,12 +410,12 @@ public abstract class DigitalGoodsTransactionType extends ChildTransactionType {
         }
 
         @Override
-        public PurchaseAttachment parseAttachment(ByteBuffer buffer) throws NxtException.NotValidException {
+        public PurchaseAttachment parseAttachment(ByteBuffer buffer) {
             return new PurchaseAttachment(buffer);
         }
 
         @Override
-        public PurchaseAttachment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        public PurchaseAttachment parseAttachment(JSONObject attachmentData) {
             return new PurchaseAttachment(attachmentData);
         }
 
@@ -529,7 +529,7 @@ public abstract class DigitalGoodsTransactionType extends ChildTransactionType {
         }
 
         @Override
-        public DeliveryAttachment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        public DeliveryAttachment parseAttachment(JSONObject attachmentData) {
             if (attachmentData.get("goodsData") == null) {
                 return new UnencryptedDeliveryAttachment(attachmentData);
             }
@@ -603,12 +603,12 @@ public abstract class DigitalGoodsTransactionType extends ChildTransactionType {
         }
 
         @Override
-        public FeedbackAttachment parseAttachment(ByteBuffer buffer) throws NxtException.NotValidException {
+        public FeedbackAttachment parseAttachment(ByteBuffer buffer) {
             return new FeedbackAttachment(buffer);
         }
 
         @Override
-        public FeedbackAttachment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        public FeedbackAttachment parseAttachment(JSONObject attachmentData) {
             return new FeedbackAttachment(attachmentData);
         }
 
@@ -672,12 +672,12 @@ public abstract class DigitalGoodsTransactionType extends ChildTransactionType {
         }
 
         @Override
-        public RefundAttachment parseAttachment(ByteBuffer buffer) throws NxtException.NotValidException {
+        public RefundAttachment parseAttachment(ByteBuffer buffer) {
             return new RefundAttachment(buffer);
         }
 
         @Override
-        public RefundAttachment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        public RefundAttachment parseAttachment(JSONObject attachmentData) {
             return new RefundAttachment(attachmentData);
         }
 
