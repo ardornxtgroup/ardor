@@ -35,13 +35,38 @@
                             </div>
                         </div>
                     </div>
-                    <div class="row" style="margin-bottom: 18px; border-bottom: 1px solid #ddd;">
+                    <div class="row">
                         <div class="col-xs-12 col-sm-6 col-md-6">
                             <div class="form-group">
                                 <label for="withdraw_aeur_recipient_name" data-i18n="mrtango_recipient">Recipient Full Name</label>
                                 <i class="fa fa-question-circle modal-context-help" data-content="" data-toggle="popover" data-trigger="hover" data-container="#withdraw_aeur_modal" data-i18n="[data-content]mrtango_recipient_help"></i>
                                 <input type="text" name="recipientName" id="withdraw_aeur_recipient_name" class="form-control" placeholder="Name" data-i18n="[placeholder]name" tabindex="2">
                             </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div id="ardorgate_third_party_note" class="form-group col-lg-12" style="font-weight:normal;">
+                            AEUR withdrawals are processed by Ardorgate, which is a third party service. To use this functionality, you must agree to the terms and conditions of Ardorgate EULA and Privacy Policy.
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group col-lg-12">
+                            <label>
+                                <input type="checkbox" name="ardorgateEula" value="1" tabindex="3"/>
+                                <span id="ardorgate_eula_checkbox" style="font-weight:normal;">
+                                    I agree with terms and conditions, described in Ardorgate EULA
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="row" style="margin-bottom: 18px; border-bottom: 1px solid #ddd;">
+                        <div class="form-group col-lg-12">
+                            <label>
+                                <input type="checkbox" name="ardorgatePrivacyPolicy" value="1" tabindex="4"/>
+                                <span id="ardorgate_privacy_policy_checkbox" style="font-weight:normal;">
+                                    I agree with Privacy Policy and give the rights for Ardorgate to use my personal data, managed and stored at Mistertango bank.
+                                </span>
+                            </label>
                         </div>
                     </div>
                     <div class="row">

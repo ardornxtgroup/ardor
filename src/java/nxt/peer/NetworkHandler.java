@@ -967,9 +967,10 @@ public final class NetworkHandler implements Runnable {
      * Broadcast a message to all connected peers
      *
      * @param   message                 Message to send
+     * @return                          number of peers to which message was sent
      */
-    public static void broadcastMessage(NetworkMessage message) {
-        broadcastMessage(null, message);
+    public static int broadcastMessage(NetworkMessage message) {
+        return broadcastMessage(null, message);
     }
 
     /**
@@ -977,20 +978,24 @@ public final class NetworkHandler implements Runnable {
      *
      * @param   sender                  Message sender or null if our message
      * @param   message                 Message to send
+     * @return                          number of peers to which message was sent
      */
-    public static void broadcastMessage(Peer sender, NetworkMessage message) {
+    public static int broadcastMessage(Peer sender, NetworkMessage message) {
         if (Constants.isOffline) {
-            return;
+            return 0;
         }
-        connectionMap.values().forEach(peer -> {
+        int n = 0;
+        for (Peer peer : connectionMap.values()) {
             if (peer.getState() == Peer.State.CONNECTED &&
                     peer != sender &&
                     (peer.getBlockchainState() != Peer.BlockchainState.LIGHT_CLIENT ||
                      message.sendToLightClient())) {
                 peer.sendMessage(message);
+                n += 1;
             }
-        });
+        }
         wakeup();
+        return n;
     }
 
     /**

@@ -28,10 +28,10 @@
         <span class="bhm_ue_time_estimate"></span>
         <i class="fa fa-question-circle modal-context-help" data-content="" data-toggle="popover" data-trigger="hover" data-container="#{{modalId}}" data-i18n="[data-content]block_height_estimate_help"></i>
     </div>
-    <label for="{{modalName}}_{{labelI18n}}" data-i18n="{{labelI18n}}">{{labelText}}</label>
+    <label for="{{modalName}}_{{labelI18n}}_{{phasingType}}" data-i18n="{{labelI18n}}">{{labelText}}</label>
     <i class="fa fa-question-circle modal-context-help" data-content="" data-toggle="popover" data-trigger="hover" data-container="#{{modalId}}" data-i18n="[data-content]{{helpI18n}}"></i>
     <div class="input-group">
-        <input type="text" name="{{inputName}}" id="{{modalName}}_{{labelI18n}}" class="form-control bhm_ue_time_input" value="{{initBlockHeight}}" placeholder="{{labelText}}" data-i18n="{{labelI18n}}" />
+        <input type="text" name="{{inputName}}" id="{{modalName}}_{{labelI18n}}_{{phasingType}}" class="form-control bhm_ue_time_input" value="{{initBlockHeight}}" placeholder="{{labelText}}" data-i18n="{{labelI18n}}" />
         <span class="input-group-addon">
             <a href="#" class="bhm_ue_use_current_block_height" data-current-block-height="" style="color:#000;" data-content="" data-placement="bottom" data-toggle="popover" data-trigger="hover" data-container="#{{modalId}}" data-i18n="[data-content]current_block_height_help"><span class="bhm_ue_current_block_height"></span></a>
         </span>

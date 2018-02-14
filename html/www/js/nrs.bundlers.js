@@ -31,10 +31,13 @@ var NRS = (function(NRS, $) {
 
     NRS.jsondata.bundlers = function (response) {
         var fxtDecimals = NRS.getChain(1).decimals;
-        var stopLinkFormatted = "";
+        var actionsFormatted = "";
         if (response.bundlerRS == NRS.accountRS) {
-            stopLinkFormatted = "<a href='#' class='btn btn-xs' data-toggle='modal' data-target='#stop_bundler_modal' " +
+            actionsFormatted = "<a href='#' class='btn btn-xs' data-toggle='modal' data-target='#stop_bundler_modal' " +
                 "data-account='" + NRS.escapeRespStr(response.bundlerRS) + "' data-chain='" + NRS.escapeRespStr(response.chain) + "'>" + $.t("stop") + "</a>";
+        } else {
+            actionsFormatted = "<a href='#' class='btn btn-xs' data-toggle='modal' data-target='#blacklist_bundler_modal' " +
+                            "data-account='" + NRS.escapeRespStr(response.bundlerRS) + "'>" + $.t("blacklist") + "</a>";
         }
         var currentFeeLimitFQT = "";
         if (response.currentFeeLimitFQT) {
@@ -52,7 +55,7 @@ var NRS = (function(NRS, $) {
             currentFeeLimitFQT: currentFeeLimitFQT,
             minRateNQTPerFXT: NRS.formatQuantity(response.minRateNQTPerFXT, NRS.getChain(response.chain).decimals),
             overpayFQTPerFXT: response.overpayFQTPerFXT ? NRS.formatQuantity(response.overpayFQTPerFXT, fxtDecimals) : "",
-            stopLinkFormatted: stopLinkFormatted
+            actionsFormatted: actionsFormatted
         };
     };
 
@@ -209,6 +212,36 @@ var NRS = (function(NRS, $) {
 
     NRS.forms.stopBundlerComplete = function() {
         $.growl($.t("bundler_stopped"));
+        NRS.loadPage("bundlers");
+    };
+
+    $("#blacklist_bundler_modal").on("show.bs.modal", function(e) {
+        var $invoker = $(e.relatedTarget);
+        if (!NRS.needsAdminPassword) {
+            $("#blacklist_bundler_admin_password_wrapper").hide();
+        } else {
+            if (NRS.getAdminPassword() != "") {
+                $("#blacklist_bundler_admin_password").val(NRS.getAdminPassword());
+            }
+        }
+        $("#blacklist_bundler_account_id").html($invoker.data("account"));
+        $("#blacklist_bundler_field_id").val($invoker.data("account"));
+    });
+
+
+    NRS.forms.blacklistBundlerComplete = function(response) {
+        var message;
+        var type;
+        if (response.errorCode) {
+            message = response.errorDescription.escapeHTML();
+            type = "danger";
+        } else {
+            message = $.t("success_blacklist_bundler");
+            type = "success";
+        }
+        $.growl(message, {
+            "type": type
+        });
         NRS.loadPage("bundlers");
     };
 

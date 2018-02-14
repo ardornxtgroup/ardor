@@ -57,14 +57,16 @@ var NRS = (function(NRS, $) {
             delete chainDetails.id;
             NRS.sendRequest("getBundlerRates", {}, function(response) {
                 chainDetails.bundling_rate_formatted_html = "N/A";
-                for (var i=0; i<response.rates.length; i++) {
-                    if (response.rates[i].chain == chain.id) {
-                        chainDetails.bundler_formatted_html = NRS.getAccountLink(response.rates[i], "account");
-                        chainDetails.bundling_rate_formatted_html = NRS.formatQuantity(response.rates[i].minRateNQTPerFXT, chain.decimals) +
-                            " [" + chain.name + " " + $.t("per") + " " + NRS.getParentChainName() + "]";
-                        chainDetails.fee_limit_formatted_html = NRS.formatQuantity(response.rates[i].currentFeeLimitFQT, NRS.getChain(1).decimals) +
-                            " [" + NRS.getParentChainName() + "]";
-                        break;
+                if (response.rates) {
+                    for (var i = 0; i < response.rates.length; i++) {
+                        if (response.rates[i].chain == chain.id) {
+                            chainDetails.bundler_formatted_html = NRS.getAccountLink(response.rates[i], "account");
+                            chainDetails.bundling_rate_formatted_html = NRS.formatQuantity(response.rates[i].minRateNQTPerFXT, chain.decimals) +
+                                " [" + chain.name + " " + $.t("per") + " " + NRS.getParentChainName() + "]";
+                            chainDetails.fee_limit_formatted_html = NRS.formatQuantity(response.rates[i].currentFeeLimitFQT, NRS.getChain(1).decimals) +
+                                " [" + NRS.getParentChainName() + "]";
+                            break;
+                        }
                     }
                 }
                 var detailsTable = $("#chain_details_table");

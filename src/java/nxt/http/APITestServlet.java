@@ -313,11 +313,12 @@ public class APITestServlet extends HttpServlet {
         buf.append("</div>\n");
         buf.append("<div class='col-xs-12 col-lg-6' style='min-width: 50%;'>\n");
         buf.append("<h5 style='margin-top:0px;'>\n");
-        if (!requirePost) {
-            buf.append("<span style='float:right;' class='uri-link'>");
+        if (requirePost) {
+            buf.append("<span style='float:right;' class='postman-link'>");
             buf.append("</span>\n");
         } else {
-            buf.append("<span style='float:right;font-size:12px;font-weight:normal;'>POST only</span>\n");
+            buf.append("<span style='float:right;' class='uri-link'>");
+            buf.append("</span>\n");
         }
         buf.append("Response</h5>\n");
         buf.append("<pre class='hljs json'><code class='result'>JSON response</code></pre>\n");

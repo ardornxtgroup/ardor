@@ -20,13 +20,13 @@
 
 var NRS = (function(NRS, $) {
 
-    var IBAN_REGEX = /LT[0-9]{2}35100[0-9]{11}/;
+    var IBAN_REGEX = /^LT[0-9]{2}35100[0-9]{11}$/;
 
     var RESERVE_ACCOUNT_ID = "ARDOR-NJ92-R5GB-HQB4-6NW7T";
     var RESERVE_ACCOUNT_ID_TESTNET = "ARDOR-DHKD-5ETL-JU9T-GSKPG";
 
     var UI_CONFIG_ACCOUNT_ID = "ARDOR-HJAA-ZDYB-PSKX-DGG53";
-    var UI_CONFIG_ACCOUNT_ID_TESTNET = "ARDOR-DHKD-5ETL-JU9T-GSKPG";
+    var UI_CONFIG_ACCOUNT_ID_TESTNET = "ARDOR-KN2C-H3R9-57WJ-63RTU";
 
     var MISTERTANGO_DECIMALS = 2;
     var uiConfig = null;
@@ -112,7 +112,14 @@ var NRS = (function(NRS, $) {
                 }
                 updateUI();
             });
-
+        var params = {
+            "eula_link": "<a href='https://www.ardorgate.eu/eula/' target='_blank'>" + $.t("ardorgate_eula_link") + "</a>",
+            "privacy_policy_link": "<a href='https://www.ardorgate.eu/privacy-policy/' target='_blank'>" +
+                    $.t("ardorgate_privacy_policy_link") + "</a>"
+        };
+        $("#ardorgate_third_party_note").html($.t("ardorgate_third_party_note", params));
+        $("#ardorgate_eula_checkbox").html($.t("ardorgate_eula_checkbox", params));
+        $("#ardorgate_privacy_policy_checkbox").html($.t("ardorgate_privacy_policy_checkbox", params));
     });
 
     $("#withdraw_aeur_amount").keyup(function () {
@@ -123,7 +130,13 @@ var NRS = (function(NRS, $) {
         if (("suspendReason" in uiConfig) && uiConfig.suspendReason) {
             return { error: suspendReasonText(uiConfig.suspendReason) };
         }
+
         var data = NRS.getFormData($modal.find("form:first"));
+
+        if (data.ardorgateEula != '1' || data.ardorgatePrivacyPolicy != '1') {
+            return { error: $.t("ardorgate_terms_error")}
+        }
+
         var iban = data.recipientIBAN;
         if (!iban) {
             return { error: $.t("mrtango_iban_missing")}

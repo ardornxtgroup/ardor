@@ -168,10 +168,12 @@ var NRS = (function(NRS, $, undefined) {
 			labelI18n: "finish_height",
 			helpI18n: "approve_transaction_finish_height_help",
 			inputName: "phasingFinishHeight",
+			phasingType: "advanced",
 			initBlockHeight: NRS.lastBlockHeight + 1440,
 			changeHeightBlocks: 60
 		};
 		var $elems = NRS.initModalUIElement($modal, '.phasing_finish_height_group', 'block_height_modal_ui_element', context);
+		context.phasingType = "mandatory_approval";
 		$elems = NRS.initModalUIElement($modal, '.mandatory_approval_finish_height_group', 'block_height_modal_ui_element', context);
 
 		context = {

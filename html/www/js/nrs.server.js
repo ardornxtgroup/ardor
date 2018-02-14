@@ -234,7 +234,7 @@ var NRS = (function (NRS, $, undefined) {
         //check to see if secretPhrase supplied matches logged in account, if not - show error.
         if ("secretPhrase" in data) {
             accountId = NRS.getAccountId(NRS.rememberPassword ? _password : data.secretPhrase);
-            if (accountId != NRS.account && !data.calculateFee) {
+            if (accountId != NRS.account) {
                 callback({
                     "errorCode": 1,
                     "errorDescription": $.t("error_passphrase_incorrect")
@@ -434,7 +434,7 @@ var NRS = (function (NRS, $, undefined) {
                 NRS.confirmResponse(requestType, data, response, requestRemoteNode);
             }
             if (!options.doNotEscape) {
-                NRS.escapeResponseObjStrings(response);
+                NRS.escapeResponseObjStrings(response, ["transactionJSON"]);
             }
             if (NRS.console) {
                 NRS.addToConsole(this.url, this.type, this.data, response);
@@ -443,8 +443,7 @@ var NRS = (function (NRS, $, undefined) {
             if (secretPhrase &&
                 response.unsignedTransactionBytes && !data.doNotSign &&
                 !response.errorCode && !response.error &&
-                !response.bundlerRateNQTPerFXT && !data.calculateFee
-            ) {
+                !response.bundlerRateNQTPerFXT && !data.calculateFee) {
                 var publicKey = NRS.generatePublicKey(secretPhrase);
                 var signature = NRS.signBytes(response.unsignedTransactionBytes, converters.stringToHexString(secretPhrase));
 
@@ -457,11 +456,11 @@ var NRS = (function (NRS, $, undefined) {
                     r.onload = function (e) {
                         data.filebytes = e.target.result;
                         data.filename = file.name;
-                        NRS.verifyAndBroadcast(response.unsignedTransactionBytes, signature, requestType, data, callback, response, extra, isVolatile);
+                        NRS.verifyAndBroadcast(signature, requestType, data, callback, response, extra, isVolatile);
                     };
                     r.readAsArrayBuffer(file);
                 } else {
-                    NRS.verifyAndBroadcast(response.unsignedTransactionBytes, signature, requestType, data, callback, response, extra, isVolatile);
+                    NRS.verifyAndBroadcast(signature, requestType, data, callback, response, extra, isVolatile);
                 }
             } else {
                 if (response.errorCode || response.errorDescription || response.errorMessage || response.error) {
@@ -549,9 +548,9 @@ var NRS = (function (NRS, $, undefined) {
         });
     };
 
-    NRS.verifyAndBroadcast = function (transactionBytes, signature, requestType, data, callback, response, extra, isVerifyECBlock) {
-        var byteArray = converters.hexStringToByteArray(transactionBytes);
-        if (!NRS.verifyTransactionBytes(byteArray, requestType, data, response.transactionJSON.attachment, isVerifyECBlock)) {
+    NRS.verifyAndBroadcast = function (signature, requestType, data, callback, response, extra, isVerifyECBlock) {
+        var transactionBytes = response.unsignedTransactionBytes;
+        if (!NRS.verifyTransactionBytes(converters.hexStringToByteArray(transactionBytes), requestType, data, response.transactionJSON.attachment, isVerifyECBlock)) {
             callback({
                 "errorCode": 1,
                 "errorDescription": $.t("error_bytes_validation_server")

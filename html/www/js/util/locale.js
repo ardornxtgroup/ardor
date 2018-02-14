@@ -34,20 +34,7 @@ var NRS = (function (NRS) {
             if (!LOCALE_DATA[lang]) {
                 if (lang && lang.length == 2) {
                     // Attempt to expand the Chrome two letter language to country specific locale
-                    if (window.navigator.languages) {
-                        var tokens = String(window.navigator.languages).split(",");
-                        for (var i=0; i<tokens.length; i++) {
-                            var separator = tokens[i].indexOf("-");
-                            if (separator == -1) {
-                                continue;
-                            }
-                            if (tokens[i].substring(0, separator) == lang) {
-                                NRS.logConsole("Language " + lang + " resolved to locale " + tokens[i]);
-                                lang = tokens[i];
-                                break;
-                            }
-                        }
-                    }
+                    lang = lang + "-" + lang.toUpperCase();
                 }
                 if (!LOCALE_DATA[lang]) {
                     if (!currentLocale.lang) {

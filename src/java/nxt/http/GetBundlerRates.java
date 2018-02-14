@@ -68,4 +68,9 @@ public final class GetBundlerRates extends APIServlet.APIRequestHandler {
     protected boolean requireBlockchain() {
         return false;
     }
+
+    @Override
+    protected boolean requireFullClient() {
+        return true;
+    }
 }

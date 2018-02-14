@@ -67,4 +67,9 @@ public class BlacklistBundler extends APIRequestHandler {
     protected boolean isChainSpecific() {
         return false;
     }
+
+    @Override
+    protected boolean requireFullClient() {
+        return true;
+    }
 }

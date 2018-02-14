@@ -1227,6 +1227,9 @@ public final class Peers {
             blacklistedBundlerAccounts.add(accountId);
             Logger.logInfoMessage("Bundler " + Convert.rsAccount(accountId) + " blacklisted");
         }
+        synchronized(bundlerRates) {
+            bundlerRates.remove(accountId);
+        }
     }
 
     /**

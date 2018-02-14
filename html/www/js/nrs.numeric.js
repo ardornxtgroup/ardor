@@ -241,7 +241,7 @@ var NRS = (function (NRS, $) {
         return NRS.formatDecimals(params, no_escaping, zeroPad, NRS.getActiveChainDecimals());
     };
 
-    NRS.formatDecimals = function(params, no_escaping, zeroPad, decimals) {
+    NRS.formatDecimals = function(params, no_escaping, zeroPad, trim) {
         var amount;
         var mantissa;
         if (typeof params != "object") {
@@ -269,20 +269,20 @@ var NRS = (function (NRS, $) {
         var locale = NRS.getLocale();
         var formattedMantissa = params.mantissa.replace(".", locale.decimal);
         var mantissaLen = formattedMantissa.length;
-        if (mantissaLen > decimals + 1) {
-            formattedMantissa = formattedMantissa.substring(0, decimals + 1);
+        if (mantissaLen > trim + 1) {
+            formattedMantissa = formattedMantissa.substring(0, trim + 1);
         }
         if (zeroPad && zeroPad > 0) {
             mantissaLen = formattedMantissa.length;
-            if (zeroPad > decimals) {
-                zeroPad = decimals;
+            if (zeroPad > trim) {
+                zeroPad = trim;
             }
             if (mantissaLen > 0) {
                 if (zeroPad + 1 > mantissaLen) {
-                    formattedMantissa += NRS.getOneCoin(decimals).substr(1, zeroPad + 1 - mantissaLen);
+                    formattedMantissa += NRS.getOneCoin(trim).substr(1, zeroPad + 1 - mantissaLen);
                 }
             } else {
-                formattedMantissa += locale.decimal + NRS.getOneCoin(decimals).substr(1, zeroPad);
+                formattedMantissa += locale.decimal + NRS.getOneCoin(trim).substr(1, zeroPad);
             }
         }
         for (var i = 0; i < digits.length; i++) {
@@ -300,7 +300,10 @@ var NRS = (function (NRS, $) {
         return output;
     };
 
-    NRS.formatQuantity = function (quantity, decimals, no_escaping, zeroPad) {
+    NRS.formatQuantity = function (quantity, decimals, no_escaping, zeroPad, trim) {
+        if (trim !== undefined) {
+            return NRS.formatDecimals(NRS.convertToQNTf(quantity, decimals, true), no_escaping, zeroPad, trim);
+        }
         return NRS.format(NRS.convertToQNTf(quantity, decimals, true), no_escaping, zeroPad);
     };
 

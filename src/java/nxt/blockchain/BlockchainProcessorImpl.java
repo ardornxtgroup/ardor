@@ -1321,10 +1321,14 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             return;
         }
         Logger.logMessage("Genesis block not in database, starting from scratch");
+        BlockImpl genesisBlock = new BlockImpl(Genesis.generationSignature);
+        genesisBlockId = genesisBlock.getId();
+        if (Constants.isLightClient) {
+            blockchain.setLastBlock(genesisBlock);
+            return;
+        }
         try (Connection con = Db.db.beginTransaction()) {
-            BlockImpl genesisBlock = new BlockImpl(Genesis.generationSignature);
             addBlock(genesisBlock);
-            genesisBlockId = genesisBlock.getId();
             byte[] generationSignature = Genesis.apply();
             if (!Arrays.equals(generationSignature, genesisBlock.getGenerationSignature())) {
                 scheduleScan(0, true);

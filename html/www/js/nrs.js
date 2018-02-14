@@ -341,6 +341,7 @@ var NRS = (function(NRS, $, undefined) {
 					$(this).popover("destroy");
 					$(".popover").remove();
 				});
+                $(".coin-symbol-separator").html(" " + $.t("per") + " ");
 
 				_fix();
 
@@ -1147,7 +1148,7 @@ var NRS = (function(NRS, $, undefined) {
         });
     };
 
-    NRS.getBalances = function(balances, isAsync) {
+    function getAccountBalances() {
         // Currently there is no way to get balances for all chains, so we need to specify each chain separately
         var qs = [];
         for (var i = 1; i <= Object.keys(NRS.constants.CHAINS).length; i++) {
@@ -1158,10 +1159,9 @@ var NRS = (function(NRS, $, undefined) {
         NRS.sendRequest("getBalances", {
             "querystring": qs
         }, function (response) {
-            balances = response.balances;
-        }, { isAsync: isAsync });
-        return balances;
-    };
+            NRS.accountInfo["balances"] = response.balances;
+        });
+    }
 
     NRS.getAccountInfo = function(firstRun, callback, isAccountSwitch) {
         NRS.sendRequest("getAccount", {
@@ -1192,7 +1192,7 @@ var NRS = (function(NRS, $, undefined) {
                     $("#account_balance, #account_balance_sidebar").html(NRS.formatStyledAmount(balance.unconfirmedBalanceNQT));
                     NRS.accountInfo = $.extend({}, NRS.accountInfo, balance);
                 });
-                NRS.getBalances(NRS.accountInfo["balances"], true);
+                getAccountBalances();
                 if (response.forgedBalanceFQT) {
                     $("#account_forged_balance").html(NRS.formatStyledAmount(response.forgedBalanceFQT));
                 } else {

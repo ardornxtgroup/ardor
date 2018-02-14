@@ -611,9 +611,9 @@ var NRS = (function(NRS, $, undefined) {
 		}
 		var formattedAmount = "";
 		if (amount != "") {
-			formattedAmount = NRS.formatAmount(amount, false, false, decimals.amount);
+			formattedAmount = NRS.formatAmount(amount, false, false, decimals.amount, parseInt(NRS.getChainDecimals(t.chain)));
 		}
-		var formattedFee = NRS.formatAmount(fee, false, false, decimals.fee);
+		var formattedFee = NRS.formatAmount(fee, false, false, decimals.fee, parseInt(NRS.getChainDecimals(t.chain)));
 		var amountColor = (sign == 1 ? "color:green;" : (sign == -1 ? "color:red;" : "color:black;"));
 		var hasMessage = false;
 

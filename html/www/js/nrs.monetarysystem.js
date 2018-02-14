@@ -823,7 +823,7 @@ var NRS = (function (NRS, $, undefined) {
             NRS.sendRequest("getBalance", {
                 "account": NRS.accountRS
             }, function (balance) {
-                if (parseInt(response.amountNQT) > parseInt(balance.unconfirmedBalanceNQT - 100000000)) {
+                if (parseInt(response.amountNQT) > parseInt(balance.unconfirmedBalanceNQT)) {
                     totalField.css("background-color", "red");
                     submitButton.prop('disabled', true);
                 } else {

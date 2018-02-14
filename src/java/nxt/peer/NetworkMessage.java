@@ -921,6 +921,17 @@ public abstract class NetworkMessage {
          */
         @Override
         boolean sendToLightClient() {
+            return false;
+        }
+
+        /**
+         * BundlerRateMessage is not processed while downloading because the node cannot correctly check the effective
+         * balance of the bundler
+         *
+         * @return true
+         */
+        @Override
+        boolean downloadNotAllowed() {
             return true;
         }
     }
@@ -2525,16 +2536,6 @@ public abstract class NetworkMessage {
          */
         @Override
         boolean requiresResponse() {
-            return true;
-        }
-
-        /**
-         * Check if blockchain download is not allowed
-         *
-         * @return                              TRUE if blockchain download is not allowed
-         */
-        @Override
-        boolean downloadNotAllowed() {
             return true;
         }
 

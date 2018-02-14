@@ -694,7 +694,7 @@ var NRS = (function(NRS, $) {
 		if (response.fullHash) {
 			NRS.unlockForm($modal, $btn);
 			if (data.calculateFee) {
-                updateFee($modal, response.transactionJSON.feeNQT, formFeeCalculationFunction);
+                updateFee($modal, response.transactionJSON, formFeeCalculationFunction);
 				return;
 			}
 
@@ -744,7 +744,7 @@ var NRS = (function(NRS, $) {
 		} else {
 			if (data.calculateFee) {
 				NRS.unlockForm($modal, $btn, false);
-				updateFee($modal, response.transactionJSON.feeNQT, formFeeCalculationFunction);
+				updateFee($modal, response.transactionJSON, formFeeCalculationFunction);
 				return;
 			}
 			var sentToFunction = false;
@@ -801,10 +801,11 @@ var NRS = (function(NRS, $) {
 
 
 
-    function updateFee(modal, feeNQT, formFeeCalculationFunction) {
+    function updateFee(modal, transaction, formFeeCalculationFunction) {
+    	var feeNQT = transaction.feeNQT;
         var feeField = $("#" + modal.attr('id').replace('_modal', '') + "_fee");
         if (typeof formFeeCalculationFunction == 'function') {
-            formFeeCalculationFunction(feeField, feeNQT);
+            formFeeCalculationFunction(feeField, feeNQT, transaction);
         } else {
             feeField.val(NRS.convertToNXT(feeNQT));
         }

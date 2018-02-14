@@ -38,6 +38,8 @@ import nxt.messaging.PrunableEncryptedMessageAppendix;
 import nxt.messaging.PrunablePlainMessageAppendix;
 import nxt.peer.Peers;
 import nxt.util.Convert;
+import nxt.util.JSON;
+import nxt.util.Logger;
 import nxt.voting.PhasingAppendix;
 import nxt.voting.PhasingParams;
 import org.json.simple.JSONObject;
@@ -243,10 +245,20 @@ abstract class CreateTransaction extends APIServlet.APIRequestHandler {
             }
             Transaction transaction = builder.build(secretPhrase);
             try {
-                if (Math.addExact(amountNQT, transaction.getFee()) > chain.getBalanceHome().getBalance(senderAccount.getId()).getUnconfirmedBalance()) {
-                    return NOT_ENOUGH_FUNDS;
+                long balance = chain.getBalanceHome().getBalance(senderAccount.getId()).getUnconfirmedBalance();
+                if (Math.addExact(amountNQT, transaction.getFee()) > balance) {
+                    JSONObject infoJson = new JSONObject();
+                    infoJson.put("errorCode", 6);
+                    infoJson.put("errorDescription", "Not enough funds");
+                    infoJson.put("amount", String.valueOf(amountNQT));
+                    infoJson.put("fee", String.valueOf(transaction.getFee()));
+                    infoJson.put("balance", String.valueOf(balance));
+                    infoJson.put("diff", String.valueOf(Math.subtractExact(Math.addExact(amountNQT, transaction.getFee()), balance)));
+                    infoJson.put("chain", chain.getId());
+                    return JSON.prepare(infoJson);
                 }
             } catch (ArithmeticException e) {
+                Logger.logErrorMessage(String.format("amount %d fee %d", amountNQT, transaction.getFee()), e);
                 return NOT_ENOUGH_FUNDS;
             }
             JSONObject transactionJSON = JSONData.unconfirmedTransaction(transaction);

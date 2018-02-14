@@ -108,7 +108,7 @@ var NRS = (function(NRS, $) {
                 for (i = 0; i < block.executedPhasedTransactions.length; i++) {
                     transaction = block.executedPhasedTransactions[i];
                     rows += "<tr>" +
-                        "<td>" + NRS.getTransactionLink(transaction.fullHash, NRS.formatTimestamp(transaction.timestamp)) + "</td>" +
+                        "<td>" + NRS.getTransactionLink(transaction.fullHash, NRS.formatTimestamp(transaction.timestamp), false, transaction.chain) + "</td>" +
                         "<td>" + NRS.getTransactionIconHTML(transaction.type, transaction.subtype) + "</td>" +
                         "<td>" + NRS.getBlockLink(transaction.height) + "</td>" +
                         "<td>" + (transaction.attachment.phasingFinishHeight == block.height ? $.t("finished") : $.t("approved")) + "</td>" +

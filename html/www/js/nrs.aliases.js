@@ -122,7 +122,7 @@ var NRS = (function (NRS, $, undefined) {
         if ($(this).attr("id") == "sell_alias_modal") {
             $(this).find("ul.nav-pills li").removeClass("active");
             $(this).find("ul.nav-pills li:first-child").addClass("active");
-            $("#sell_alias_recipient_div").show();
+            $(this).find("input[name=recipient]").closest(".form-group").show();
         }
     });
 
@@ -144,16 +144,32 @@ var NRS = (function (NRS, $, undefined) {
             successMessage = $.t("success_transfer_alias");
             errorMessage = $.t("error_transfer_alias");
         } else {
-            if (!data.recipient) {
-                return {
-                    "error": $.t("error_not_specified", {
-                        "name": $.t("recipient").toLowerCase()
-                    }).capitalize()
-                };
-            }
+            if ($modal.find("#sell_alias_to_anyone").closest("li").hasClass('active')) {
+                if (!data.priceNXT || data.priceNXT == "0") {
+                    return {
+                        "error": $.t("error_not_specified", {
+                            "name": $.t("price").toLowerCase()
+                        }).capitalize()
+                    };
+                }
 
-            successMessage = $.t("success_sell_alias");
-            errorMessage = $.t("error_sell_alias");
+                delete data.add_message;
+                delete data.encrypt_message;
+                delete data.permanent_message;
+                delete data.message;
+                delete data.recipient;
+            } else {
+                if (!data.recipient) {
+                    return {
+                        "error": $.t("error_not_specified", {
+                            "name": $.t("recipient").toLowerCase()
+                        }).capitalize()
+                    };
+                }
+
+                successMessage = $.t("success_sell_alias");
+                errorMessage = $.t("error_sell_alias");
+            }
         }
 
         delete data.modal;
@@ -236,12 +252,12 @@ var NRS = (function (NRS, $, undefined) {
         var $modal = $(this).closest(".modal");
 
         if ($(this).attr("id") == "sell_alias_to_anyone") {
-            $modal.find("input[name=recipient]").val(""); // TODO test sell alias to anyone
-            $("#sell_alias_recipient_div").hide();
+            $modal.find("input[name=recipient]").val("");
+            $modal.find("input[name=recipient]").closest(".form-group").hide();
             $modal.find(".add_message_container, .optional_message").hide();
         } else {
             $modal.find("input[name=recipient]").val("");
-            $("#sell_alias_recipient_div").show();
+            $modal.find("input[name=recipient]").closest(".form-group").show();
             $modal.find(".add_message_container").show();
 
             if ($("#sell_alias_add_message").is(":checked")) {

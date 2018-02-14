@@ -344,6 +344,8 @@ var NRS = (function (NRS, $) {
 						}
 						if (transaction.goodsIsText) {
                             decryptOptions.isText = transaction.goodsIsText;
+                        } else if (transaction.attachment && transaction.attachment.goodsIsText) {
+                            decryptOptions.isText = transaction.attachment.goodsIsText;
 						} else {
                             decryptOptions.isText = transaction.attachment[key].isText;
                             decryptOptions.isCompressed = transaction.attachment[key].isCompressed;
@@ -474,8 +476,8 @@ var NRS = (function (NRS, $) {
 			var encrypted = "";
 			var nonce = "";
 			var nonceField = (typeof title != "string" ? title.nonce : key + "Nonce");
+            var otherAccount = _encryptedNote.account;
 			if (key == "encryptedMessage" || key == "encryptToSelfMessage") {
-                var otherAccount = _encryptedNote.account;
                 if (key == "encryptToSelfMessage") {
 					otherAccount = accountId;
 				}
@@ -508,6 +510,8 @@ var NRS = (function (NRS, $) {
                     }
                     if (_encryptedNote.transaction.goodsIsText) {
                         options.isText = _encryptedNote.transaction.goodsIsText;
+                    } else if (_encryptedNote.transaction.attachment && _encryptedNote.transaction.attachment.goodsIsText) {
+                        options.isText = _encryptedNote.transaction.attachment.goodsIsText;
                     } else {
                         options.isText = _encryptedNote.transaction.attachment[key].isText;
                         options.isCompressed = _encryptedNote.transaction.attachment[key].isCompressed;
@@ -581,7 +585,8 @@ var NRS = (function (NRS, $) {
 						options.nonce = message.attachment.encryptedMessage.nonce;
 						options.account = otherUser;
                     }
-                    if (_encryptedNote && _encryptedNote.transaction && _encryptedNote.transaction.goodsIsText) {
+                    if (_encryptedNote && _encryptedNote.transaction &&
+                            (_encryptedNote.transaction.goodsIsText || _encryptedNote.transaction.attachment.goodsIsText)) {
                         options.isText = message.goodsIsText;
                     } else {
                         options.isText = message.attachment.encryptedMessage.isText;

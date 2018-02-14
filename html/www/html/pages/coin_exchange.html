@@ -37,7 +37,7 @@
                                 </tr>
                                 </thead>
                                 <tbody>
-                                
+
                                 </tbody>
                             </table>
                             <div class="data-loading-container"><img src="img/loading_indicator.gif" alt="Loading..." width="32" height="32" /></div>
@@ -45,7 +45,7 @@
                         </div>
                     </div>
                 </div>
-            </div>                                          
+            </div>
         </div>
         <div class="data-pagination"></div>
     </section>
@@ -183,29 +183,59 @@
                                             </form>
                                         </div>
                                     </div>
-                                    <div class="box box-danger" style="min-height:400px;max-height: 400px;overflow: auto;;">
-                                        <div class="box-header">
-                                            <h3 class="box-title"><span data-i18n="sell_orders">Sell Orders</span> <span id="sell_orders_count"></span></h3>
+                                    <div class="col-md-6">
+                                        <div class="box box-danger" style="min-height:400px;max-height: 400px;overflow: auto;;">
+                                            <div class="box-header">
+                                                <h3 class="box-title"><span data-i18n="sell_orders">Sell Orders</span> <span id="sell_orders_count"></span></h3>
+                                            </div>
+                                            <div class="box-body no-padding">
+                                                <div class="data-container data-loading" data-no-padding="true">
+                                                    <table class="table table-striped" style="font-size:10pt;" id="coin_exchange_sell_orders_table">
+                                                        <thead>
+                                                        <tr>
+                                                            <th></th>
+                                                            <th data-i18n="account">Account</th>
+                                                            <th data-i18n="price" class="numeric">Price</th>
+                                                            <th class="coin_exchange_base_coin numeric"></th>
+                                                            <th class="coin_exchange_counter_coin numeric"></th>
+                                                            <th data-i18n="sum" class="numeric">Sum</th>
+                                                        </tr>
+                                                        </thead>
+                                                        <tbody>
+
+                                                        </tbody>
+                                                    </table>
+                                                    <div class="data-loading-container"><img class="loading" src="img/loading_indicator.gif" alt="Loading..." width="32" height="32" /></div>
+                                                    <div class="data-empty-container"><p data-i18n="no_sell_orders_for_coin">No sell orders for this coin.</p></div>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div class="box-body no-padding">
-                                            <div class="data-container data-loading" data-no-padding="true">
-                                                <table class="table table-striped" style="font-size:10pt;" id="coin_exchange_ask_orders_table">
-                                                    <thead>
-                                                    <tr>
-                                                        <th></th>
-                                                        <th data-i18n="account">Account</th>
-                                                        <th id="coin_exchange_counter_coin" class='numeric'></th>
-                                                        <th data-i18n="rate" class='numeric'>Rate</th>
-                                                        <th id="coin_exchange_base_coin" class='numeric'></th>
-                                                        <th data-i18n="sum" class='numeric'>Sum</th>
-                                                    </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                    
-                                                    </tbody>
-                                                </table>
-                                                <div class="data-loading-container"><img class="loading" src="img/loading_indicator.gif" alt="Loading..." width="32" height="32" /></div>
-                                                <div class="data-empty-container"><p data-i18n="no_sell_orders_for_coin">No sell orders for this coin.</p></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="box box-danger" style="min-height:400px;max-height: 400px;overflow: auto;;">
+                                            <div class="box-header">
+                                                <h3 class="box-title"><span data-i18n="buy_orders">Buy Orders</span> <span id="buy_orders_count"></span></h3>
+                                            </div>
+                                            <div class="box-body no-padding">
+                                                <div class="data-container data-loading" data-no-padding="true">
+                                                    <table class="table table-striped" style="font-size:10pt;" id="coin_exchange_buy_orders_table">
+                                                        <thead>
+                                                        <tr>
+                                                            <th></th>
+                                                            <th data-i18n="account">Account</th>
+                                                            <th data-i18n="price" class="numeric">Price</th>
+                                                            <th class="coin_exchange_base_coin numeric"></th>
+                                                            <th class="coin_exchange_counter_coin numeric"></th>
+                                                            <th data-i18n="sum" class="numeric">Sum</th>
+                                                        </tr>
+                                                        </thead>
+                                                        <tbody>
+
+                                                        </tbody>
+                                                        </table>
+                                                    <div class="data-loading-container"><img class="loading" src="img/loading_indicator.gif" alt="Loading..." width="32" height="32" /></div>
+                                                    <div class="data-empty-container"><p data-i18n="no_buy_orders_for_coin">No buy orders for this coin.</p></div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -236,9 +266,9 @@
                                                 <th data-i18n="order">Order</th>
                                                 <th data-i18n="match">Match</th>
                                                 <th data-i18n="account">Account</th>
-                                                <th data-i18n="amount" class='numeric'>Amount</th>
                                                 <th data-i18n="price" class='numeric'>Price</th>
-                                                <th data-i18n="total" class='numeric'>Total</th>
+                                                <th class='coin_exchange_base_coin numeric'></th>
+                                                <th class='coin_exchange_counter_coin numeric'></th>
                                             </tr>
                                             </thead>
                                             <tbody>
