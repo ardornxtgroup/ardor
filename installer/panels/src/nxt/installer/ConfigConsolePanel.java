@@ -35,6 +35,10 @@ import static nxt.installer.ConfigHandler.VAR_CLEAN_INSTALL_DIR;
 import static nxt.installer.ConfigHandler.VAR_FILE_CONTENTS;
 import static nxt.installer.ConfigHandler.VAR_SHUTDOWN_SERVER;
 
+/**
+ * Currently not in use (I think)
+ */
+@SuppressWarnings("unused")
 public class ConfigConsolePanel extends AbstractConsolePanel {
     private final ConfigHandler handler = new ConfigHandler();
     private final Prompt prompt;
@@ -66,20 +70,20 @@ public class ConfigConsolePanel extends AbstractConsolePanel {
         List<ConfigHandler.Setting> settings = new LinkedList<>();
 
         if (!allSettings.isEmpty() && askUser("There are a few settings that can be customized now. " +
-                        "They will be put into " + FILE_PATH + " file which you can edit later.",
+                        "They will be put into " + FILE_PATH + " file which you can override later.",
                 "Do you want to customize settings now?")) {
             Map<String, String> properties = new HashMap<>();
             next:
             for (Setting setting : allSettings) {
-                for (Map.Entry<String, String> e : setting.properties.entrySet()) {
+                for (Map.Entry<String, String> e : setting.getProperties().entrySet()) {
                     if (properties.containsKey(e.getKey()) && !properties.get(e.getKey()).equals(e.getValue())) {
                         // This setting happens to conflict with another one, so don't ask about it
                         break next;
                     }
                 }
-                if (askUser(setting.description, "Enable this setting?")) {
+                if (askUser(setting.getDescription(), "Enable this setting?")) {
                     settings.add(setting);
-                    properties.putAll(setting.properties);
+                    properties.putAll(setting.getProperties());
                 }
             }
         }

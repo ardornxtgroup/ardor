@@ -19,6 +19,7 @@ package nxt.http;
 import nxt.NxtException;
 import nxt.blockchain.Transaction;
 import nxt.util.Convert;
+import nxt.util.Logger;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
@@ -58,6 +59,7 @@ public final class SignTransaction extends APIServlet.APIRequestHandler {
             response.put("transactionBytes", Convert.toHexString(transaction.getBytes()));
             JSONData.putPrunableAttachment(response, transaction);
         } catch (NxtException.ValidationException|RuntimeException e) {
+            Logger.logErrorMessage("Incorrect unsigned transaction json or bytes" ,e);
             JSONData.putException(response, e, "Incorrect unsigned transaction json or bytes");
         }
         return response;

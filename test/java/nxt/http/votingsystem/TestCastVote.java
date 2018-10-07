@@ -71,6 +71,7 @@ public class TestCastVote extends BlockchainTest {
         generateBlock();
 
         apiCall = new APICall.Builder("castVote")
+                .setParamValidation(false)
                 .param("secretPhrase", ALICE.getSecretPhrase())
                 .param("poll", poll)
                 .param("vote1", 1)

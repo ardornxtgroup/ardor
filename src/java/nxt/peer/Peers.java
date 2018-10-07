@@ -24,6 +24,7 @@ import nxt.authentication.RoleMapperFactory;
 import nxt.blockchain.Bundler;
 import nxt.blockchain.Chain;
 import nxt.blockchain.ChildChain;
+import nxt.configuration.SubSystem;
 import nxt.crypto.Crypto;
 import nxt.dbschema.Db;
 import nxt.http.API;
@@ -58,6 +59,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 
 public final class Peers {
 
@@ -606,7 +609,11 @@ public final class Peers {
      * @return                          List of connected peers
      */
     public static List<Peer> getConnectedPeers() {
-        return new ArrayList<>(NetworkHandler.connectionMap.values());
+        if (Nxt.isEnabled(SubSystem.PEER_NETWORKING)) {
+            return new ArrayList<>(NetworkHandler.connectionMap.values());
+        } else {
+            return Collections.EMPTY_LIST;
+        }
     }
 
     /**
@@ -669,7 +676,7 @@ public final class Peers {
                     if (!peer.isBlacklisted()
                             && peer.shareAddress()
                             && peer.getState() != Peer.State.CONNECTED
-                            && now - peer.getLastConnectAttempt() > 10*60 || peer.getLastConnectAttempt() < startTime) {
+                            && (now - peer.getLastConnectAttempt() > 10*60 || peer.getLastConnectAttempt() < startTime)) {
                         peer.setLastConnectAttempt(now);
                         connectList.add(peer);
                         connectCount--;
@@ -684,7 +691,7 @@ public final class Peers {
                         && peer.shareAddress()
                         && peer.getState() != Peer.State.CONNECTED
                         && (now - peer.getLastUpdated() > 60*60 || peer.getLastUpdated() < startTime)
-                        && now - peer.getLastConnectAttempt() > 10*60 || peer.getLastConnectAttempt() < startTime);
+                        && (now - peer.getLastConnectAttempt() > 10*60 || peer.getLastConnectAttempt() < startTime));
                 while (!resultList.isEmpty() && connectCount > 0) {
                     int i = ThreadLocalRandom.current().nextInt(resultList.size());
                     PeerImpl peer = (PeerImpl)resultList.remove(i);
@@ -1050,16 +1057,8 @@ public final class Peers {
         return updated;
     }
 
-    /**
-     * Get the best bundler rates
-     *
-     * @param   minBalance      Minimum bundler account balance
-     * @param   whitelist       If present, only rates from the whitelisted accounts will be returned
-     * @return                  List of bundler rates
-     */
-    public static List<BundlerRate> getBestBundlerRates(long minBalance, Set<Long> whitelist) {
+    private static void forEachBundlerRate(Consumer<BundlerRate> consumer, Set<Long> whitelist) {
         int now = Nxt.getEpochTime();
-        Map<ChildChain, BundlerRate> rateMap = new HashMap<>();
         synchronized(bundlerRates) {
             Iterator<Map.Entry<Long, List<BundlerRate>>> it = bundlerRates.entrySet().iterator();
             while (it.hasNext()) {
@@ -1075,17 +1074,30 @@ public final class Peers {
                         rit.remove();
                         continue;
                     }
-                    BundlerRate prevRate = rateMap.get(rate.getChain());
-                    if (rate.getBalance() >= minBalance &&
-                            (prevRate == null || rate.getRate() < prevRate.getRate())) {
-                        rateMap.put(rate.getChain(), rate);
-                    }
+                    consumer.accept(rate);
                 }
                 if (rates.isEmpty()) {
                     it.remove();
                 }
             }
         }
+    }
+    /**
+     * Get the best bundler rates
+     *
+     * @param   minBalance      Minimum bundler account balance
+     * @param   whitelist       If present, only rates from the whitelisted accounts will be returned
+     * @return                  List of bundler rates
+     */
+    public static List<BundlerRate> getBestBundlerRates(long minBalance, Set<Long> whitelist) {
+        Map<ChildChain, BundlerRate> rateMap = new HashMap<>();
+        forEachBundlerRate(rate -> {
+            BundlerRate prevRate = rateMap.get(rate.getChain());
+            if (rate.getBalance() >= minBalance &&
+                    (prevRate == null || rate.getRate() < prevRate.getRate())) {
+                rateMap.put(rate.getChain(), rate);
+            }
+        }, whitelist);
         List<BundlerRate> bestRates = new ArrayList<>();
         rateMap.forEach((key, value) -> bestRates.add(new BundlerRate(key, value.getAccountId(),
                 value.getRate(), value.getFeeLimit())));
@@ -1100,28 +1112,11 @@ public final class Peers {
      */
     public static List<BundlerRate> getAllBundlerRates(long minBalance) {
         List<BundlerRate> allRates = new ArrayList<>();
-        int now = Nxt.getEpochTime();
-        synchronized(bundlerRates) {
-            Iterator<Map.Entry<Long, List<BundlerRate>>> it = bundlerRates.entrySet().iterator();
-            while (it.hasNext()) {
-                Map.Entry<Long, List<BundlerRate>> entry = it.next();
-                List<BundlerRate> rates = entry.getValue();
-                Iterator<BundlerRate> rit = rates.iterator();
-                while (rit.hasNext()) {
-                    BundlerRate rate = rit.next();
-                    if (rate.getTimestamp() < now - (BUNDLER_RATE_BROADCAST_INTERVAL + 15 * 60)) {
-                        rit.remove();
-                        continue;
-                    }
-                    if (rate.getBalance() >= minBalance) {
-                        allRates.add(rate);
-                    }
-                }
-                if (rates.isEmpty()) {
-                    it.remove();
-                }
+        forEachBundlerRate(rate -> {
+            if (rate.getBalance() >= minBalance) {
+                allRates.add(rate);
             }
-        }
+        }, null);
         return allRates;
     }
 
@@ -1134,34 +1129,14 @@ public final class Peers {
      * @return                  Best bundler rate or -1 if there are no rates
      */
     public static long getBestBundlerRate(Chain childChain, long minBalance, Set<Long> whitelist) {
-        int now = Nxt.getEpochTime();
-        long minRate = -1;
-        synchronized(bundlerRates) {
-            Iterator<Map.Entry<Long, List<BundlerRate>>> it = bundlerRates.entrySet().iterator();
-            while (it.hasNext()) {
-                Map.Entry<Long, List<BundlerRate>> entry = it.next();
-                if (whitelist != null && !whitelist.isEmpty() && !whitelist.contains(entry.getKey())) {
-                    continue;
-                }
-                List<BundlerRate> rates = entry.getValue();
-                Iterator<BundlerRate> rit = rates.iterator();
-                while (rit.hasNext()) {
-                    BundlerRate rate = rit.next();
-                    if (rate.getTimestamp() < now - (BUNDLER_RATE_BROADCAST_INTERVAL + 15 * 60)) {
-                        rit.remove();
-                        continue;
-                    }
-                    if (rate.getChain() == childChain && rate.getBalance() >= minBalance &&
-                            (minRate < 0 || rate.getRate() < minRate)) {
-                        minRate = rate.getRate();
-                    }
-                }
-                if (rates.isEmpty()) {
-                    it.remove();
-                }
+        AtomicLong minRate = new AtomicLong(-1);
+        forEachBundlerRate(rate -> {
+            if (rate.getChain() == childChain && rate.getBalance() >= minBalance &&
+                    (minRate.get() < 0 || rate.getRate() < minRate.get())) {
+                minRate.set(rate.getRate());
             }
-        }
-        return minRate;
+        }, whitelist);
+        return minRate.get();
     }
 
     /**

@@ -299,7 +299,7 @@ var NRS = (function (NRS, $, undefined) {
 
     NRS.getChainLink = function(chain) {
         return "<a href='#' class='show_chain_modal_action' data-chain='" + String(chain).escapeHTML() + "'>"
-            + NRS.constants.CHAIN_PROPERTIES[chain].name + "</a>";
+            + NRS.getChainName(chain) + "</a>";
     };
 
     NRS.getHoldingLink = function(holding, holdingType, text) {
@@ -517,7 +517,7 @@ var NRS = (function (NRS, $, undefined) {
 				key = match[1];
 				type = match[2];
 			}
-
+            var origKey = key;
             key = key.replace(/\s+/g, "").replace(/([A-Z])/g, function ($1) {
                 return "_" + $1.toLowerCase();
             });
@@ -547,7 +547,12 @@ var NRS = (function (NRS, $, undefined) {
                 value = NRS.escapeRespStr(value).nl2br();
             }
 
-            rows += "<tr><td style='font-weight:bold" + (fixed ? ";width:150px" : "") + "'>" + $.t(key).escapeHTML() + (type ? " " + type.escapeHTML() : "") + ":</td><td style='width:90%;word-break:break-all'>" + value + "</td></tr>";
+            var keyText = $.t(key);
+            if (keyText.indexOf("translation:") == 0) {
+                keyText = origKey;
+            }
+            keyText = keyText.escapeHTML();
+            rows += "<tr><td style='font-weight:bold" + (fixed ? ";width:150px" : "") + "'>" + keyText + (type ? " " + type.escapeHTML() : "") + ":</td><td style='width:70%;word-break:break-all'>" + value + "</td></tr>";
         }
 
         return rows;
@@ -1068,6 +1073,41 @@ var NRS = (function (NRS, $, undefined) {
         return buf;
     };
 
+    NRS.generatePaymentRequest = function (data, supplierSecretPhrase, shouldEncrypt, payerPublicKey) {
+        var supplierPublicKey = NRS.getPublicKey(converters.stringToHexString(supplierSecretPhrase));
+        data.supplierPublicKey = supplierPublicKey;
+        var signature = NRS.signBytes(converters.stringToHexString(JSON.stringify(data)), converters.stringToHexString(supplierSecretPhrase));
+        if (shouldEncrypt) {
+            if (payerPublicKey === undefined) {
+                return null;
+            }
+            var encryptedData = NRS.encryptNote(JSON.stringify({ data: data, signature: signature }), {
+                "publicKey": payerPublicKey
+            }, supplierSecretPhrase);
+            return { encryptedData: encryptedData, supplierPublicKey: supplierPublicKey };
+        } else {
+            return { data: data, signature: signature };
+        }
+    };
+
+    NRS.parsePaymentRequest = function(request, secretPhrase) {
+        if (request.encryptedData !== undefined) {
+            var note = NRS.decryptNote(request.encryptedData.message, {
+                nonce: request.encryptedData.nonce,
+                publicKey: converters.hexStringToByteArray(request.supplierPublicKey)
+            }, secretPhrase);
+            var decryptedRequest = JSON.parse(note.message);
+            if (NRS.verifySignature(decryptedRequest.signature, converters.stringToHexString(JSON.stringify(decryptedRequest.data)), decryptedRequest.data.supplierPublicKey)) {
+                return decryptedRequest.data;
+            }
+        } else {
+            if (NRS.verifySignature(request.signature, converters.stringToHexString(JSON.stringify(request.data)), request.data.supplierPublicKey)) {
+                return request.data;
+            }
+        }
+        return null;
+    };
+
     NRS.versionCompare = function (v1, v2) {
         if (v2 == undefined) {
             return -1;
@@ -1185,6 +1225,10 @@ var NRS = (function (NRS, $, undefined) {
         return array;
     };
 
+    NRS.isErrorResponse = function(response) {
+        return response.errorCode || response.errorDescription || response.errorMessage || response.error;
+    };
+
     NRS.getErrorMessage = function(response) {
         return response.errorDescription || response.errorMessage || response.error;
     };
@@ -1276,6 +1320,50 @@ var NRS = (function (NRS, $, undefined) {
             });
         });
     };
+
+    NRS.flattenObject = function(obj, exclusions, duplicates) {
+        return flattenObject(obj, exclusions, duplicates);
+    };
+
+    function flattenObject(obj, exclusions, duplicates) {
+        var toReturn = {};
+        for (var i in obj) {
+            if (!obj.hasOwnProperty(i)) {
+                continue
+            }
+            if ((typeof obj[i]) == 'object' && obj[i] !== null) {
+                var flatObject = NRS.flattenObject(obj[i], exclusions, duplicates);
+                for (var x in flatObject) {
+                    if (!flatObject.hasOwnProperty(x)) {
+                        continue;
+                    }
+                    toReturn[x] = flatObject[x];
+                }
+            } else {
+                var include = true;
+                if (exclusions !== undefined) {
+                    for (var j=0; j < exclusions.length; j++) {
+                        if (i.indexOf(exclusions[j]) == 0) {
+                            include = false;
+                            break;
+                        }
+                    }
+                }
+                if (duplicates !== undefined) {
+                    for (j=0; j < duplicates.length; j++) {
+                        if (obj[i + duplicates[j]] !== undefined) {
+                            include = false;
+                            break;
+                        }
+                    }
+                }
+                if (include) {
+                    toReturn[i] = obj[i];
+                }
+            }
+        }
+        return toReturn;
+    }
 
     return NRS;
 }(isNode ? client : NRS || {}, jQuery));

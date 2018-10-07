@@ -114,8 +114,8 @@ public abstract class AccountPropertyTransactionType extends ChildTransactionTyp
         @Override
         public void validateAttachment(ChildTransactionImpl transaction) throws NxtException.ValidationException {
             AccountInfoAttachment attachment = (AccountInfoAttachment)transaction.getAttachment();
-            if (attachment.getName().length() > Constants.MAX_ACCOUNT_NAME_LENGTH
-                    || attachment.getDescription().length() > Constants.MAX_ACCOUNT_DESCRIPTION_LENGTH) {
+            if (!AccountInfoAttachment.NAME_RW.validate(attachment.getName())
+                    || !AccountInfoAttachment.DESCRIPTION_RW.validate(attachment.getDescription())) {
                 throw new NxtException.NotValidException("Invalid account info issuance: " + attachment.getJSONObject());
             }
         }
@@ -186,9 +186,9 @@ public abstract class AccountPropertyTransactionType extends ChildTransactionTyp
         @Override
         public void validateAttachment(ChildTransactionImpl transaction) throws NxtException.ValidationException {
             AccountPropertyAttachment attachment = (AccountPropertyAttachment)transaction.getAttachment();
-            if (attachment.getProperty().length() > Constants.MAX_ACCOUNT_PROPERTY_NAME_LENGTH
+            if (!Account.PROPERTY_NAME_RW.validate(attachment.getProperty())
                     || attachment.getProperty().length() == 0
-                    || attachment.getValue().length() > Constants.MAX_ACCOUNT_PROPERTY_VALUE_LENGTH) {
+                    || !Account.PROPERTY_VALUE_RW.validate(attachment.getValue())) {
                 throw new NxtException.NotValidException("Invalid account property: " + attachment.getJSONObject());
             }
             if (transaction.getAmount() != 0) {

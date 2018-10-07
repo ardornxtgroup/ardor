@@ -450,7 +450,28 @@ var NRS = (function(NRS, $) {
                     'receiverPage': 'open_coin_orders'
                 }
             }
+        },
+        12: {
+            'title': "Contract Reference",
+            'i18nKeyTitle': 'contract_reference',
+            'iconHTML': "<i class='fa fa-address-card'></i>",
+            'chainType': "child",
+            'subTypes': {
+                0: {
+                    'title': "Set Contract Reference",
+                    'i18nKeyTitle': 'set_contract_reference',
+                    'iconHTML': "<i class='fa fa-pencil'></i>",
+                    'receiverPage': "transactions"
+                },
+                1: {
+                    'title': "Delete Contract Reference",
+                    'i18nKeyTitle': 'delete_contract_reference',
+                    'iconHTML': "<i class='fa fa-eraser'></i>",
+                    'receiverPage': "transactions"
+                }
+            }
         }
+
     };
 
     NRS.subtype = {};

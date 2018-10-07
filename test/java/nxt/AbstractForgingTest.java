@@ -20,7 +20,7 @@ import org.junit.Assert;
 
 import java.util.Properties;
 
-public abstract class AbstractForgingTest extends AbstractBlockchainTest {
+public abstract class AbstractForgingTest extends AbstractFullDbTest {
 
     protected static final int minStartHeight = 0;
     protected static int startHeight;

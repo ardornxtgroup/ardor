@@ -34,6 +34,8 @@ public interface ChildTransaction extends Transaction {
 
         ChildTransaction build(String secretPhrase) throws NxtException.NotValidException;
 
+        ChildTransaction build(String secretPhrase, boolean isVoucher) throws NxtException.NotValidException;
+
     }
 
     ChildChain getChain();

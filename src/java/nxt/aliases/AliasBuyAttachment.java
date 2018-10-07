@@ -31,7 +31,7 @@ public final class AliasBuyAttachment extends Attachment.AbstractAttachment {
 
     AliasBuyAttachment(ByteBuffer buffer) throws NxtException.NotValidException {
         super(buffer);
-        this.aliasName = Convert.readString(buffer, buffer.get(), Constants.MAX_ALIAS_LENGTH);
+        this.aliasName = AliasAssignmentAttachment.ALIAS_NAME_RW.readFromBuffer(buffer);
     }
 
     AliasBuyAttachment(JSONObject attachmentData) {

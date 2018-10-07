@@ -231,6 +231,16 @@ public final class Logger {
     }
 
     /**
+     * Log an ERROR message
+     *
+     * @param       format             Message format
+     * @param       args               Message args
+     */
+    public static void logErrorMessage(String format, Object ... args) {
+        doLog(Level.ERROR, String.format(format, args), null);
+    }
+
+    /**
      * Log an ERROR exception
      *
      * @param       message             Message

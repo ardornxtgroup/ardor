@@ -20,6 +20,7 @@ package nxt.http;
 import nxt.BlockchainTest;
 import nxt.Helper;
 import nxt.Nxt;
+import nxt.SafeShutdownSuite;
 import nxt.blockchain.BlockchainProcessor;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -27,9 +28,10 @@ import org.junit.BeforeClass;
 
 import java.util.Collections;
 
-public abstract class AbstractHttpApiSuite {
+public abstract class AbstractHttpApiSuite extends SafeShutdownSuite {
     @BeforeClass
     public static void init() {
+        SafeShutdownSuite.safeSuiteInit();
         BlockchainTest.initNxt(Collections.emptyMap());
         Nxt.getTransactionProcessor().clearUnconfirmedTransactions();
         Nxt.getBlockchainProcessor().addListener(new Helper.BlockListener(), BlockchainProcessor.Event.BLOCK_GENERATED);
@@ -39,6 +41,6 @@ public abstract class AbstractHttpApiSuite {
     @AfterClass
     public static void shutdown() {
         Assert.assertEquals(0, Helper.getCount("unconfirmed_transaction"));
-        Nxt.shutdown();
+        SafeShutdownSuite.safeSuiteShutdown();
     }
 }

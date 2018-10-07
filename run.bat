@@ -5,7 +5,7 @@
 	)
 	rem inspired by http://stackoverflow.com/questions/24486834/reliable-way-to-find-jre-installation-in-windows-bat-file-to-run-java-program
 	rem requires Windows 7 or higher
-	setlocal enableextensions disabledelayedexpansion
+	setlocal enableextensions enabledelayedexpansion
 
 	rem find Java information in the Windows registry
 	rem for 64 bit Java on Windows 64 bit or for Java on Windows 32 bit
@@ -14,14 +14,26 @@
 	rem look for Java version
 	set "javaVersion="
 	for /f "tokens=3" %%v in ('reg query "%javaKey%" /v "CurrentVersion" 2^>nul') do set "javaVersion=%%v"
-
+	
+	if not defined javaVersion (
+		rem trying java 9
+		set "javaKey=HKLM\SOFTWARE\JavaSoft\JRE"
+		for /f "tokens=3" %%v in ('reg query "!javaKey!" /v "CurrentVersion" 2^>nul') do set "javaVersion=%%v"
+	)
+	
 	rem for 32 bit Java on Windows 64 bit
 	set "javaKey32=HKLM\SOFTWARE\Wow6432Node\JavaSoft\Java Runtime Environment"
 
 	rem look for 32 bit Java version on Windows 64 bit
 	set "javaVersion32="
 	for /f "tokens=3" %%v in ('reg query "%javaKey32%" /v "CurrentVersion" 2^>nul') do set "javaVersion32=%%v"
-
+	
+	if not defined javaVersion32 (
+		rem trying java 9
+		set "javaKey32=HKLM\SOFTWARE\Wow6432Node\JavaSoft\JRE"
+		for /f "tokens=3" %%v in ('reg query "!javaKey32!" /v "CurrentVersion" 2^>nul') do set "javaVersion32=%%v"
+	)
+	
 	echo Java version in "%javaKey%" is "%javaVersion%" and in "%javaKey32%" is "%javaVersion32%"
 
 	rem test if a java version has been found

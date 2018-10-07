@@ -31,13 +31,18 @@ public class AccountPropertyBundler implements Bundler.Filter {
 
     @Override
     public boolean ok(Bundler bundler, ChildTransaction childTransaction) {
-        List<Account.AccountProperty> accountProperties = new ArrayList<>();
         try (DbIterator<Account.AccountProperty> iterator = Account.getProperties(childTransaction.getSenderId(), bundler.getAccountId(), "bundling", 0, Integer.MAX_VALUE)) {
-            while (iterator.hasNext()) {
-                accountProperties.add(iterator.next());
-            }
+            return iterator.hasNext();
         }
-        return accountProperties.size() > 0;
     }
 
+    @Override
+    public String getName() {
+        return "PropertyBundler";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Only bundle transactions sent by accounts which have the \"bundling\" property set on them by the bundler account";
+    }
 }

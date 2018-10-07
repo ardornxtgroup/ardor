@@ -1,3 +1,145 @@
+ardor-client-2.1.1e:
+
+This is an experimental release. It is a mandatory upgrade only for testnet
+nodes, but can also be run on mainnet.
+
+Contract Manager IntelliJ Plugin is now available to enable contract 
+deployment and management from inside the IntelliJ Java Development IDE.
+
+The Contract Manager utility now supports contract verification which, given
+a hash of existing contract deployed as cloud data and a Java source file, 
+compiles the source file and verifies that the resulting class file is 
+identical to the contract class file. 
+
+API callers are objects which enable simple integration of Java programs with
+the Ardor APIs. Multiple code samples are provided under
+./addons/src/java/com/jelurida/ardor/client/api to demonstrate tasks such as
+local signing, fee calculation, message encryption and decryption, and waiting
+for a new block.
+
+Transaction voucher loading is now supported when logging in using remembered
+passphrase.
+
+Fixed coin exchange between parent and child chain.
+
+Fixed decimal calculations for MS currency reserve and claim dialogs.
+
+
+--------------------------------------------------------------------------------
+ardor-client-2.1.0e:
+
+This is an experimental release. It is a mandatory upgrade only for testnet
+nodes, but can also be run on mainnet. On testnet, a hardfork to enable the
+lightweight contracts feature has been scheduled at height 341500.
+
+First release of lightweight contracts and transaction vouchers.
+Refer to the nxt wiki for official documentation.
+
+The bundling of transactions has been significantly enhanced to support more
+flexible bundling filters and fee calculations rules. Multiple bundling filter
+classes can be defined in the nxt.availableBundlingFilters property.
+
+The following predefined bundling filters are available by default:
+
+nxt.addons.PersonalBundler - bundles only the transactions of the bundler
+account.
+
+nxt.addons.AccountPropertyBundler - bundles only transactions sent by accounts
+which have the "bundling" property set on them by the bundler account.
+
+nxt.addons.AssetBundler - bundles only transactions involving the specified
+asset.
+
+nxt.addons.CurrencyBundler - bundles only transactions involving the specified
+MS currency.
+
+nxt.addons.PurchaseBundler - bundles only purchases of digital goods sold by
+the specified account.
+
+nxt.addons.QuotaBundler - bundles transactions until reaching a quota per
+sender and transaction type.
+
+
+The startBundler API has been modified to accept an optional "bundlingRulesJSON"
+parameter, in which the list of bundling rules can be defined in JSON format.
+Alternatively, a single bundling rule can be defined using a "feeCalculatorName"
+and one or more "filter" parameters.
+
+A new addBundlingRule API has been added to allow clients without JSON support
+to run bundlers with more than one rule, by adding rules to an already started
+bundler.
+
+More than one filter is allowed per rule. The rule is executed only if all
+filters allow the transaction.
+
+The lists of available bundling filters and fee calculators can be retrieved
+using the new getBundlingOptions API.
+
+The Bundlers page has been enhanced to support the new bundling rules and
+filters features in the client UI.
+
+Account property with name "nrs_recipient_ui_options", set by the recipient on
+itself is now used to configure the modal when sending funds to that account.
+This can be used instead of the "#merchant:" account description and allows
+control over the message encryption, such as disabling it for exchange accounts.
+The value of the nrs_recipient_ui_options property is a JSON object with fields:
+- message_format: same as the format specifier in the #merchant account
+description
+- encrypt_message: default value for the encrypt message box
+- encrypt_message_disabled: if true, the encrypt message box is disabled
+
+Don't show permanent message option on ARDR chain since permanent messages are
+disabled there. Fixed verification of prunable messages on ARDR.
+
+IGNIS is now the default chain when loading the wallet for the first time.
+
+Support compilation with Java 10 and language level 9.
+
+Updated translation resources and removed old translations.
+
+Added a checkpoint at height 221000.
+
+Renamed the BITSWIFT child chain to BITS.
+
+Updated Jetty to version 9.3.24 and Bouncy Castle to 1.60. Delete the old lib
+folder if installing on top.
+
+
+--------------------------------------------------------------------------------
+ardor-client-2.0.14:
+
+Multiple client UI bugfixes and enhancements:
+
+Correct coin order cancellation fee calculations when the exchange coin is ARDR
+and correct fee coin label in the buy and cancel modals.
+
+Format amount and fee according to chain decimals in transactions tables.
+
+Fixed server calculated exchange rate to display according to locale numeric
+formatting.
+
+Added the buy orders side to the coin exchange, improved layout of the coin
+exchange page.
+
+Fixed update of account balances per chain.
+
+Fixed alias offer to any account. Fixed decryption of DGS goods.
+
+Added Ardorgate EULA and privacy policy checkboxes and links.
+
+Improved the "not enough funds" error message.
+
+Fixed sending of transactions when running as light client.
+
+Added UI for blacklisting bundlers.
+
+Do not process or propagate bundler rates when running as light client.
+
+Do not load genesis block json when running as light client, for faster initial
+startup.
+
+
+--------------------------------------------------------------------------------
 ardor-client-2.0.13:
 
 Bundlers page UI improvements and bugfixes.

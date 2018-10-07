@@ -70,6 +70,9 @@ public final class SetPhasingOnlyControl extends CreateTransaction {
     private SetPhasingOnlyControl() {
         super(new APITag[] {APITag.ACCOUNT_CONTROL, APITag.CREATE_TRANSACTION}, "controlVotingModel", "controlQuorum", "controlMinBalance",
                 "controlMinBalanceModel", "controlHolding", "controlWhitelisted", "controlWhitelisted", "controlWhitelisted",
+                "controlSenderPropertySetter", "controlSenderPropertyName",
+                "controlSenderPropertyValue", "controlRecipientPropertySetter",
+                "controlRecipientPropertyName", "controlRecipientPropertyValue", "controlExpression",
                 "controlMaxFees", "controlMaxFees", "controlMaxFees",
                 "controlMinDuration", "controlMaxDuration", "controlParams");
     }

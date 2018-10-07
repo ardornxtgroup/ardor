@@ -192,7 +192,7 @@ public class BooleanExpressionTest {
                 BooleanExpression.SemanticWarningType.DUPLICATE_LITERAL, " A ", " A & A & A"));
 
         checkOptimality("A | A | B", new BooleanExpression.SemanticWarning(0,
-                BooleanExpression.SemanticWarningType.ABSORPTION_2_POSSIBLE, "A ", " A "));
+                BooleanExpression.SemanticWarningType.ABSORPTION_2_POSSIBLE, "A ", " A ", 3));
     }
 
     @Test
@@ -207,7 +207,7 @@ public class BooleanExpressionTest {
     @Test
     public void testAbsorptionLaw() {
         checkOptimality("E & F | !A & B & !C | B & !C", new BooleanExpression.SemanticWarning(7,
-                BooleanExpression.SemanticWarningType.ABSORPTION_2_POSSIBLE, " !A & B & !C ", " B & !C"));
+                BooleanExpression.SemanticWarningType.ABSORPTION_2_POSSIBLE, " !A & B & !C ", " B & !C", 21));
 
         checkOptimality("E & F | !A & B & C | B & !C", null);
     }

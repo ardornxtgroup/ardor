@@ -58,7 +58,7 @@ public class ChildDbVersion extends DbVersion {
             case 6:
                 apply("CREATE TABLE IF NOT EXISTS alias (db_id IDENTITY, id BIGINT NOT NULL, "
                         + "account_id BIGINT NOT NULL, alias_name VARCHAR NOT NULL, "
-                        + "alias_name_lower VARCHAR AS LOWER (alias_name) NOT NULL, "
+                        + "alias_name_lower VARCHAR NOT NULL, "
                         + "alias_uri VARCHAR NOT NULL, timestamp INT NOT NULL, "
                         + "height INT NOT NULL, latest BOOLEAN NOT NULL DEFAULT TRUE)");
             case 7:

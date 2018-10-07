@@ -298,7 +298,7 @@ var NRS = (function(NRS, $) {
 			}, function(response) {
 				if (response.numberOfBlocks && response.numberOfBlocks > 0) {
 					$("#forged_blocks_total").html(response.numberOfBlocks).removeClass("loading_dots");
-                    var avgFee = new Big(NRS.accountInfo.forgedBalanceFQT).div(response.numberOfBlocks).div(new Big(NRS.getActiveChainOneCoin())).toFixed(2);
+                    var avgFee = new Big(NRS.accountInfo.forgedBalanceFQT).div(response.numberOfBlocks).div(new Big(NRS.getChain(1).ONE_COIN)).toFixed(2);
                     $("#blocks_average_fee").html(NRS.formatStyledAmount(NRS.convertToNQT(avgFee))).removeClass("loading_dots");
 				} else {
 					$("#forged_blocks_total").html(0).removeClass("loading_dots");

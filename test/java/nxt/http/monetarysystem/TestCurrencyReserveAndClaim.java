@@ -59,7 +59,6 @@ public class TestCurrencyReserveAndClaim extends BlockchainTest {
         reserveIncreaseImpl(currencyId, ALICE.getSecretPhrase(), BOB.getSecretPhrase());
         generateBlock(); // cancellation of crowd funding because of insufficient funds
         APICall apiCall = new APICall.Builder("getCurrencyFounders").
-                feeNQT(ChildChain.IGNIS.ONE_COIN).
                 param("currency", currencyId).
                 build();
         JSONObject getFoundersResponse = apiCall.invoke();
@@ -158,7 +157,6 @@ public class TestCurrencyReserveAndClaim extends BlockchainTest {
         generateBlock();
 
         apiCall = new APICall.Builder("getCurrencyFounders").
-                feeNQT(ChildChain.IGNIS.ONE_COIN).
                 param("currency", currencyId).
                 build();
         JSONObject getFoundersResponse = apiCall.invoke();

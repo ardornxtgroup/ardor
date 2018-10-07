@@ -29,32 +29,186 @@ import nxt.util.Logger;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class Bundler {
 
+    /**
+     * Bundling filter - transactions for which the {@link #ok(Bundler, ChildTransaction)} method returns false are not processed by the {@link Rule}
+     */
     public interface Filter {
         boolean ok(Bundler bundler, ChildTransaction childTransaction);
+        default String getName() {
+            return getClass().getSimpleName();
+        }
+        default String getDescription() {
+            return null;
+        }
+        default String getParameter() {
+            return null;
+        }
+        default void setParameter(String parameter) {
+            if (parameter != null && !parameter.isEmpty()) {
+                throw new IllegalArgumentException("Bundler " + getClass() + " does not support parameters");
+            }
+        }
+    }
+
+    public interface FeeCalculator {
+        long calculateFeeFQT(ChildTransactionImpl childTransaction, Rule rule);
+        String getName();
+        default void validateRule(Rule rule) {
+        }
+    }
+
+    public static class MinFeeCalculator implements FeeCalculator {
+        public static final String NAME = "MIN_FEE";
+
+        @Override
+        public long calculateFeeFQT(ChildTransactionImpl childTransaction, Rule rule) {
+            int blockchainHeight = Nxt.getBlockchain().getHeight();
+            return rule.overpay(childTransaction.getMinimumFeeFQT(blockchainHeight));
+        }
+
+        @Override
+        public String getName() {
+            return NAME;
+        }
+    }
+
+    public static class ProportionalFeeCalculator implements FeeCalculator {
+        @Override
+        public long calculateFeeFQT(ChildTransactionImpl childTransaction, Rule rule) {
+            long childFee = childTransaction.getFee();
+            long proportionalFeeFQT = BigInteger.valueOf(childFee).multiply(Constants.ONE_FXT_BIG_INTEGER)
+                    .divide(rule.minRateNQTPerFXTBigInteger).longValueExact();
+            int blockchainHeight = Nxt.getBlockchain().getHeight();
+            long feeFQT = Math.max(proportionalFeeFQT, childTransaction.getMinimumFeeFQT(blockchainHeight));
+            return rule.overpay(feeFQT);
+        }
+
+        @Override
+        public String getName() {
+            return "PROPORTIONAL_FEE";
+        }
+
+        @Override
+        public void validateRule(Rule rule) {
+            if (rule.minRateNQTPerFXT == 0) {
+                throw new IllegalArgumentException("Division by zero: proportional fee calculator cannot be used with 0 rate");
+            }
+        }
+    }
+
+    /**
+     * Bundling rule - transactions that match the filter and minimum rate of the rule are bundled. The fee payed by the
+     * bundler for the transaction is calculated according to the feeCalculator of the rule. More than one rule can be
+     * specified per bundler, the transaction is processed according to the first rule which accepts the transaction.
+     */
+    public static class Rule {
+        protected final FeeCalculator feeCalculator;
+        protected final List<Filter> filters;
+        protected final long minRateNQTPerFXT;
+        protected final BigInteger minRateNQTPerFXTBigInteger;
+        protected final long overpayFQTPerFXT;
+        protected final BigInteger overpayFQTPerFXTBigInteger;
+
+        private Rule(long minRateNQTPerFXT, long overpayFQTPerFXT, FeeCalculator feeCalculator,
+                     List<Filter> filters) {
+            this.minRateNQTPerFXT = minRateNQTPerFXT;
+            this.minRateNQTPerFXTBigInteger = BigInteger.valueOf(this.minRateNQTPerFXT);
+            this.overpayFQTPerFXT = overpayFQTPerFXT;
+            this.overpayFQTPerFXTBigInteger = BigInteger.valueOf(this.overpayFQTPerFXT);
+            this.feeCalculator = feeCalculator;
+            this.filters = filters;
+        }
+
+        protected long calculateFeeFQT(ChildTransactionImpl childTransaction) {
+            return feeCalculator.calculateFeeFQT(childTransaction, this);
+        }
+
+        public final long getMinRateNQTPerFXT() {
+            return minRateNQTPerFXT;
+        }
+
+        public final long getOverpayFQTPerFXT() {
+            return overpayFQTPerFXT;
+        }
+
+        public List<Filter> getFilters() {
+            return filters;
+        }
+
+        public FeeCalculator getFeeCalculator() {
+            return feeCalculator;
+        }
+
+        protected boolean isTransactionAccepted(Bundler bundler, ChildTransactionImpl childTransaction) {
+            int blockchainHeight = Nxt.getBlockchain().getHeight();
+            long minChildFeeFQT = childTransaction.getMinimumFeeFQT(blockchainHeight);
+            long childFee = childTransaction.getFee();
+            return BigInteger.valueOf(childFee).multiply(Constants.ONE_FXT_BIG_INTEGER)
+                    .compareTo(minRateNQTPerFXTBigInteger.multiply(BigInteger.valueOf(minChildFeeFQT))) >= 0
+                    && filters.stream().allMatch(filter -> filter.ok(bundler, childTransaction));
+        }
+
+        public long overpay(long feeFQT) {
+            return Math.addExact(feeFQT, overpayFQTPerFXTBigInteger.multiply(BigInteger.valueOf(feeFQT))
+                    .divide(Constants.ONE_FXT_BIG_INTEGER).longValueExact());
+        }
     }
 
     private static final short defaultChildBlockDeadline = (short)Nxt.getIntProperty("nxt.defaultChildBlockDeadline");
-    private static final Filter bundlingFilter;
+    private static final Filter bundlingFilter; //kept for backward compatibility
+    private static final Map<String, Filter> availableBundlingFilters;
+    private static final Map<String, FeeCalculator> availableFeeCalculators;
     static {
         String filterClass = Nxt.getStringProperty("nxt.bundlingFilter");
-        if (filterClass != null) {
-            try {
-                bundlingFilter = (Filter) Class.forName(filterClass).newInstance();
-                Logger.logInfoMessage("Loaded " + filterClass + " bundling filter");
-            } catch (ReflectiveOperationException e) {
-                Logger.logErrorMessage(e.getMessage(), e);
-                throw new RuntimeException(e);
+        try {
+            if (filterClass != null) {
+                bundlingFilter = Class.forName(filterClass).asSubclass(Filter.class).getDeclaredConstructor().newInstance();
+                availableBundlingFilters = Collections.singletonMap(bundlingFilter.getName(), bundlingFilter);
+                Logger.logInfoMessage("Enforced " + bundlingFilter.getName() + " bundling filter to all rules");
+            } else {
+                bundlingFilter = null;
+                List<String> filterClasses = Nxt.getStringListProperty("nxt.availableBundlingFilters");
+                Map<String, Filter> filters = new LinkedHashMap<>(filterClasses.size());
+                for (String filterClassStr : filterClasses) {
+                    Filter filter = Class.forName(filterClassStr).asSubclass(Filter.class).getDeclaredConstructor().newInstance();
+                    Filter prevFilter = filters.put(filter.getName(), filter);
+                    if (prevFilter != null) {
+                        RuntimeException runtimeException = new RuntimeException("Bundling filters " +
+                                prevFilter.getClass() + " and " + filter.getClass() + " have equal names");
+                        Logger.logErrorMessage(runtimeException.getMessage());
+                        throw runtimeException;
+                    }
+                }
+                availableBundlingFilters = Collections.unmodifiableMap(filters);
             }
-        } else {
-            bundlingFilter = null;
+
+            Map<String, FeeCalculator> calculators = new LinkedHashMap<>();
+            FeeCalculator calculator = new MinFeeCalculator();
+            calculators.put(calculator.getName(), calculator);
+            calculator = new ProportionalFeeCalculator();
+            calculators.put(calculator.getName(), calculator);
+
+            List<String> customCalculatorClasses = Nxt.getStringListProperty("nxt.customBundlingFeeCalculators");
+            for (String calculatorClass : customCalculatorClasses) {
+                calculator = Class.forName(calculatorClass).asSubclass(FeeCalculator.class).getDeclaredConstructor().newInstance();
+                calculators.put(calculator.getName(), calculator);
+            }
+            availableFeeCalculators = Collections.unmodifiableMap(calculators);
+        } catch (ReflectiveOperationException e) {
+            Logger.logErrorMessage(e.getMessage(), e);
+            throw new RuntimeException(e);
         }
     }
 
@@ -66,11 +220,61 @@ public final class Bundler {
         return childChainBundlers == null ? null : childChainBundlers.get(accountId);
     }
 
+    public static Filter createBundlingFilter(String name, String parameter) {
+        Filter filter;
+        if (Bundler.bundlingFilter != null) {
+            if (name != null && !name.equals(Bundler.bundlingFilter.getName())) {
+                throw new IllegalArgumentException("The enforced bundling filter is " + Bundler.bundlingFilter.getName() +
+                        ". Either use this filter, or change the nxt.bundlingFilter property");
+            }
+            filter = Bundler.bundlingFilter;
+        } else {
+            filter = Bundler.availableBundlingFilters.get(name);
+            if (filter == null) {
+                throw new IllegalArgumentException("Unknown filter " + name);
+            }
+        }
+        try {
+            //Create new filter instance for every bundling rule to allow different parameter per rule
+            filter = filter.getClass().getDeclaredConstructor().newInstance();
+        } catch (ReflectiveOperationException e) {
+            Logger.logErrorMessage(e.getMessage(), e);
+            throw new RuntimeException(e);
+        }
+        filter.setParameter(parameter);
+        return filter;
+    }
+
+    public static Rule createBundlingRule(long minRateNQTPerFXT, long overpayFQTPerFXT,
+                                          String feeCalculatorName, List<Filter> filters) {
+        if (feeCalculatorName == null || feeCalculatorName.isEmpty()) {
+            feeCalculatorName = MinFeeCalculator.NAME;
+        }
+        FeeCalculator feeCalculator = availableFeeCalculators.get(feeCalculatorName);
+        if (feeCalculator == null) {
+            throw new IllegalArgumentException("Unknown fee calculator " + feeCalculatorName);
+        }
+        Rule rule = new Rule(minRateNQTPerFXT, overpayFQTPerFXT, feeCalculator, filters);
+        feeCalculator.validateRule(rule);
+        return rule;
+    }
+
     public static synchronized Bundler addOrChangeBundler(ChildChain childChain, String secretPhrase,
-                                                          long minRateNQTPerFXT, long totalFeesLimitFQT, long overpayFQTPerFXT) {
-        Bundler bundler = new Bundler(childChain, secretPhrase, minRateNQTPerFXT, totalFeesLimitFQT, overpayFQTPerFXT);
+                                                          long totalFeesLimitFQT, List<Rule> bundlingRules) {
+        Bundler bundler = new Bundler(childChain, secretPhrase, totalFeesLimitFQT, bundlingRules);
         bundler.runBundling();
         return bundler;
+    }
+
+    public static synchronized Bundler addBundlingRule(ChildChain childChain, String secretPhrase, Rule rule) {
+        long accountId = Account.getId(Crypto.getPublicKey(secretPhrase));
+        Bundler bundler = getBundler(childChain, accountId);
+        if (bundler != null) {
+            bundler.bundlingRules.add(rule);
+            bundler.runBundling();
+            return bundler;
+        }
+        return null;
     }
 
     public static List<Bundler> getAllBundlers() {
@@ -101,7 +305,12 @@ public final class Bundler {
             return Collections.emptyList();
         }
         List<BundlerRate> rates = new ArrayList<>();
-        getAllBundlers().forEach(bundler -> rates.add(bundler.getBundlerRate()));
+        getAllBundlers().forEach(bundler -> {
+            BundlerRate bundlerRate = bundler.getBundlerRate();
+            if (bundlerRate != null) {
+                rates.add(bundlerRate);
+            }
+        });
         return rates;
     }
 
@@ -120,6 +329,14 @@ public final class Bundler {
 
     public static void stopAllBundlers() {
         bundlers.clear();
+    }
+
+    public static Collection<Filter> getAvailableFilters() {
+        return Collections.unmodifiableCollection(availableBundlingFilters.values());
+    }
+
+    public static Collection<FeeCalculator> getAvailableFeeCalculators() {
+        return Collections.unmodifiableCollection(availableFeeCalculators.values());
     }
 
     public static void init() {}
@@ -143,23 +360,20 @@ public final class Bundler {
     private final String secretPhrase;
     private final byte[] publicKey;
     private final long accountId;
-    private final long minRateNQTPerFXT;
-    private final BigInteger minRateNQTPerFXTBigInteger;
+
     private final long totalFeesLimitFQT;
-    private final long overpayFQTPerFXT;
-    private final BigInteger overpayFQTPerFXTBigInteger;
+
+    private final List<Rule> bundlingRules;
+
     private volatile long currentTotalFeesFQT;
 
-    private Bundler(ChildChain childChain, String secretPhrase, long minRateNQTPerFXT, long totalFeesLimitFQT, long overpayFQTPerFXT) {
+    private Bundler(ChildChain childChain, String secretPhrase, long totalFeesLimitFQT, List<Rule> bundlingRules) {
         this.childChain = childChain;
         this.secretPhrase = secretPhrase;
         this.publicKey = Crypto.getPublicKey(secretPhrase);
         this.accountId = Account.getId(publicKey);
-        this.minRateNQTPerFXT = minRateNQTPerFXT;
-        this.minRateNQTPerFXTBigInteger = BigInteger.valueOf(this.minRateNQTPerFXT);
         this.totalFeesLimitFQT = totalFeesLimitFQT;
-        this.overpayFQTPerFXT = overpayFQTPerFXT;
-        this.overpayFQTPerFXTBigInteger = BigInteger.valueOf(this.overpayFQTPerFXT);
+        this.bundlingRules = new ArrayList<>(bundlingRules);
         Map<Long, Bundler> chainBundlers = bundlers.computeIfAbsent(childChain, k -> new ConcurrentHashMap<>());
         chainBundlers.put(accountId, this);
     }
@@ -176,10 +390,6 @@ public final class Bundler {
         return accountId;
     }
 
-    public final long getMinRateNQTPerFXT() {
-        return minRateNQTPerFXT;
-    }
-
     public final long getTotalFeesLimitFQT() {
         return totalFeesLimitFQT;
     }
@@ -188,79 +398,106 @@ public final class Bundler {
         return currentTotalFeesFQT;
     }
 
-    public final long getOverpayFQTPerFXT() {
-        return overpayFQTPerFXT;
+    public List<Rule> getBundlingRules() {
+        return Collections.unmodifiableList(bundlingRules);
     }
 
+    /**
+     * @return Minimum rate among unfiltered rules, <code>null</code> if all rules are filtered
+     */
     public final BundlerRate getBundlerRate() {
-        return new BundlerRate(childChain, minRateNQTPerFXT,
-                (totalFeesLimitFQT != 0 ? totalFeesLimitFQT - currentTotalFeesFQT : Long.MAX_VALUE), secretPhrase);
+        long minPublicRate = Long.MAX_VALUE;
+        for (Rule r : bundlingRules) {
+            if (r.filters.isEmpty()) {
+                minPublicRate = Math.min(minPublicRate, r.minRateNQTPerFXT);
+            }
+        }
+        if (minPublicRate != Long.MAX_VALUE) {
+            return new BundlerRate(childChain, minPublicRate,
+                    (totalFeesLimitFQT != 0 ? totalFeesLimitFQT - currentTotalFeesFQT : Long.MAX_VALUE), secretPhrase);
+        } else {
+            return null;
+        }
     }
 
     private void runBundling() {
         BlockchainImpl.getInstance().writeLock();
         try {
-            int blockchainHeight = Nxt.getBlockchain().getHeight();
             int now = Nxt.getEpochTime();
             List<ChildBlockFxtTransaction> childBlockFxtTransactions = new ArrayList<>();
+            LinkedList<ChildTransactionImpl> orderedChildTransactions = new LinkedList<>();
             try (FilteringIterator<UnconfirmedTransaction> unconfirmedTransactions = new FilteringIterator<>(
                     TransactionProcessorImpl.getInstance().getUnconfirmedChildTransactions(childChain),
                     transaction -> transaction.getTransaction().hasAllReferencedTransactions(transaction.getTimestamp(), 0))) {
-                while (unconfirmedTransactions.hasNext()) {
-                    List<ChildTransaction> childTransactions = new ArrayList<>();
-                    long totalMinFeeFQT = 0;
-                    int payloadLength = 0;
-                    Map<TransactionType, Map<String, Integer>> duplicates = new HashMap<>();
-                    while (unconfirmedTransactions.hasNext()
-                            && childTransactions.size() < Constants.MAX_NUMBER_OF_CHILD_TRANSACTIONS
-                            && payloadLength < Constants.MAX_CHILDBLOCK_PAYLOAD_LENGTH) {
-                        ChildTransactionImpl childTransaction = (ChildTransactionImpl) unconfirmedTransactions.next().getTransaction();
-                        if (childTransaction.getExpiration() < now + 60 * defaultChildBlockDeadline || childTransaction.getTimestamp() > now) {
-                            continue;
-                        }
-                        long minChildFeeFQT = childTransaction.getMinimumFeeFQT(blockchainHeight);
-                        long childFee = childTransaction.getFee();
-                        if (BigInteger.valueOf(childFee).multiply(Constants.ONE_FXT_BIG_INTEGER)
-                                .compareTo(minRateNQTPerFXTBigInteger.multiply(BigInteger.valueOf(minChildFeeFQT))) < 0) {
-                            continue;
-                        }
-                        if (currentTotalFeesFQT + overpay(totalMinFeeFQT + minChildFeeFQT) > totalFeesLimitFQT && totalFeesLimitFQT > 0) {
-                            Logger.logDebugMessage("Bundler " + Long.toUnsignedString(accountId) + " will exceed total fees limit, not bundling");
-                            continue;
-                        }
+                for (UnconfirmedTransaction unconfirmedTransaction : unconfirmedTransactions) {
+                    ChildTransactionImpl childTransaction = (ChildTransactionImpl) unconfirmedTransaction.getTransaction();
+                    if (childTransaction.getExpiration() < now + 60 * defaultChildBlockDeadline || childTransaction.getTimestamp() > now) {
+                        continue;
+                    }
+                    orderedChildTransactions.add(childTransaction);
+                }
+            }
+
+            boolean addMoreChildBlockTransactions = true;
+            while (addMoreChildBlockTransactions && !orderedChildTransactions.isEmpty()) {
+                addMoreChildBlockTransactions = false;
+                List<ChildTransaction> childTransactions = new ArrayList<>();
+                long totalFeeFQT = 0;
+                int payloadLength = 0;
+                Map<TransactionType, Map<String, Integer>> duplicates = new HashMap<>();
+
+                // Transactions accepted by preceding bundling rules are bundled with priority over ones accepted
+                // by subsequent rules
+                rulesLoop:
+                for (Rule bundlingRule : bundlingRules) {
+                    Iterator<ChildTransactionImpl> it = orderedChildTransactions.iterator();
+                    while (it.hasNext()) {
+                        ChildTransactionImpl childTransaction = it.next();
+
                         int childFullSize = childTransaction.getFullSize();
                         if (payloadLength + childFullSize > Constants.MAX_CHILDBLOCK_PAYLOAD_LENGTH) {
                             continue;
                         }
-                        if (bundlingFilter != null && !bundlingFilter.ok(this, childTransaction)) {
+                        if (!bundlingRule.isTransactionAccepted(this, childTransaction)) {
+                            continue;
+                        }
+                        long feeFQT = bundlingRule.calculateFeeFQT(childTransaction);
+                        if (Math.addExact(currentTotalFeesFQT, Math.addExact(totalFeeFQT, feeFQT)) > totalFeesLimitFQT && totalFeesLimitFQT > 0) {
+                            Logger.logDebugMessage("Bundler " + Long.toUnsignedString(accountId) + " will exceed total fees limit, not bundling");
                             continue;
                         }
                         if (childTransaction.attachmentIsDuplicate(duplicates, true)) {
                             continue;
                         }
+                        it.remove();
                         childTransactions.add(childTransaction);
-                        totalMinFeeFQT += minChildFeeFQT;
+                        totalFeeFQT = Math.addExact(totalFeeFQT, feeFQT);
                         payloadLength += childFullSize;
+                        if (childTransactions.size() >= Constants.MAX_NUMBER_OF_CHILD_TRANSACTIONS
+                                || payloadLength >= Constants.MAX_CHILDBLOCK_PAYLOAD_LENGTH) {
+                            addMoreChildBlockTransactions = true;
+                            break rulesLoop;
+                        }
                     }
-                    if (childTransactions.size() > 0) {
-                        long totalFeeFQT = overpay(totalMinFeeFQT);
-                        if (totalFeeFQT > FxtChain.FXT.getBalanceHome().getBalance(accountId).getUnconfirmedBalance()) {
-                            Logger.logInfoMessage("Bundler account " + Long.toUnsignedString(accountId)
-                                    + " does not have sufficient balance to cover total Ardor fees " + totalFeeFQT);
-                        } else if (!hasBetterChildBlockFxtTransaction(childTransactions, totalFeeFQT)) {
-                            try {
-                                ChildBlockFxtTransaction childBlockFxtTransaction = bundle(childTransactions, totalFeeFQT, now);
-                                currentTotalFeesFQT += totalFeeFQT;
-                                childBlockFxtTransactions.add(childBlockFxtTransaction);
-                            } catch (NxtException.NotCurrentlyValidException e) {
-                                Logger.logDebugMessage(e.getMessage(), e);
-                            } catch (NxtException.ValidationException e) {
-                                Logger.logInfoMessage(e.getMessage(), e);
-                            }
+                }
+                if (childTransactions.size() > 0) {
+                    if (totalFeeFQT > FxtChain.FXT.getBalanceHome().getBalance(accountId).getUnconfirmedBalance()) {
+                        Logger.logInfoMessage("Bundler account " + Long.toUnsignedString(accountId)
+                                + " does not have sufficient balance to cover total Ardor fees " + totalFeeFQT);
+                    } else if (!hasBetterChildBlockFxtTransaction(childTransactions, totalFeeFQT)) {
+                        try {
+                            ChildBlockFxtTransaction childBlockFxtTransaction = bundle(childTransactions, totalFeeFQT, now);
+                            currentTotalFeesFQT += totalFeeFQT;
+                            childBlockFxtTransactions.add(childBlockFxtTransaction);
+                        } catch (NxtException.NotCurrentlyValidException e) {
+                            Logger.logDebugMessage(e.getMessage(), e);
+                        } catch (NxtException.ValidationException e) {
+                            Logger.logInfoMessage(e.getMessage(), e);
                         }
                     }
                 }
             }
+
             childBlockFxtTransactions.forEach(childBlockFxtTransaction -> {
                 try {
                     transactionProcessor.broadcast(childBlockFxtTransaction);
@@ -279,7 +516,8 @@ public final class Bundler {
         builder.timestamp(timestamp);
         ChildBlockFxtTransaction childBlockFxtTransaction = (ChildBlockFxtTransaction)builder.build(secretPhrase);
         childBlockFxtTransaction.validate();
-        Logger.logDebugMessage("Created ChildBlockFxtTransaction: " + JSON.toJSONString(childBlockFxtTransaction.getJSONObject()));
+        Logger.logDebugMessage("Created ChildBlockFxtTransaction: " + Long.toUnsignedString(childBlockFxtTransaction.getId()) + " "
+                + JSON.toJSONString(childBlockFxtTransaction.getJSONObject()));
         return childBlockFxtTransaction;
     }
 
@@ -305,9 +543,19 @@ public final class Bundler {
         return false;
     }
 
-    private long overpay(long feeFQT) {
-        return Math.addExact(feeFQT, overpayFQTPerFXTBigInteger.multiply(BigInteger.valueOf(feeFQT))
-                .divide(Constants.ONE_FXT_BIG_INTEGER).longValueExact());
-    }
 
+//
+//    private static String getFilterName(Class<?> clazz) {
+//        try {
+//            Method getFilterNameMethod = clazz.getMethod("getFilterName", null);
+//            try {
+//                return (String)getFilterNameMethod.invoke(null, null);
+//            } catch (IllegalAccessException | InvocationTargetException e) {
+//                Logger.logErrorMessage("Failed to invoke getFilterName");
+//                return clazz.getSimpleName();
+//            }
+//        } catch (NoSuchMethodException e) {
+//            return clazz.getSimpleName();
+//        }
+//    }
 }

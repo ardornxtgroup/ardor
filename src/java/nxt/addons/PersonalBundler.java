@@ -30,4 +30,13 @@ public class PersonalBundler implements Bundler.Filter {
         return bundler.getAccountId() == childTransaction.getSenderId();
     }
 
+    @Override
+    public String getName() {
+        return "PersonalBundler";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Only bundle the transactions of the bundler account";
+    }
 }

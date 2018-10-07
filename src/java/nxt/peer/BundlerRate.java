@@ -149,6 +149,7 @@ public final class BundlerRate {
         this.accountId = Account.getId(publicKey);
         this.rate = rate;
         this.feeLimit = feeLimit;
+        //rounded to 10 minutes for privacy reasons
         this.timestamp = (Nxt.getEpochTime() / 600) * 600;
         this.signature = Crypto.sign(getUnsignedBytes(), secretPhrase);
     }

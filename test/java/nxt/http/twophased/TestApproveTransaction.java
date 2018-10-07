@@ -292,7 +292,7 @@ public class TestApproveTransaction extends BlockchainTest {
                 param("phased", "true").
                 param("phasingFinishHeight", baseHeight + 4).
                 param("phasingVotingModel", 4).
-                param("phasingLinkedFullHash", fullHash).
+                param("phasingLinkedTransaction", fullHash).
                 param("phasingQuorum", 1).
                 build().invoke();
         Logger.logDebugMessage("setAlias: " + response);

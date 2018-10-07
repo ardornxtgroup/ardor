@@ -29,14 +29,16 @@
 
     <section class="exchange_page_content content">
         <div style="color:#838383;margin-bottom:5px">
-            <p data-i18n="exchange_using_changelly">Exchange coins using Changelly</p>
             <div style="float:right;padding:5px;border:1px solid #ccc;border-radius:3px">
                 <select id="changelly_search_key">
                     <option value="currency" data-i18n="source_currency"></option>
                     <option value="address" data-i18n="deposit_address"></option>
+                    <option value="id" data-i18n="transaction_id"></option>
                 </select>
                 <input id="changelly_search_id">
                 <button id="changelly_search">Search</button>
+                &nbsp
+                <button id="changelly_scratchpad_link">Scratchpad</button>
             </div>
             <strong data-i18n="status">STATUS</strong>: <span id="changelly_status"></span>
         </div>
@@ -49,7 +51,7 @@
             </div>
         </div>
         <div class="box box-primary">
-            <div class="box-header"><h3 class="box-title" data-i18n="exchange_nxt_to_coin">Exchange NXT to Coin</h3></div>
+            <div class="box-header"><h3 class="box-title" id="changelly_exchange_to_crypto_header"></h3></div>
             <div class="box-body no-padding">
                 <div class="data-container data-loading">
                     <table class="table table-striped" id="p_changelly_buy_nxt">
@@ -72,7 +74,7 @@
             </div>
         </div>
         <div class="box box-primary">
-            <div class="box-header"><h3 class="box-title" data-i18n="exchange_coin_to_nxt">Exchange Coin to NXT</h3></div>
+            <div class="box-header"><h3 class="box-title" id="changelly_exchange_from_crypto_header"></h3></div>
             <div class="box-body no-padding">
                 <div class="data-container data-loading">
                     <table class="table table-striped" id="p_changelly_sell_nxt">
@@ -111,8 +113,8 @@
                             <th data-i18n="withdrawal_address">Withdrawal Address</th>
                             <th data-i18n="amount">Amount</th>
                             <th data-i18n="type">Type</th>
-                            <th data-i18n="transaction">Transaction</th>
-                            <th data-i18n="action">Action</th>
+                            <th data-i18n="hash">Hash</th>
+                            <th data-i18n="id">Id</th>
                         </tr>
                         </thead>
                         <tbody>

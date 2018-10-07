@@ -17,12 +17,14 @@
 package nxt.addons;
 
 import nxt.Nxt;
+import nxt.env.RuntimeEnvironment;
 import nxt.http.APIServlet;
 import nxt.http.APITag;
 import nxt.util.Logger;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -40,7 +42,7 @@ public final class AddOns {
         });
         addOns = Collections.unmodifiableList(addOnsList);
         if (!addOns.isEmpty() && !Nxt.getBooleanProperty("nxt.disableSecurityPolicy")) {
-            System.setProperty("java.security.policy", Nxt.isDesktopApplicationEnabled() ? "nxtdesktop.policy" : "nxt.policy");
+            System.setProperty("java.security.policy", RuntimeEnvironment.isDesktopApplicationEnabled() ? "nxtdesktop.policy" : "nxt.policy");
             Logger.logMessage("Setting security manager with policy " + System.getProperty("java.security.policy"));
             System.setSecurityManager(new SecurityManager() {
                 @Override
@@ -55,7 +57,11 @@ public final class AddOns {
         }
         addOns.forEach(addOn -> {
             Logger.logInfoMessage("Initializing " + addOn.getClass().getName());
-            addOn.init();
+            try {
+                addOn.init();
+            } catch (Throwable t) {
+                Logger.logErrorMessage("Initialization failed for addOn " + addOn.getClass().getName(), t);
+            }
         });
     }
 
@@ -70,14 +76,29 @@ public final class AddOns {
 
     public static void registerAPIRequestHandlers(Map<String,APIServlet.APIRequestHandler> map) {
         for (AddOn addOn : addOns) {
+            Map<String, APIServlet.APIRequestHandler> apiRequests = addOn.getAPIRequests();
+            // For backward compatibility with old contracts
             APIServlet.APIRequestHandler requestHandler = addOn.getAPIRequestHandler();
-            if (requestHandler != null) {
+            String apiRequestType = addOn.getAPIRequestType();
+            if (requestHandler != null && apiRequestType != null) {
+                if (apiRequests == null) {
+                    apiRequests = new HashMap<>();
+                }
+                apiRequests.put(apiRequestType, requestHandler);
+            }
+            if (apiRequests == null) {
+                return;
+            }
+
+            // Register the Addon APIs
+            for(Map.Entry<String, APIServlet.APIRequestHandler> apiRequest : apiRequests.entrySet()){
+                requestHandler = apiRequest.getValue();
                 if (!requestHandler.getAPITags().contains(APITag.ADDONS)) {
                     Logger.logErrorMessage("Add-on " + addOn.getClass().getName()
                             + " attempted to register request handler which is not tagged as APITag.ADDONS, skipping");
                     continue;
                 }
-                String requestType = addOn.getAPIRequestType();
+                String requestType = apiRequest.getKey();
                 if (requestType == null) {
                     Logger.logErrorMessage("Add-on " + addOn.getClass().getName() + " requestType not defined");
                     continue;
@@ -90,6 +111,10 @@ public final class AddOns {
                 map.put(requestType, requestHandler);
             }
         }
+    }
+
+    public static AddOn getAddOn(Class<? extends AddOn> addOnType) {
+        return addOns.stream().filter(addOnType::isInstance).findFirst().orElse(null);
     }
 
     private AddOns() {}

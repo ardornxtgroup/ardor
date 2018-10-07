@@ -48,6 +48,9 @@ public final class SetPhasingAssetControl extends CreateTransaction {
     private SetPhasingAssetControl() {
         super(new APITag[] {APITag.AE, APITag.CREATE_TRANSACTION}, "asset", "controlVotingModel", "controlQuorum", "controlMinBalance",
                 "controlMinBalanceModel", "controlHolding", "controlWhitelisted", "controlWhitelisted", "controlWhitelisted",
+                "controlSenderPropertySetter", "controlSenderPropertyName",
+                "controlSenderPropertyValue", "controlRecipientPropertySetter",
+                "controlRecipientPropertyName", "controlRecipientPropertyValue", "controlExpression",
                 "controlParams");
     }
 

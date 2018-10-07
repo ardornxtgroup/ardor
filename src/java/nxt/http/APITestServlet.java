@@ -249,8 +249,9 @@ public class APITestServlet extends HttpServlet {
         }
         buf.append("<a style='font-weight:normal;font-size:14px;color:#777;' href='/doc/");
         buf.append(className.replace('.', '/').replace('$', '.')).append(".html' target='_blank'>javadoc</a>&nbsp;&nbsp;\n");
-        buf.append("<a style='font-weight:normal;font-size:14px;color:#777;' href='https://nxtwiki.org/wiki/The_Nxt_API#");
-        appendWikiLink(className.substring(className.lastIndexOf('.') + 1), buf);
+        buf.append("<a style='font-weight:normal;font-size:14px;color:#777;' href='");
+        buf.append("https://docs.jelurida.com/");
+        buf.append(requestHandler.getDocsUrlPath());
         buf.append("' target='_blank'>wiki</a>&nbsp;&nbsp;\n");
         buf.append("&nbsp;&nbsp;&nbsp;\n<input type='checkbox' class='api-call-sel-ALL' ");
         buf.append("id='api-call-sel-").append(requestType).append("'>\n");
@@ -337,20 +338,6 @@ public class APITestServlet extends HttpServlet {
 
     private static boolean isTextArea(String parameter, APIServlet.APIRequestHandler requestHandler) {
         return "website".equals(parameter) || requestHandler.isTextArea(parameter);
-    }
-
-    private static void appendWikiLink(String className, StringBuilder buf) {
-        for (int i = 0; i < className.length(); i++) {
-            char c = className.charAt(i);
-            if (i == 0) {
-                c = Character.toUpperCase(c);
-            }
-            buf.append(c);
-            if (i < className.length() - 2 && Character.isUpperCase(className.charAt(i + 1))
-                    && (Character.isLowerCase(c) || Character.isLowerCase(className.charAt(i + 2)))) {
-                buf.append('_');
-            }
-        }
     }
 
     static void initClass() {}

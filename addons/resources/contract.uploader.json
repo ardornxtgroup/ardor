@@ -1,0 +1,84 @@
+{
+  "contracts": [
+    {
+      "className": "AllForOnePayment",
+      "packageName": "com.jelurida.ardor.contracts",
+      "params": {
+        "chain": 2,
+        "frequency": 10
+      }
+    },
+    {
+      "className": "ChildToParentExchange",
+      "packageName": "com.jelurida.ardor.contracts",
+      "params": {
+        "maxAmount": 50
+      }
+    },
+    {
+      "className": "HelloWorld",
+      "packageName": "com.jelurida.ardor.contracts",
+      "params": {}
+    },
+    {
+      "className": "IgnisArdorRates",
+	  "filePath": "./addons/resources/contracts.jar",
+      "packageName": "com.jelurida.ardor.contracts",
+      "params": {
+		"frequency": 3
+	  }
+    },
+    {
+      "className": "LeaseRenewal",
+      "packageName": "com.jelurida.ardor.contracts",
+      "params": {
+        "leasePeriod": 65535,
+        "leaseRenewalWarningPeriod": 2880
+      }
+    },
+    {
+      "className": "NewAccountFaucet",
+      "packageName": "com.jelurida.ardor.contracts",
+      "params": {
+        "chain": 2,
+        "thresholdBlocks": 1440,
+        "thresholdAmountNQT": 72000000000,
+		"faucetAmountNQT": 500000000
+      }
+    },
+    {
+      "className": "PropertyBasedLottery",
+      "packageName": "com.jelurida.ardor.contracts",
+      "params": {}
+    },
+    {
+      "className": "RandomPayment",
+      "packageName": "com.jelurida.ardor.contracts",
+      "params": {}
+    },
+    {
+      "className": "SplitPayment",
+      "packageName": "com.jelurida.ardor.contracts",
+      "params": {}
+    },
+    {
+      "className": "DistributedRandomNumberGenerator",
+      "packageName": "com.jelurida.ardor.contracts",
+	  "version": "1.0.0",
+	  "url": "https://www.jelurida.com/",
+	  "comment": "Test Comment",
+      "params": {}
+    },
+    {
+      "className": "ForgingReward",
+      "packageName": "com.jelurida.ardor.contracts",
+      "params": {
+        "interval": 5,
+		"rewardArdor": "true",
+		"rewardNxt": "true",
+		"rewardChain": "IGNIS",
+		"rewardAmountNQT": 150000000
+      }
+    }
+  ]
+}

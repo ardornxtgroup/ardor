@@ -54,10 +54,15 @@ public class FxtTransactionImpl extends TransactionImpl implements FxtTransactio
         }
 
         @Override
-        public FxtTransactionImpl build(String secretPhrase) throws NxtException.NotValidException {
-            preBuild(secretPhrase);
+        public FxtTransactionImpl build(String secretPhrase, boolean isVoucher) throws NxtException.NotValidException {
+            preBuild(secretPhrase, isVoucher);
             return getTransactionType() == ChildBlockFxtTransactionType.INSTANCE ?
-                    new ChildBlockFxtTransactionImpl(this, secretPhrase) : new FxtTransactionImpl(this, secretPhrase);
+                    new ChildBlockFxtTransactionImpl(this, secretPhrase, isVoucher) : new FxtTransactionImpl(this, secretPhrase, isVoucher);
+        }
+
+        @Override
+        public FxtTransactionImpl build(String secretPhrase) throws NxtException.NotValidException {
+            return build(secretPhrase, false);
         }
 
         @Override
@@ -71,7 +76,7 @@ public class FxtTransactionImpl extends TransactionImpl implements FxtTransactio
     private final long feeFQT;
     private final byte[] signature;
 
-    FxtTransactionImpl(BuilderImpl builder, String secretPhrase) throws NxtException.NotValidException {
+    FxtTransactionImpl(BuilderImpl builder, String secretPhrase, boolean isVoucher) throws NxtException.NotValidException {
         super(builder);
         if (builder.fee <= 0 || (Constants.correctInvalidFees && builder.signature == null)) {
             int effectiveHeight = (getHeight() < Integer.MAX_VALUE ? getHeight() : Nxt.getBlockchain().getHeight());
@@ -86,7 +91,7 @@ public class FxtTransactionImpl extends TransactionImpl implements FxtTransactio
             this.signature = builder.signature;
         } else if (secretPhrase != null) {
             byte[] senderPublicKey = builder.senderPublicKey != null ? builder.senderPublicKey : Account.getPublicKey(builder.senderId);
-            if (senderPublicKey != null && ! Arrays.equals(senderPublicKey, Crypto.getPublicKey(secretPhrase))) {
+            if (senderPublicKey != null && ! Arrays.equals(senderPublicKey, Crypto.getPublicKey(secretPhrase)) && !isVoucher) {
                 throw new NxtException.NotValidException("Secret phrase doesn't match transaction sender public key");
             }
             this.signature = Crypto.sign(bytes(), secretPhrase);

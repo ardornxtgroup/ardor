@@ -76,4 +76,8 @@ public final class CurrencySell extends CreateTransaction {
         }
     }
 
+    @Override
+    String getDocsUrlPath() {
+        return "Monetary_System#Currency_Buy_.2F_Sell";
+    }
 }

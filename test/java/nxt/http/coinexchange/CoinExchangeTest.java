@@ -119,10 +119,10 @@ public class CoinExchangeTest extends BlockchainTest {
         Assert.assertEquals("" + (25 * AEUR.ONE_COIN), trade.get("quantityQNT")); // AEUR bought
         Assert.assertEquals("" + (4 * IGNIS.ONE_COIN), trade.get("priceNQTPerCoin")); // IGNIS per AEUR price
 
-        Assert.assertEquals(-100 * IGNIS.ONE_COIN - IGNIS.ONE_COIN / 10, ALICE.getChainBalanceDiff(IGNIS.getId()));
+        Assert.assertEquals(-100 * IGNIS.ONE_COIN - IGNIS.ONE_COIN / 100, ALICE.getChainBalanceDiff(IGNIS.getId()));
         Assert.assertEquals(25 * AEUR.ONE_COIN, ALICE.getChainBalanceDiff(AEUR.getId()));
         Assert.assertEquals(100 * IGNIS.ONE_COIN, BOB.getChainBalanceDiff(IGNIS.getId()));
-        Assert.assertEquals(-25 * AEUR.ONE_COIN - AEUR.ONE_COIN / 10, BOB.getChainBalanceDiff(AEUR.getId()));
+        Assert.assertEquals(-25 * AEUR.ONE_COIN - AEUR.ONE_COIN / 100, BOB.getChainBalanceDiff(AEUR.getId()));
     }
 
     @Test
@@ -157,10 +157,10 @@ public class CoinExchangeTest extends BlockchainTest {
         String bobOrder = Tester.responseToStringId(response);
         generateBlock();
 
-        Assert.assertEquals((long)(-3.75 * IGNIS.ONE_COIN) - IGNIS.ONE_COIN / 10, ALICE.getChainBalanceDiff(IGNIS.getId()));
+        Assert.assertEquals((long)(-3.75 * IGNIS.ONE_COIN) - IGNIS.ONE_COIN / 100, ALICE.getChainBalanceDiff(IGNIS.getId()));
         Assert.assertEquals(5 * AEUR.ONE_COIN, ALICE.getChainBalanceDiff(AEUR.getId()));
         Assert.assertEquals((long)(3.75 * IGNIS.ONE_COIN), BOB.getChainBalanceDiff(IGNIS.getId()));
-        Assert.assertEquals(-5 * AEUR.ONE_COIN - AEUR.ONE_COIN / 10, BOB.getChainBalanceDiff(AEUR.getId()));
+        Assert.assertEquals(-5 * AEUR.ONE_COIN - AEUR.ONE_COIN / 100, BOB.getChainBalanceDiff(AEUR.getId()));
 
         apiCall = new APICall.Builder("getCoinExchangeOrder").
                 param("order", aliceOrder).

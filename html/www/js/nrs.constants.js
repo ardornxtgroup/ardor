@@ -72,8 +72,13 @@ var NRS = (function (NRS, $) {
         'FORGING': 'forging',
         'NOT_FORGING': 'not_forging',
         'UNKNOWN': 'unknown',
-        'INITIAL_BASE_TARGET': 153722867
+        'INITIAL_BASE_TARGET': 153722867,
+        'SIGNATURE_POSITION': 69, // bytes before signature from TransactionImpl newTransactionBuilder()
+        'SIGNATURE_LENGTH': 64
     };
+    
+    var CHAIN_DISPLAY_TO_LOGIC_MAPPING = { "BITS": "BITSWIFT" };
+    var CHAIN_LOGIC_TO_DISPLAY_MAPPING = { "BITSWIFT": "BITS" };
 
     NRS.loadAlgorithmList = function (algorithmSelect, isPhasingHash) {
         var hashAlgorithms;
@@ -257,9 +262,9 @@ var NRS = (function (NRS, $) {
             requestType == "stopForging" ||
             requestType == "startShuffler" ||
             requestType == "getForging" ||
-            requestType == "markHost" ||
             requestType == "startFundingMonitor" ||
-            requestType == "startBundler";
+            requestType == "startBundler" ||
+            requestType == "signTransaction";
     };
 
     NRS.getFileUploadConfig = function (requestType, data) {
@@ -315,10 +320,20 @@ var NRS = (function (NRS, $) {
         return true;
     };
 
+    NRS.getChainLogicName = function(chainName) {
+        var name = CHAIN_DISPLAY_TO_LOGIC_MAPPING[chainName];
+        return name != null ? name : chainName;
+    };
+
+    NRS.getChainDisplayName = function(chainName) {
+        var name = CHAIN_LOGIC_TO_DISPLAY_MAPPING[chainName];
+        return name != null ? name : chainName;
+    };
+
     NRS.findChainByName = function(chainName) {
         for (var id in  NRS.constants.CHAIN_PROPERTIES) {
             if (NRS.constants.CHAIN_PROPERTIES.hasOwnProperty(id) &&
-                NRS.constants.CHAIN_PROPERTIES[id].name == chainName) {
+                NRS.constants.CHAIN_PROPERTIES[id].name == NRS.getChainLogicName(chainName)) {
                 return id;
             }
         }
@@ -349,30 +364,31 @@ var NRS = (function (NRS, $) {
     };
 
     NRS.getActiveChainName = function() {
-        return String(NRS.constants.CHAIN_PROPERTIES[NRS.getActiveChainId()].name).escapeHTML();
+        return NRS.getChainDisplayName(String(NRS.constants.CHAIN_PROPERTIES[NRS.getActiveChainId()].name).escapeHTML());
     };
 
     NRS.getParentChainName = function() {
-        return String(NRS.constants.CHAIN_PROPERTIES[1].name).escapeHTML();
+        return NRS.getChainDisplayName(String(NRS.constants.CHAIN_PROPERTIES[1].name).escapeHTML());
     };
 
     NRS.getActiveChainDecimals = function() {
         return parseInt(NRS.constants.CHAIN_PROPERTIES[NRS.getActiveChainId()].decimals);
     };
+
     NRS.getActiveChainOneCoin = function() {
         return NRS.constants.CHAIN_PROPERTIES[NRS.getActiveChainId()].ONE_COIN;
     };
 
-    NRS.getChain = function(chain) {
-        return NRS.constants.CHAIN_PROPERTIES[chain];
+    NRS.getChain = function(chainId) {
+        return NRS.constants.CHAIN_PROPERTIES[chainId];
     };
 
-    NRS.getChainName = function(chain) {
-        return String(NRS.constants.CHAIN_PROPERTIES[chain].name);
+    NRS.getChainName = function(chainId) {
+        return NRS.getChainDisplayName(String(NRS.constants.CHAIN_PROPERTIES[chainId].name).escapeHTML());
     };
 
-    NRS.getChainDecimals = function(chain) {
-        return String(NRS.constants.CHAIN_PROPERTIES[chain].decimals);
+    NRS.getChainDecimals = function(chainId) {
+        return String(NRS.constants.CHAIN_PROPERTIES[chainId].decimals);
     };
 
     NRS.getChainIdByName = function(name) {
@@ -380,7 +396,7 @@ var NRS = (function (NRS, $) {
             if (!NRS.constants.CHAIN_PROPERTIES.hasOwnProperty(chain)) {
                 continue;
             }
-            if (NRS.constants.CHAIN_PROPERTIES[chain].name == name) {
+            if (NRS.constants.CHAIN_PROPERTIES[chain].name == NRS.getChainLogicName(name)) {
                 return chain;
             }
         }
@@ -392,7 +408,7 @@ var NRS = (function (NRS, $) {
         var chains = $('select[name="chain"]');
         chains.empty();
         $.each(NRS.constants.CHAIN_PROPERTIES, function(id, chain) {
-            chains.append('<option value="' + id + '">' + chain.name + '</option>');
+            chains.append('<option value="' + id + '">' + NRS.getChainDisplayName(chain.name) + '</option>');
         });
         chains.val(NRS.getActiveChainId());
     };

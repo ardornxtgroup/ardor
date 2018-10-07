@@ -66,9 +66,14 @@ public final class ChildTransactionImpl extends TransactionImpl implements Child
         }
 
         @Override
+        public ChildTransactionImpl build(String secretPhrase, boolean isVoucher) throws NxtException.NotValidException {
+            preBuild(secretPhrase, isVoucher);
+            return new ChildTransactionImpl(this, secretPhrase, isVoucher);
+        }
+
+        @Override
         public ChildTransactionImpl build(String secretPhrase) throws NxtException.NotValidException {
-            preBuild(secretPhrase);
-            return new ChildTransactionImpl(this, secretPhrase);
+            return build(secretPhrase, false);
         }
 
         @Override
@@ -107,7 +112,7 @@ public final class ChildTransactionImpl extends TransactionImpl implements Child
 
     private volatile long fxtTransactionId;
 
-    private ChildTransactionImpl(BuilderImpl builder, String secretPhrase) throws NxtException.NotValidException {
+    private ChildTransactionImpl(BuilderImpl builder, String secretPhrase, boolean isVoucher) throws NxtException.NotValidException {
         super(builder);
         this.childChain = ChildChain.getChildChain(builder.chainId);
         this.referencedTransactionId = builder.referencedTransactionId;
@@ -159,7 +164,7 @@ public final class ChildTransactionImpl extends TransactionImpl implements Child
             this.signature = builder.signature;
         } else if (secretPhrase != null) {
             byte[] senderPublicKey = builder.senderPublicKey != null ? builder.senderPublicKey : Account.getPublicKey(builder.senderId);
-            if (senderPublicKey != null && ! Arrays.equals(senderPublicKey, Crypto.getPublicKey(secretPhrase))) {
+            if (senderPublicKey != null && ! Arrays.equals(senderPublicKey, Crypto.getPublicKey(secretPhrase)) && !isVoucher) {
                 throw new NxtException.NotValidException("Secret phrase doesn't match transaction sender public key");
             }
             this.signature = Crypto.sign(bytes(), secretPhrase);
@@ -248,7 +253,7 @@ public final class ChildTransactionImpl extends TransactionImpl implements Child
     public long getMinimumFeeFQT(int blockchainHeight) {
         long totalFee = super.getMinimumFeeFQT(blockchainHeight);
         if (referencedTransactionId != null) {
-            totalFee = Math.addExact(totalFee, Constants.ONE_FXT);
+            totalFee = Math.addExact(totalFee, blockchainHeight < Constants.LIGHT_CONTRACTS_BLOCK ? Constants.ONE_FXT : Constants.ONE_FXT / 100);
         }
         return totalFee;
     }

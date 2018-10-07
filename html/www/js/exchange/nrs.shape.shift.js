@@ -400,17 +400,6 @@ var NRS = (function(NRS, $) {
         renderMyExchangesTable();
    	});
 
-    NRS.getFundAccountLink = function() {
-        return "";
-        // return "<div class='callout callout-danger'>" +
-        //     "<span>" + $.t("fund_account_warning_1") + "</span><br>" +
-        //     "<span>" + $.t("fund_account_warning_2") + "</span><br>" +
-        //     "<span>" + $.t("fund_account_warning_3") + "</span><br>" +
-        //     "</div>" +
-        //     "<a href='#' class='btn btn-xs btn-default' data-toggle='modal' data-target='#m_send_amount_sell_modal' " +
-        //     "data-pair='BTC_NXT'>" + $.t("fund_account_message") + "</a>";
-    };
-
     $('.coin-select.shape-shift ').change(function() {
         var id = $(this).attr('id');
         var coins = NRS.getCoins(EXCHANGE_NAME);

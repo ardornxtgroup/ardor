@@ -90,9 +90,9 @@ public class TestTrustlessAssetSwap extends BlockchainTest {
 
         // Alice sees Bob's transaction #2 in the blockchain, waits to make sure it is confirmed irreversibly.
         JSONObject bobTransferValidation = new APICall.Builder("getTransaction").
-                param("transaction", (String) bobTransfer.get("transaction")).
+                param("fullHash", (String) bobTransfer.get("fullHash")).
                 build().invoke();
-        Assert.assertEquals(bobTransfer.get("transaction"), bobTransferValidation.get("transaction"));
+        Assert.assertEquals(bobTransfer.get("fullHash"), bobTransferValidation.get("fullHash"));
 
         // She then submits her transaction #1.
         new APICall.Builder("broadcastTransaction").

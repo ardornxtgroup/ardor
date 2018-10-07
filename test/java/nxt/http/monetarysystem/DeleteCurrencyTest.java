@@ -105,7 +105,6 @@ public class DeleteCurrencyTest extends BlockchainTest {
                 secretPhrase(ALICE.getSecretPhrase()).feeNQT(ChildChain.IGNIS.ONE_COIN).
                 param("recipient", Long.toUnsignedString(BOB.getId())).
                 param("currency", currencyId).
-                param("code", code).
                 param("unitsQNT", (String)response.get("maxSupplyQNT")).
                 build();
         response = apiCall.invoke();

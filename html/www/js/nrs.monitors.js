@@ -20,14 +20,6 @@
 var NRS = (function(NRS, $) {
     var currentMonitor;
 
-    function isErrorResponse(response) {
-        return response.errorCode || response.errorDescription || response.errorMessage || response.error;
-    }
-
-    function getErrorMessage(response) {
-        return response.errorDescription || response.errorMessage || response.error;
-    } 
-
     NRS.jsondata = NRS.jsondata||{};
 
     NRS.jsondata.monitors = function (response) {
@@ -86,9 +78,9 @@ var NRS = (function(NRS, $) {
         };
         NRS.sendRequest("getFundingMonitor", params,
             function (response) {
-                if (isErrorResponse(response)) {
+                if (NRS.isErrorResponse(response)) {
                     view.render({
-                        errorMessage: getErrorMessage(response),
+                        errorMessage: NRS.getErrorMessage(response),
                         isLoading: false,
                         isEmpty: false
                     });
@@ -177,9 +169,9 @@ var NRS = (function(NRS, $) {
         };
         NRS.sendRequest("getAccountProperties", params,
             function (response) {
-                if (isErrorResponse(response)) {
+                if (NRS.isErrorResponse(response)) {
                     view.render({
-                        errorMessage: getErrorMessage(response),
+                        errorMessage: NRS.getErrorMessage(response),
                         isLoading: false,
                         isEmpty: false
                     });

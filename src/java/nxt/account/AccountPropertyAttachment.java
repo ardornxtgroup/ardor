@@ -16,7 +16,6 @@
 
 package nxt.account;
 
-import nxt.Constants;
 import nxt.NxtException;
 import nxt.blockchain.Attachment;
 import nxt.blockchain.TransactionType;
@@ -32,8 +31,8 @@ public final class AccountPropertyAttachment extends Attachment.AbstractAttachme
 
     AccountPropertyAttachment(ByteBuffer buffer) throws NxtException.NotValidException {
         super(buffer);
-        this.property = Convert.readString(buffer, buffer.get(), Constants.MAX_ACCOUNT_PROPERTY_NAME_LENGTH).trim();
-        this.value = Convert.readString(buffer, buffer.get(), Constants.MAX_ACCOUNT_PROPERTY_VALUE_LENGTH).trim();
+        this.property = Account.PROPERTY_NAME_RW.readFromBuffer(buffer).trim();
+        this.value = Account.PROPERTY_VALUE_RW.readFromBuffer(buffer).trim();
     }
 
     AccountPropertyAttachment(JSONObject attachmentData) {

@@ -472,7 +472,10 @@ public class AccountLedger {
         // TYPE_COIN_EXCHANGE
             COIN_EXCHANGE_ORDER_ISSUE(58, true),
             COIN_EXCHANGE_ORDER_CANCEL(59, true),
-            COIN_EXCHANGE_TRADE(60, true);
+            COIN_EXCHANGE_TRADE(60, true),
+        // TYPE_LIGHT_CONTRACT
+            CONTRACT_REFERENCE_SET(63, true),
+            CONTRACT_REFERENCE_DELETE(64, true);
 
 
         /** Event code mapping */

@@ -22,6 +22,11 @@ grant {
   permission java.lang.RuntimePermission "getenv.TIKA_CONFIG";
   permission java.lang.RuntimePermission "accessClassInPackage.com.sun.javafx.scene.web";
   permission java.net.NetPermission "getNetworkInformation";
+  permission java.lang.RuntimePermission "createClassLoader";
+  permission java.lang.RuntimePermission "getProtectionDomain";
+  permission java.lang.RuntimePermission "accessClassInPackage.sun.reflect";
+  permission java.lang.RuntimePermission "reflectionFactoryAccess";
+  permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
 };
 
 grant codeBase "file:classes/-" {

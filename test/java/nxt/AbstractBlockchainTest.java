@@ -22,6 +22,7 @@ import nxt.blockchain.BlockchainProcessor;
 import nxt.blockchain.BlockchainProcessorImpl;
 import nxt.blockchain.Generator;
 import nxt.blockchain.TransactionProcessorImpl;
+import nxt.configuration.Setup;
 import nxt.crypto.Crypto;
 import nxt.util.Listener;
 import nxt.util.Logger;
@@ -52,12 +53,13 @@ public abstract class AbstractBlockchainTest {
         testProperties.setProperty("nxt.debugTraceAccounts", "");
         testProperties.setProperty("nxt.debugLogUnconfirmed", "false");
         testProperties.setProperty("nxt.debugTraceQuote", "\"");
+        testProperties.setProperty("nxt.runtime.mode", "");
         //testProperties.setProperty("nxt.numberOfForkConfirmations", "0");
         return testProperties;
     }
 
     protected static void init(Properties testProperties) {
-        Nxt.init(testProperties);
+        Nxt.init(Setup.UNIT_TEST, testProperties);
         blockchain = BlockchainImpl.getInstance();
         blockchainProcessor = BlockchainProcessorImpl.getInstance();
         blockchainProcessor.setGetMoreBlocks(false);

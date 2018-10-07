@@ -53,10 +53,10 @@ import static nxt.http.JSONResponses.INCORRECT_EC_BLOCK;
 import static nxt.http.JSONResponses.MISSING_SECRET_PHRASE;
 import static nxt.http.JSONResponses.NOT_ENOUGH_FUNDS;
 
-abstract class CreateTransaction extends APIServlet.APIRequestHandler {
+public abstract class CreateTransaction extends APIServlet.APIRequestHandler {
 
     private static final String[] commonParameters = new String[]{"secretPhrase", "publicKey", "feeNQT", "feeRateNQTPerFXT", "minBundlerBalanceFXT",
-            "deadline", "referencedTransaction", "broadcast",
+            "deadline", "referencedTransaction", "broadcast", "timestamp",
             "message", "messageIsText", "messageIsPrunable",
             "messageToEncrypt", "messageToEncryptIsText", "encryptedMessageData", "encryptedMessageNonce", "encryptedMessageIsPrunable", "compressMessageToEncrypt",
             "messageToEncryptToSelf", "messageToEncryptToSelfIsText", "encryptToSelfMessageData", "encryptToSelfMessageNonce", "compressMessageToEncryptToSelf",
@@ -69,7 +69,9 @@ abstract class CreateTransaction extends APIServlet.APIRequestHandler {
             "phasingRecipientPropertyName", "phasingRecipientPropertyValue",
             "phasingExpression",
             "recipientPublicKey",
-            "ecBlockId", "ecBlockHeight"};
+            "ecBlockId", "ecBlockHeight",
+            "voucher"
+    };
 
     private static String[] addCommonParameters(String[] parameters) {
         String[] result = Arrays.copyOf(parameters, parameters.length + commonParameters.length);
@@ -84,19 +86,19 @@ abstract class CreateTransaction extends APIServlet.APIRequestHandler {
         }
     }
 
-    CreateTransaction(String fileParameter, APITag[] apiTags, String... parameters) {
+    protected CreateTransaction(String fileParameter, APITag[] apiTags, String... parameters) {
         super(fileParameter, apiTags, addCommonParameters(parameters));
         if (!getAPITags().contains(APITag.CREATE_TRANSACTION)) {
             throw new RuntimeException("CreateTransaction API " + getClass().getName() + " is missing APITag.CREATE_TRANSACTION tag");
         }
     }
 
-    final JSONStreamAware createTransaction(HttpServletRequest req, Account senderAccount, Attachment attachment)
+    protected final JSONStreamAware createTransaction(HttpServletRequest req, Account senderAccount, Attachment attachment)
             throws NxtException {
         return createTransaction(req, senderAccount, 0, 0, attachment, null);
     }
 
-    final JSONStreamAware createTransaction(HttpServletRequest req, Account senderAccount, Attachment attachment,
+    protected final JSONStreamAware createTransaction(HttpServletRequest req, Account senderAccount, Attachment attachment,
             Chain txChain) throws NxtException {
         return createTransaction(req, senderAccount, 0, 0, attachment, txChain);
     }
@@ -123,10 +125,19 @@ abstract class CreateTransaction extends APIServlet.APIRequestHandler {
 
     final JSONStreamAware createTransaction(HttpServletRequest req, Account senderAccount, long recipientId,
                                             long amountNQT, Attachment attachment, Chain txChain) throws NxtException {
-        ChainTransactionId referencedTransactionId = ParameterParser.getChainTransactionId(req, "referencedTransaction");
+        return createTransaction(req, senderAccount, recipientId, amountNQT, attachment, txChain, null);
+    }
+
+    protected final JSONStreamAware createTransaction(HttpServletRequest req, Account senderAccount, long recipientId,
+                                            long amountNQT, Attachment attachment, Chain txChain,
+                                            ChainTransactionId referencedTransactionId) throws NxtException {
+        if (referencedTransactionId == null) {
+            referencedTransactionId = ParameterParser.getChainTransactionId(req, "referencedTransaction");
+        }
         String secretPhrase = ParameterParser.getSecretPhrase(req, false);
+        boolean isVoucher = "true".equalsIgnoreCase(req.getParameter("voucher"));
         String publicKeyValue = Convert.emptyToNull(req.getParameter("publicKey"));
-        boolean broadcast = !"false".equalsIgnoreCase(req.getParameter("broadcast")) && secretPhrase != null;
+        boolean broadcast = !"false".equalsIgnoreCase(req.getParameter("broadcast")) && secretPhrase != null && !isVoucher;
         EncryptedMessageAppendix encryptedMessage = null;
         PrunableEncryptedMessageAppendix prunableEncryptedMessage = null;
         if (attachment.getTransactionType().canHaveRecipient() && recipientId != 0) {
@@ -171,11 +182,12 @@ abstract class CreateTransaction extends APIServlet.APIRequestHandler {
         if (ecBlockId == 0 && ecBlockHeight > 0) {
             ecBlockId = Nxt.getBlockchain().getBlockIdAtHeight(ecBlockHeight);
         }
+        int timestamp = ParameterParser.getTimestamp(req);
         long feeRateNQTPerFXT = ParameterParser.getLong(req, "feeRateNQTPerFXT", -1L, Constants.MAX_BALANCE_NQT, -1L);
         JSONObject response = new JSONObject();
 
         // shouldn't try to get publicKey from senderAccount as it may have not been set yet
-        byte[] publicKey = secretPhrase != null ? Crypto.getPublicKey(secretPhrase) : Convert.parseHexString(publicKeyValue);
+        byte[] publicKey = secretPhrase != null && !isVoucher ? Crypto.getPublicKey(secretPhrase) : Convert.parseHexString(publicKeyValue);
 
         // Allow the caller to specify the chain for the transaction instead of using
         // the 'chain' request parameter
@@ -190,7 +202,9 @@ abstract class CreateTransaction extends APIServlet.APIRequestHandler {
             long minBundlerBalanceFXT = ParameterParser.getLong(req, "minBundlerBalanceFXT", 0, Constants.MAX_BALANCE_FXT, false);
             feeRateNQTPerFXT = Peers.getBestBundlerRate(chain, minBundlerBalanceFXT, Peers.bestBundlerRateWhitelist);
             broadcast = false;
-            response.put("bundlerRateNQTPerFXT", String.valueOf(feeRateNQTPerFXT));
+            if (!isVoucher) {
+                response.put("bundlerRateNQTPerFXT", String.valueOf(feeRateNQTPerFXT));
+            }
         }
 
         try {
@@ -243,7 +257,10 @@ abstract class CreateTransaction extends APIServlet.APIRequestHandler {
                 builder.ecBlockId(ecBlockId);
                 builder.ecBlockHeight(ecBlockHeight);
             }
-            Transaction transaction = builder.build(secretPhrase);
+            if (timestamp > 0) {
+                builder.timestamp(timestamp);
+            }
+            Transaction transaction = builder.build(secretPhrase, isVoucher);
             try {
                 long balance = chain.getBalanceHome().getBalance(senderAccount.getId()).getUnconfirmedBalance();
                 if (Math.addExact(amountNQT, transaction.getFee()) > balance) {
@@ -262,22 +279,37 @@ abstract class CreateTransaction extends APIServlet.APIRequestHandler {
                 return NOT_ENOUGH_FUNDS;
             }
             JSONObject transactionJSON = JSONData.unconfirmedTransaction(transaction);
+            if (isVoucher) {
+                transactionJSON.remove("fullHash");
+                transactionJSON.put("signature", null);
+            }
             response.put("transactionJSON", transactionJSON);
             try {
                 response.put("unsignedTransactionBytes", Convert.toHexString(transaction.getUnsignedBytes()));
             } catch (NxtException.NotYetEncryptedException ignore) {}
             if (secretPhrase != null) {
-                response.put("fullHash", transactionJSON.get("fullHash"));
-                response.put("transactionBytes", Convert.toHexString(transaction.getBytes()));
-                response.put("signatureHash", transactionJSON.get("signatureHash"));
+                if (isVoucher) {
+                    response.put("signature", Convert.toHexString(transaction.getSignature()));
+                    response.put("publicKey", Convert.toHexString(Crypto.getPublicKey(secretPhrase)));
+                    response.put("requestType", req.getParameter("requestType"));
+                    ParameterParser.parseVoucher(response);
+                } else {
+                    response.put("fullHash", transactionJSON.get("fullHash"));
+                    response.put("transactionBytes", Convert.toHexString(transaction.getBytes()));
+                    response.put("signatureHash", transactionJSON.get("signatureHash"));
+                }
             }
-            response.put("minimumFeeFQT", String.valueOf(transaction.getMinimumFeeFQT()));
+            if (!isVoucher) {
+                response.put("minimumFeeFQT", String.valueOf(transaction.getMinimumFeeFQT()));
+            }
             if (broadcast) {
                 Nxt.getTransactionProcessor().broadcast(transaction);
                 response.put("broadcasted", true);
             } else {
                 transaction.validate();
-                response.put("broadcasted", false);
+                if (!isVoucher) {
+                    response.put("broadcasted", false);
+                }
             }
         } catch (NxtException.NotYetEnabledException e) {
             return FEATURE_NOT_AVAILABLE;

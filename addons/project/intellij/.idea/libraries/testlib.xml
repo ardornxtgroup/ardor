@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="testlib">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/ardor-tests.jar!/" />
+      <root url="file://$PROJECT_DIR$/testlib" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+    <jarDirectory url="file://$PROJECT_DIR$/testlib" recursive="false" />
+  </library>
+</component>

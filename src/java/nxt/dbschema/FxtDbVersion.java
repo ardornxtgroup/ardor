@@ -17,6 +17,7 @@
 package nxt.dbschema;
 
 import nxt.Constants;
+import nxt.Nxt;
 import nxt.blockchain.BlockDb;
 import nxt.blockchain.BlockchainProcessorImpl;
 import nxt.db.BasicDb;
@@ -228,7 +229,7 @@ public class FxtDbVersion extends DbVersion {
                 apply("CREATE INDEX IF NOT EXISTS asset_transfer_height_idx ON asset_transfer (height)");
             case 71:
                 apply("CREATE TABLE IF NOT EXISTS currency (db_id IDENTITY, id BIGINT NOT NULL, account_id BIGINT NOT NULL, "
-                        + "name VARCHAR NOT NULL, name_lower VARCHAR AS LOWER (name) NOT NULL, code VARCHAR NOT NULL, "
+                        + "name VARCHAR NOT NULL, name_lower VARCHAR NOT NULL, code VARCHAR NOT NULL, "
                         + "description VARCHAR, type INT NOT NULL, chain INT NOT NULL, initial_supply BIGINT NOT NULL DEFAULT 0, "
                         + "reserve_supply BIGINT NOT NULL, max_supply BIGINT NOT NULL, creation_height INT NOT NULL, issuance_height INT NOT NULL, "
                         + "min_reserve_per_unit_nqt BIGINT NOT NULL, min_difficulty TINYINT NOT NULL, "
@@ -432,6 +433,23 @@ public class FxtDbVersion extends DbVersion {
                 }
                 apply(null);
             case 140:
+                apply("CREATE TABLE IF NOT EXISTS contract_reference (db_id IDENTITY, id BIGINT NOT NULL, account_id BIGINT NOT NULL, "
+                        + "contract_name VARCHAR NOT NULL, contract_params VARCHAR, contract_transaction_chain_id INT NOT NULL, contract_transaction_full_hash BINARY(32), "
+                        + "height INT NOT NULL, latest BOOLEAN NOT NULL DEFAULT TRUE)");
+            case 141:
+                apply("CREATE UNIQUE INDEX IF NOT EXISTS contract_reference_id_height_idx ON contract_reference (id, height DESC)");
+            case 142:
+                apply("CREATE INDEX IF NOT EXISTS contract_reference_height_id_idx ON contract_reference (height, id)");
+            case 143:
+                apply("CREATE INDEX IF NOT EXISTS contract_reference_account_height_idx ON contract_reference (account_id, height DESC)");
+            case 144:
+                apply("DELETE FROM unconfirmed_transaction");
+            case 145:
+                if (Nxt.getBlockchain().getHeight() > 0) {
+                    BlockchainProcessorImpl.getInstance().popOffTo(Nxt.getBlockchain().getHeight() - 1);
+                }
+                apply(null);
+            case 146:
                 return;
             default:
                 throw new RuntimeException("Forging chain database inconsistent with code, at update " + nextUpdate

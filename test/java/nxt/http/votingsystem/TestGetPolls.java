@@ -29,7 +29,6 @@ public class TestGetPolls extends BlockchainTest {
     @Test
     public void accountPollsIncrease() {
         APICall apiCall = new APICall.Builder("getPolls")
-                .param("includeVoters", "false")
                 .param("account", Long.toUnsignedString(DAVE.getId()))
                 .param("firstIndex", 0)
                 .param("lastIndex", 100)

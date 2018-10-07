@@ -99,7 +99,7 @@ public abstract class TransactionImpl implements Transaction {
             this.appendageList = appendages;
         }
 
-        final void preBuild(String secretPhrase) {
+        final void preBuild(String secretPhrase, boolean isVoucher) throws NxtException.NotValidException {
             if (appendageMap != null) {
                 appendageList = new ArrayList<>(appendageMap.values());
             }
@@ -114,6 +114,9 @@ public abstract class TransactionImpl implements Transaction {
             int appendagesSize = 0;
             for (Appendix appendage : appendageList) {
                 if (secretPhrase != null && appendage instanceof Appendix.Encryptable) {
+                    if (isVoucher) {
+                        throw new NxtException.NotValidException("Voucher cannot contain data to encrypt");
+                    }
                     ((Appendix.Encryptable) appendage).encrypt(secretPhrase);
                 }
                 appendagesSize += appendage.getSize();

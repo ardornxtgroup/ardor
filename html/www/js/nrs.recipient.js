@@ -118,17 +118,6 @@ var NRS = (function(NRS, $) {
 		}
 	};
 
-	NRS.sendMoneyShowAccountInformation = function(accountId) {
-		NRS.getAccountError(accountId, function(response) {
-			if (response.type == "success") {
-				$("#send_money_account_info").hide();
-			} else {
-				$("#send_money_account_info").html(response.message).show();
-
-			}
-		});
-	};
-
 	NRS.getAccountError = function(accountId, callback) {
 		NRS.sendRequest("getAccount", {
 			"account": accountId
@@ -213,6 +202,7 @@ var NRS = (function(NRS, $) {
 
 		accountInputField.val("");
 		merchantInfoField.val("");
+		modal.find("input[name=encrypt_message]").attr('disabled', false);
 
 		account = $.trim(account);
 
@@ -228,9 +218,7 @@ var NRS = (function(NRS, $) {
 						modal.find("input[name=recipientPublicKey]").val("");
 						modal.find(".recipient_public_key").hide();
 					}
-					if (response.account && response.account.description) {
-						checkForMerchant(response.account.description, modal);
-					}
+					updateRecipientOptions(response, modal);
 					
 					if (account==NRS.accountRS)
 						callout.removeClass(classes).addClass("callout-" + response.type).html("This is your account").show();
@@ -270,9 +258,7 @@ var NRS = (function(NRS, $) {
 								modal.find("input[name=recipientPublicKey]").val("");
 								modal.find(".recipient_public_key").hide();
 							}
-							if (response.account && response.account.description) {
-								checkForMerchant(response.account.description, modal);
-							}
+							updateRecipientOptions(response, modal);
 
 							callout.removeClass(classes).addClass("callout-" + response.type).html($.t("contact_account_link", {
 								"account_id": NRS.getAccountFormatted(contact, "account")
@@ -349,9 +335,7 @@ var NRS = (function(NRS, $) {
 								modal.find("input[name=recipientPublicKey]").val("");
 								modal.find(".recipient_public_key").hide();
 							}
-							if (response.account && response.account.description) {
-								checkForMerchant(response.account.description, modal);
-							}
+							updateRecipientOptions(response, modal);
 
 							callout.removeClass(classes).addClass("callout-" + response.type).html($.t("alias_account_link", {
 								"account_id": NRS.escapeRespStr(match[1])
@@ -377,9 +361,44 @@ var NRS = (function(NRS, $) {
 		});
 	};
 
+    function updateRecipientOptions(accountResponse, modal) {
+        if (accountResponse.account) {
+            if (accountResponse.account.description) {
+                checkForMerchant(accountResponse.account.description, modal);
+            }
+            var params = {
+                        "setter": accountResponse.account.account,
+                        "recipient": accountResponse.account.account,
+                        "property": "nrs_recipient_ui_options"
+                    };
+            NRS.sendRequest("getAccountProperties", params,
+                function (response) {
+                    var options = {};
+                    if ($.isArray(response.properties) && response.properties.length > 0) {
+                        try {
+                            options = JSON.parse(NRS.unescapeRespStr(response.properties[0].value));
+                        } catch (e) {
+                            NRS.logConsole("Cannot parse nrs_recipient_ui_options JSON");
+                            NRS.logException(e);
+                        }
+                    }
+                    if (typeof options.message_format == "string") {
+                        checkForMerchant("#merchant:" + NRS.escapeRespStr(options.message_format) + "#", modal);
+                    }
+                    var encryptMessageCheckbox = modal.find("input[name=encrypt_message]");
+                    if (typeof options.encrypt_message == "boolean") {
+                        encryptMessageCheckbox.prop("checked", options.encrypt_message);
+                    }
+                    if (options.encrypt_message_disabled === true) {
+                        encryptMessageCheckbox.attr('disabled', true);
+                    }
+                });
+        }
+    }
+
 	function checkForMerchant(accountInfo, modal) {
 		var requestType = modal.find("input[name=request_type]").val(); // only works for single request type per modal
-		if (requestType == "sendMoney" || requestType == "transferAsset") {
+		if (requestType == "sendMoney" || requestType == "transferAsset" || requestType == "transferCurrency") {
 			if (accountInfo.match(/merchant/i)) {
 				modal.find("input[name=merchant_info]").val(accountInfo);
 				var checkbox = modal.find("input[name=add_message]");

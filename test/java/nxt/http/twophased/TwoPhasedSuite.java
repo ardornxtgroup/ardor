@@ -24,16 +24,17 @@ import org.junit.runners.Suite;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
-        TestCreateTwoPhased.class,
-        TestGetVoterPhasedTransactions.class,
         TestApproveTransaction.class,
-        TestGetPhasingPoll.class,
+        TestCompositeVoting.class,
+        TestCreateTwoPhased.class,
         TestGetAccountPhasedTransactions.class,
         TestGetAssetPhasedTransactions.class,
         TestGetCurrencyPhasedTransactions.class,
+        TestGetExecutedTransactions.class,
+        TestGetPhasingPoll.class,
+        TestGetVoterPhasedTransactions.class,
+        TestPropertyVoting.class,
         TestTrustlessAssetSwap.class,
-        TestCompositeVoting.class,
-        TestPropertyVoting.class
 })
 
 public class TwoPhasedSuite extends AbstractHttpApiSuite {

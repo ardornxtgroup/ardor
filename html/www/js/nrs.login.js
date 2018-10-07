@@ -569,7 +569,7 @@ var NRS = (function(NRS, $) {
 								.attr("href", "#")
 								.attr("style", "font-size: 85%;")
 								.attr("onClick", "NRS.switchAccount('" + NRS.accountRS + "','" + chain.id + "')")
-								.text(chain.name)
+								.text(NRS.getChainDisplayName(chain.name))
 							)
 						);
 					}

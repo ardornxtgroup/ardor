@@ -74,7 +74,7 @@ class DesktopSystemTray {
         }
         MenuItem showDesktopApplication = getMenuItem("Show Desktop Application");
         MenuItem refreshDesktopApplication = getMenuItem("Refresh Wallet");
-        if (!Nxt.isDesktopApplicationEnabled()) {
+        if (!RuntimeEnvironment.isDesktopApplicationEnabled()) {
             showDesktopApplication.setEnabled(false);
             refreshDesktopApplication.setEnabled(false);
         }
@@ -187,7 +187,7 @@ class DesktopSystemTray {
         addDataRow(statusPanel, "Peer port", String.valueOf(NetworkHandler.getDefaultPeerPort()));
         addDataRow(statusPanel, "Program folder", String.valueOf(Paths.get(".").toAbsolutePath().getParent()));
         addDataRow(statusPanel, "User folder", String.valueOf(Paths.get(Nxt.getUserHomeDir()).toAbsolutePath()));
-        addDataRow(statusPanel, "Database URL", Db.db == null ? "unavailable" : Db.db.getUrl());
+        addDataRow(statusPanel, "Database URL", Db.db.getUrl());
         addEmptyRow(statusPanel);
 
         if (lastBlock != null) {

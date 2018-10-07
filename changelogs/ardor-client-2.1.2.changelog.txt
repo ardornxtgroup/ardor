@@ -1,0 +1,13 @@
+This is a critical bugfix release. IMMEDIATE update is mandatory for everyone.
+
+Fixed validation of string fields length in transaction attachments.
+
+This is a stable release and should be used for mainnet nodes too, however
+lightweight contracts are still available only on testnet.
+
+Changelly exchange integration is now available in the Ardor wallet:
+
+https://nxtwiki.org/wiki/Changelly_Integration
+
+Javadoc is now available for sample contracts and API callers
+

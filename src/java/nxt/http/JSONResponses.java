@@ -161,6 +161,8 @@ public final class JSONResponses {
     public static final JSONStreamAware INCORRECT_CHAIN = incorrect("chain");
     public static final JSONStreamAware MISSING_CHAIN = missing("chain");
     public static final JSONStreamAware UNKNOWN_PHASED_TRANSACTION = unknown("phasedTransaction");
+    public static final JSONStreamAware INCORRECT_CONTRACT_NAME_LENGTH = incorrect("name", "(length must be > 0 but less than " + Constants.MAX_CONTRACT_NAME_LENGTH + " characters)");
+    public static final JSONStreamAware INCORRECT_CONTRACT_PARAMS_LENGTH = incorrect("params", "(length must be less than " + Constants.MAX_CONTRACT_PARAMS_LENGTH + " characters)");
 
     public static final JSONStreamAware NOT_ENOUGH_FUNDS;
     static {
@@ -453,7 +455,7 @@ public final class JSONResponses {
         return JSON.prepare(response);
     }
 
-    static JSONStreamAware either(String... paramNames) {
+    public static JSONStreamAware either(String... paramNames) {
         JSONObject response = new JSONObject();
         response.put("errorCode", 6);
         response.put("errorDescription", "Not more than one of " + Arrays.toString(paramNames) + " can be specified");

@@ -18,8 +18,10 @@ package nxt.http;
 
 import nxt.Nxt;
 import nxt.NxtException;
+import nxt.blockchain.Chain;
 import nxt.blockchain.ChildChain;
 import nxt.blockchain.ChildTransaction;
+import nxt.blockchain.Transaction;
 import nxt.messaging.PrunableEncryptedMessageAppendix;
 import nxt.messaging.PrunablePlainMessageAppendix;
 import nxt.util.JSON;
@@ -63,8 +65,8 @@ public final class VerifyPrunableMessage extends APIServlet.APIRequestHandler {
     protected JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
 
         byte[] transactionFullHash = ParameterParser.getBytes(req, "transactionFullHash", true);
-        ChildChain childChain = ParameterParser.getChildChain(req);
-        ChildTransaction transaction = (ChildTransaction)Nxt.getBlockchain().getTransaction(childChain, transactionFullHash);
+        Chain chain = ParameterParser.getChain(req);
+        Transaction transaction = Nxt.getBlockchain().getTransaction(chain, transactionFullHash);
         if (transaction == null) {
             return UNKNOWN_TRANSACTION;
         }

@@ -48,13 +48,16 @@ public class AssetExchangeTest extends BlockchainTest {
     }
 
     static JSONObject transfer(String assetId, Tester from, Tester to, long quantityQNT) {
+        return transfer(assetId, from, to, quantityQNT, ChildChain.IGNIS.ONE_COIN);
+    }
+
+    public static JSONObject transfer(String assetId, Tester from, Tester to, long quantityQNT, long fee) {
         APICall apiCall = new APICall.Builder("transferAsset")
                 .param("secretPhrase", from.getSecretPhrase())
                 .param("recipient", to.getRsAccount())
                 .param("asset", assetId)
-                .param("description", "asset testing")
                 .param("quantityQNT", quantityQNT)
-                .param("feeNQT", ChildChain.IGNIS.ONE_COIN)
+                .param("feeNQT", fee)
                 .build();
         JSONObject response = apiCall.invoke();
         BlockchainTest.generateBlock();

@@ -48,8 +48,9 @@ var NRS = (function(NRS, $, undefined) {
                 namePrefix = "unsigned";
             }
             var unsignedTransactionJson = $("#raw_transaction_modal_transaction_json");
-            var jsonStr = JSON.stringify(transaction.transactionJSON);
-            unsignedTransactionJson.val(jsonStr);
+            var jsonStr = JSON.stringify(transaction.transactionJSON, null, 2);
+            unsignedTransactionJson.html(jsonStr);
+            hljs.highlightBlock(unsignedTransactionJson[0]);
             var downloadLink = $("#raw_transaction_modal_transaction_json_download");
             if (window.URL && NRS.isFileReaderSupported()) {
                 var jsonAsBlob = new Blob([jsonStr], {type: 'text/plain'});
@@ -80,22 +81,155 @@ var NRS = (function(NRS, $, undefined) {
             $("#raw_transaction_modal_transaction_bytes_container").hide();
         }
 
-		if (transaction.fullHash) {
-			$("#raw_transaction_modal_full_hash").val(transaction.fullHash);
-			$("#raw_transaction_modal_full_hash_container").show();
-		} else {
-			$("#raw_transaction_modal_full_hash_container").hide();
-		}
+        if (transaction.fullHash) {
+            $("#raw_transaction_modal_full_hash").val(transaction.fullHash);
+            $("#raw_transaction_modal_full_hash_container").show();
+        } else {
+            $("#raw_transaction_modal_full_hash_container").hide();
+        }
 
-		if (transaction.signatureHash) {
-			$("#raw_transaction_modal_signature_hash").val(transaction.signatureHash);
-			$("#raw_transaction_modal_signature_hash_container").show();
-		} else {
-			$("#raw_transaction_modal_signature_hash_container").hide();
-		}
+        if (transaction.signatureHash) {
+            $("#raw_transaction_modal_signature_hash").val(transaction.signatureHash);
+            $("#raw_transaction_modal_signature_hash_container").show();
+        } else {
+            $("#raw_transaction_modal_signature_hash_container").hide();
+        }
 
-		$("#raw_transaction_modal").modal("show");
+        $("#raw_transaction_modal").modal("show");
 	};
+
+	NRS.showVoucherModal = function (transaction, signature, publicKey, requestType) {
+		var voucher = {};
+		voucher.transactionJSON = $.extend(true, {}, transaction.transactionJSON);
+		voucher.unsignedTransactionBytes = transaction.unsignedTransactionBytes;
+		voucher.signature = signature;
+		voucher.publicKey = publicKey;
+        voucher.requestType = requestType;
+        delete voucher.transactionJSON.height;
+        delete voucher.transactionJSON.senderRS;
+        delete voucher.transactionJSON.recipientRS;
+        delete voucher.transactionJSON.signatureHash;
+        delete voucher.transactionJSON.fullHash;
+        delete voucher.transactionJSON.signature;
+
+        var jsonStr = JSON.stringify(voucher, null, 2);
+        var voucherField = $("#generated_voucher_json");
+        voucherField.html(jsonStr);
+        hljs.highlightBlock(voucherField[0]);
+        var downloadLink = $("#voucher_json_download");
+        if (window.URL && NRS.isFileReaderSupported()) {
+            var jsonAsBlob = new Blob([jsonStr], {type: 'text/plain'});
+            downloadLink.prop("download", "voucher." + Date.now() + ".json");
+            try {
+                downloadLink.prop('href', window.URL.createObjectURL(jsonAsBlob));
+            } catch(e) {
+                NRS.logConsole("Desktop Application in Java 8 does not support createObjectURL");
+                downloadLink.hide();
+            }
+        } else {
+            downloadLink.hide();
+        }
+        var qrData = pako.deflate(JSON.stringify(voucher), { to: 'string' });
+        NRS.generateQRCode("#voucher_qr_code", qrData, 14);
+        $("#generate_voucher_modal").modal("show");
+	};
+
+
+    var loadVoucherModal = $("#load_voucher_modal");
+    loadVoucherModal.on("show.bs.modal", function() {
+        $(this).find("#voucher_reader").hide();
+        $(this).find("#parse_voucher_output").hide();
+        $(this).find("#voucher_submit_btn").prop("disabled", true);
+    });
+
+    loadVoucherModal.on("hidden.bs.modal", function() {
+        NRS.stopScanQRCode();
+    });
+
+    $('#voucher_json').change(function() {
+        var modal = $(this).closest(".modal");
+        var voucherText = $('#voucher_json').val();
+        var msg;
+        try {
+            var voucher = JSON.parse(voucherText);
+        } catch (e) {
+            msg = $.t("cannot_parse_voucher", { voucher: voucherText });
+            modal.find(".error_message").html(msg).show();
+            NRS.logConsole(msg);
+            return;
+        }
+        var transactionJSON = voucher.transactionJSON;
+        if (!NRS.verifySignature(voucher.signature, voucher.unsignedTransactionBytes, voucher.publicKey)) {
+            msg = $.t("invalid_signature", { signature: voucher.signature, publicKey: voucher.publicKey });
+            modal.find(".error_message").html(msg).show();
+            NRS.logConsole(msg);
+            return;
+        }
+        var details = $.extend({}, transactionJSON);
+        details = NRS.flattenObject(details, ["version."]);
+        details.exchange = details.exchangeChain;
+        var result = NRS.verifyTransactionBytes(voucher.unsignedTransactionBytes, voucher.requestType, details, transactionJSON.attachment, false);
+        if (result.fail) {
+            msg = $.t("cannot_verify_voucher_content", { param: result.param, expected: result.expected, actual: result.actual });
+            modal.find(".error_message").html(msg).show();
+            NRS.logConsole(msg);
+            return;
+        }
+        delete transactionJSON.signature;
+        delete transactionJSON.senderPublicKey;
+        $("#voucher_creator_account").val(NRS.getAccountIdFromPublicKey(voucher.publicKey, true));
+        $("#voucher_request_type").val(voucher.requestType);
+        var feeNXT = NRS.convertToNXT(voucher.transactionJSON.feeNQT);
+        delete voucher.transactionJSON.feeNQT;
+        $("#load_voucher_fee").val(feeNXT);
+        $("#parse_voucher_output_table").find("tbody").empty().append(NRS.createInfoTable(details));
+        $("#parse_voucher_output").show();
+        $("#voucher_submit_btn").prop("disabled", false);
+    });
+
+    NRS.forms.loadVoucher = function($modal, $btn) {
+        if ($btn.attr("id") == "voucher_submit_btn") {
+            var data = NRS.getFormData($modal.find("form:first"));
+            if (data.voucher == "") {
+                return { error: $.t("no_voucher") };
+            }
+            var voucherJson = JSON.parse(data.voucher);
+            delete data.voucher;
+            var transactionJSON = voucherJson.transactionJSON;
+            transactionJSON.timestamp = NRS.toEpochTime();
+            transactionJSON.deadline = parseInt(data.deadline);
+            delete data.deadline;
+            data.unsignedTransactionJSON = JSON.stringify(transactionJSON);
+            var rc = {};
+            NRS.sendRequest("signTransaction", {
+                unsignedTransactionJSON: data.unsignedTransactionJSON,
+                secretPhrase: data.secretPhrase
+            }, function (signResponse) {
+                if (NRS.isErrorResponse(signResponse)) {
+                    rc.error = NRS.getErrorMessage(signResponse);
+                    return;
+                }
+                NRS.broadcastTransactionBytes(signResponse.transactionBytes, function (broadcastResponse) {
+                    if (NRS.isErrorResponse(broadcastResponse)) {
+                        rc.error = NRS.getErrorMessage(broadcastResponse);
+                    }
+                }, signResponse, {});
+            }, {isAsync: false});
+            if (rc.error) {
+                return rc;
+            } else {
+                return {stop: true};
+            }
+        } else if ($btn.hasClass("btn-calculate-fee")) {
+            return {stop: true, keepOpen: true, errorMessage: $.t("voucher_fee_calculation")};
+        }
+    };
+
+    NRS.forms.loadVoucherComplete = function (response) {
+        if (response.fullhash) {
+            $.growl($.t("voucher_processed"));
+        }
+    };
 
     $(".qr_code_reader_link").click(function(e) {
         e.preventDefault();
@@ -107,7 +241,21 @@ var NRS = (function(NRS, $, undefined) {
         });
     });
 
-    $("#broadcast_transaction_json_file, #unsigned_transaction_json_file").change(function(e) {
+    $("#voucher_reader_link").click(function(e) {
+        e.preventDefault();
+        var readerId = "voucher_reader";
+        NRS.scanQRCode(readerId, function(data) {
+            var jsonStr = pako.inflate(data, { to: 'string' });
+            try {
+                JSON.parse(jsonStr);
+                $("#voucher_json").val(jsonStr).change();
+            } catch(e) {
+                $("#voucher_json").val($.t("voucher_scan_error"));
+            }
+        });
+    });
+
+    $("#broadcast_transaction_json_file, #unsigned_transaction_json_file, #voucher_json_file").change(function(e) {
         e.preventDefault();
         var fileInputId = $(this).attr('id');
         var textAreaId = fileInputId.substring(0, fileInputId.lastIndexOf("_"));
@@ -120,7 +268,7 @@ var NRS = (function(NRS, $, undefined) {
         var fileReader = new FileReader();
         fileReader.onload = function(fileLoadedEvent) {
             var textFromFile = fileLoadedEvent.target.result;
-            $("#" + textAreaId).val(textFromFile);
+            $("#" + textAreaId).val(textFromFile).change();
         };
         fileReader.readAsText(file, "UTF-8");
     });
@@ -161,7 +309,25 @@ var NRS = (function(NRS, $, undefined) {
 			} else {
 				$modal.find('.phasing_safe_alert').show();
 			}
-		}
+			if (!NRS.accountInfo.publicKey) {
+                $modal.find(".is_voucher").hide();
+            } else {
+                $modal.find(".is_voucher").show();
+            }
+		} else {
+            var isEnableVoucher = $modal.data('enableVoucher');
+            if (isEnableVoucher) {
+                $modal.find(".is_voucher").show();
+            } else {
+                $modal.find(".is_voucher").hide();
+            }
+        }
+        var $feeCalculationBtn = $(".btn-calculate-fee");
+        if ($modal.data('disableFeeCalculation')) {
+            $feeCalculationBtn.prop("disabled", true);
+        } else {
+            $feeCalculationBtn.prop("disabled", false);
+        }
 
 		var context = {
 			labelText: "Finish Height",
@@ -172,7 +338,7 @@ var NRS = (function(NRS, $, undefined) {
 			initBlockHeight: NRS.lastBlockHeight + 1440,
 			changeHeightBlocks: 60
 		};
-		var $elems = NRS.initModalUIElement($modal, '.phasing_finish_height_group', 'block_height_modal_ui_element', context);
+		NRS.initModalUIElement($modal, '.phasing_finish_height_group', 'block_height_modal_ui_element', context);
 		context.phasingType = "mandatory_approval";
 		$elems = NRS.initModalUIElement($modal, '.mandatory_approval_finish_height_group', 'block_height_modal_ui_element', context);
 
@@ -361,7 +527,7 @@ var NRS = (function(NRS, $, undefined) {
             $modal.find('.advanced_mandatory_approval').hide();
             $modal.find('.phasing_finish_height_group input').prop('disabled', false);
         }
-	}
+	};
 
 	$('.approve_tab_list a[data-toggle="tab"]').on('shown.bs.tab', function () {
         var $am = $(this).closest('.approve_modal');
@@ -408,11 +574,8 @@ var NRS = (function(NRS, $, undefined) {
 	});
 
     transactionJSONModal.on("hidden.bs.modal", function() {
-		var reader = $('#unsigned_transaction_bytes_reader');
-		if (reader.data('stream')) {
-		    reader.html5_qrcode_stop();
-        }
-		$(this).find(".tab_content").hide();
+        NRS.stopScanQRCode();
+        $(this).find(".tab_content").hide();
 		$(this).find("ul.nav li.active").removeClass("active");
 		$(this).find("ul.nav li:first").addClass("active");
 		$(this).find(".output").hide();
@@ -444,11 +607,9 @@ var NRS = (function(NRS, $, undefined) {
 	NRS.forms.parseTransactionComplete = function(response) {
 		$("#parse_transaction_form").find(".error_message").hide();
         var details = $.extend({}, response);
-        if (response.attachment) {
-            delete details.attachment;
-        }
+        details = NRS.flattenObject(details, ["version.", "signature"], ["RS"]);
         $("#parse_transaction_output_table").find("tbody").empty().append(NRS.createInfoTable(details, { fixed: true }));
-		$("#parse_transaction_output").show();
+        $("#parse_transaction_output").show();
 	};
 
 	NRS.forms.parseTransactionError = function() {
@@ -507,7 +668,8 @@ var NRS = (function(NRS, $, undefined) {
 			var output = {};
 			var secretPhrase = (NRS.rememberPassword ? _password : data.secretPhrase);
 			var isOffline = $(".mobile-offline").val();
-			if (NRS.getAccountId(secretPhrase) == NRS.account || isOffline) {
+            var accountId = NRS.getAccountId(secretPhrase);
+            if (accountId == NRS.account || isOffline) {
 				try {
 					var signature = NRS.signBytes(data.unsignedTransactionBytes, converters.stringToHexString(secretPhrase));
 					updateSignature(signature);
@@ -515,7 +677,7 @@ var NRS = (function(NRS, $, undefined) {
 					output.errorMessage = e.message;
 				}
 			} else {
-				output.errorMessage = $.t("error_passphrase_incorrect");
+				output.errorMessage = $.t("error_passphrase_incorrect_v2", { account: accountId });
 			}
 			output.stop = true;
 			output. keepOpen = true;
@@ -525,5 +687,5 @@ var NRS = (function(NRS, $, undefined) {
         return { data: data };
     };
 
-	return NRS;
+    return NRS;
 }(NRS || {}, jQuery));

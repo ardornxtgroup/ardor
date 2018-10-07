@@ -35,7 +35,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class BlockchainProcessorTest extends AbstractBlockchainTest {
+public class BlockchainProcessorTest extends AbstractFullDbTest {
 
     private static final String defaultTraceFile = "nxt-trace-default.csv";
     private static final String testTraceFile = "nxt-trace.csv";

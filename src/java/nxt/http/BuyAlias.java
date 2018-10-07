@@ -48,4 +48,9 @@ public final class BuyAlias extends CreateTransaction {
         Attachment attachment = new AliasBuyAttachment(alias.getAliasName());
         return createTransaction(req, buyer, sellerId, amountNQT, attachment);
     }
+
+    @Override
+    String getDocsUrlPath() {
+        return "Aliases#Buy_.2F_Sell_Alias";
+    }
 }

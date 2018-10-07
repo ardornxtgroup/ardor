@@ -21,14 +21,21 @@ import com.izforge.izpack.api.data.Pack;
 import com.izforge.izpack.api.event.ProgressListener;
 import com.izforge.izpack.api.event.ProgressNotifiers;
 import com.izforge.izpack.event.AbstractProgressInstallerListener;
+import com.izforge.izpack.event.RegistryInstallerListener;
 
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static nxt.installer.ConfigHandler.VAR_CLEAN_INSTALL_DIR;
 import static nxt.installer.ConfigHandler.VAR_SHUTDOWN_SERVER;
 
+/**
+ * Defined in setup.xml
+ */
+@SuppressWarnings("unused")
 public class InstallListener extends AbstractProgressInstallerListener {
-
+    private static final Logger logger = Logger.getLogger(RegistryInstallerListener.class.getName());
     private final ConfigHandler handler = new ConfigHandler();
 
     public InstallListener(InstallData installData, ProgressNotifiers notifiers) {
@@ -39,7 +46,9 @@ public class InstallListener extends AbstractProgressInstallerListener {
     public void beforePacks(List<Pack> packs) {
         boolean shutdownServer = getVariable(VAR_SHUTDOWN_SERVER);
         if (shutdownServer && !handler.shutdownServer()) {
-            error("Failed to stop server");
+            String msg = "Failed to stop server";
+            logger.log(Level.SEVERE, msg);
+            error(msg);
         }
 
         if (getVariable(VAR_CLEAN_INSTALL_DIR)) {
@@ -54,8 +63,7 @@ public class InstallListener extends AbstractProgressInstallerListener {
     public void afterPacks(List<Pack> packs, ProgressListener listener) {
         ConfigHandler handler = new ConfigHandler();
         String config = getInstallData().getVariable(ConfigHandler.VAR_FILE_CONTENTS);
-        if (config != null && !config.isEmpty() &&
-                !handler.writeSettingsFile(config, getInstallData().getInstallPath())) {
+        if (!handler.writeSettingsFile(config, getInstallData().getInstallPath())) {
             error("Failed to write settings file");
         }
     }

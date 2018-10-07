@@ -29,6 +29,8 @@ public interface FxtTransaction extends Transaction {
 
         FxtTransaction build(String secretPhrase) throws NxtException.NotValidException;
 
+        FxtTransaction build(String secretPhrase, boolean isVoucher) throws NxtException.NotValidException;
+
     }
 
     Collection<? extends ChildTransaction> getChildTransactions();

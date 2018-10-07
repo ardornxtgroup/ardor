@@ -18,10 +18,6 @@
  * @depends {nrs.js}
  */
 var NRS = (function(NRS, $) {
-    function isErrorResponse(response) {
-        return response.errorCode || response.errorDescription || response.errorMessage || response.error;
-    }
-
     NRS.jsondata = NRS.jsondata||{};
 
     NRS.jsondata.shuffling = function (response, shufflers, amountDecimals) {
@@ -217,8 +213,8 @@ var NRS = (function(NRS, $) {
     function getShufflers(callback) {
         NRS.sendRequest("getShufflers", {"account": NRS.account, "adminPassword": NRS.getAdminPassword(), "includeParticipantState": true},
             function (shufflers) {
-                if (isErrorResponse(shufflers)) {
-                    $.growl($.t("cannot_check_shufflers_status") + " " + shufflers.errorDescription.escapeHTML());
+                if (NRS.isErrorResponse(shufflers)) {
+                    $.growl($.t("cannot_check_shufflers_status") + " " + NRS.getErrorMessage(shufflers));
                     callback(null, undefined);
                 } else {
                     callback(null, shufflers);
@@ -257,7 +253,7 @@ var NRS = (function(NRS, $) {
                 };
                 NRS.sendRequest("getAllShufflings", params,
                     function (response) {
-                        if (isErrorResponse(response)) {
+                        if (NRS.isErrorResponse(response)) {
                             view.render({
                                 errorMessage: NRS.getErrorMessage(response),
                                 isLoading: false,
@@ -321,7 +317,7 @@ var NRS = (function(NRS, $) {
                 };
                 NRS.sendRequest("getAccountShufflings", params,
                     function(response) {
-                        if (isErrorResponse(response)) {
+                        if (NRS.isErrorResponse(response)) {
                             view.render({
                                 errorMessage: NRS.getErrorMessage(response),
                                 isLoading: false,
@@ -474,7 +470,7 @@ var NRS = (function(NRS, $) {
                 }
                 NRS.sendRequest("getAllShufflings", params,
                     function (response) {
-                        if (isErrorResponse(response)) {
+                        if (NRS.isErrorResponse(response)) {
                             view.render({
                                 errorMessage: NRS.getErrorMessage(response),
                                 isLoading: false,

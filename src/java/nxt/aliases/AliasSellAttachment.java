@@ -16,7 +16,6 @@
 
 package nxt.aliases;
 
-import nxt.Constants;
 import nxt.NxtException;
 import nxt.blockchain.Attachment;
 import nxt.blockchain.TransactionType;
@@ -32,7 +31,7 @@ public final class AliasSellAttachment extends Attachment.AbstractAttachment {
 
     AliasSellAttachment(ByteBuffer buffer) throws NxtException.NotValidException {
         super(buffer);
-        this.aliasName = Convert.readString(buffer, buffer.get(), Constants.MAX_ALIAS_LENGTH);
+        this.aliasName = AliasAssignmentAttachment.ALIAS_NAME_RW.readFromBuffer(buffer);
         this.priceNQT = buffer.getLong();
     }
 

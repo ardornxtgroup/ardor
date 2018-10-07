@@ -236,10 +236,12 @@ var NRS = (function (NRS, $) {
 		var m = simpleHash(messageBytes);
 		var h2 = simpleHash(m, y);
 		if (!areByteArraysEqual(h, h2)) {
-            callback({
-                "errorCode": 1,
-                "errorDescription": $.t("error_signature_verification_client")
-            }, message);
+            if (callback) {
+                callback({
+                    "errorCode": 1,
+                    "errorDescription": $.t("error_signature_verification_client")
+                }, message);
+			}
             return false;
         }
         return true;

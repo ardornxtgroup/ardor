@@ -1,0 +1,65 @@
+// Auto generated code, do not modify
+package nxt.http.callers;
+
+import java.lang.String;
+import nxt.http.APICall;
+
+public class GetAssetPhasedTransactionsCall extends APICall.Builder<GetAssetPhasedTransactionsCall> {
+    private GetAssetPhasedTransactionsCall() {
+        super("getAssetPhasedTransactions");
+    }
+
+    public static GetAssetPhasedTransactionsCall create(int chain) {
+        GetAssetPhasedTransactionsCall instance = new GetAssetPhasedTransactionsCall();
+        instance.param("chain", chain);
+        return instance;
+    }
+
+    public GetAssetPhasedTransactionsCall requireLastBlock(String requireLastBlock) {
+        return param("requireLastBlock", requireLastBlock);
+    }
+
+    public GetAssetPhasedTransactionsCall chain(String chain) {
+        return param("chain", chain);
+    }
+
+    public GetAssetPhasedTransactionsCall chain(int chain) {
+        return param("chain", chain);
+    }
+
+    public GetAssetPhasedTransactionsCall firstIndex(int firstIndex) {
+        return param("firstIndex", firstIndex);
+    }
+
+    public GetAssetPhasedTransactionsCall withoutWhitelist(String withoutWhitelist) {
+        return param("withoutWhitelist", withoutWhitelist);
+    }
+
+    public GetAssetPhasedTransactionsCall lastIndex(int lastIndex) {
+        return param("lastIndex", lastIndex);
+    }
+
+    public GetAssetPhasedTransactionsCall asset(String asset) {
+        return param("asset", asset);
+    }
+
+    public GetAssetPhasedTransactionsCall asset(long asset) {
+        return unsignedLongParam("asset", asset);
+    }
+
+    public GetAssetPhasedTransactionsCall account(String account) {
+        return param("account", account);
+    }
+
+    public GetAssetPhasedTransactionsCall account(long account) {
+        return unsignedLongParam("account", account);
+    }
+
+    public GetAssetPhasedTransactionsCall requireBlock(String requireBlock) {
+        return param("requireBlock", requireBlock);
+    }
+
+    public GetAssetPhasedTransactionsCall adminPassword(String adminPassword) {
+        return param("adminPassword", adminPassword);
+    }
+}

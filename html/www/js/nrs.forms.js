@@ -341,7 +341,7 @@ var NRS = (function(NRS, $) {
 		}
 
 		if (typeof formFunction == "function") {
-			var output = formFunction($modal);
+			var output = formFunction($modal, $btn);
 
 			if (!output) {
 				return;
@@ -435,7 +435,7 @@ var NRS = (function(NRS, $) {
 			}
 		}
 
-		if (requestType == "sendMoney" || requestType == "transferAsset") {
+		if (requestType == "sendMoney" || requestType == "transferAsset" || requestType == "transferCurrency") {
 			var merchantInfo = $modal.find("input[name=merchant_info]").val();
 			if (merchantInfo) {
 				var result = merchantInfo.match(/#merchant:(.*)#/i);
@@ -639,8 +639,16 @@ var NRS = (function(NRS, $) {
 
 		NRS.processApprovalModel(data);
 
-		if (data.doNotBroadcast || data.calculateFee) {
+		if (data.doNotBroadcast || data.calculateFee || data.isVoucher) {
 			data.broadcast = "false";
+			if (data.isVoucher && !data.secretPhrase) {
+                    $form.find(".error_message").html($.t("voucher_generator_secret_phrase")).show();
+                    if (formErrorFunction) {
+                        formErrorFunction(false, data);
+                    }
+                    NRS.unlockForm($modal, $btn);
+                    return;
+                }
             if (data.calculateFee) {
                 if (NRS.accountInfo.publicKey) {
                     data.publicKey = NRS.accountInfo.publicKey;

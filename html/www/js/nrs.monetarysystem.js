@@ -429,7 +429,7 @@ var NRS = (function (NRS, $, undefined) {
         }, function (response) {
             var rows = "";
             var decimals = $invoker.data("decimals"); // has to be numeric not string
-            var minReservePerUnitNQT = new BigInteger(String($invoker.data("minreserve"))).multiply(new BigInteger("" + Math.pow(10, decimals)));
+            var minReservePerUnitNQT = new BigInteger(NRS.floatToInt(String($invoker.data("minreserve")), decimals));
             var initialSupplyQNT = new BigInteger(String($invoker.data("initialsupply")));
             var resSupply = new BigInteger(String($invoker.data("ressupply")));
             var totalAmountReserved = BigInteger.ZERO;
@@ -438,12 +438,11 @@ var NRS = (function (NRS, $, undefined) {
             if (response.founders && response.founders.length) {
                 var amountPerUnitNQT = BigInteger.ZERO;
                 for (var i = 0; i < response.founders.length; i++) {
-                    amountPerUnitNQT = new BigInteger(response.founders[i].amountPerUnitNQT).multiply(new BigInteger("" + Math.pow(10, decimals)));
+                    amountPerUnitNQT = new BigInteger(response.founders[i].amountPerUnitNQT);
                     totalAmountReserved = totalAmountReserved.add(amountPerUnitNQT);
                 }
                 for (i = 0; i < response.founders.length; i++) {
-                    var account = response.founders[i].accountRS;
-                    amountPerUnitNQT = new BigInteger(response.founders[i].amountPerUnitNQT).multiply(new BigInteger("" + Math.pow(10, decimals)));
+                    amountPerUnitNQT = new BigInteger(response.founders[i].amountPerUnitNQT);
                     var percentage = NRS.calculatePercentage(amountPerUnitNQT, minReservePerUnitNQT);
                     rows += "<tr>" +
                     "<td>" + NRS.getAccountLink(response.founders[i], "account")+ "</td>" +
@@ -1460,7 +1459,7 @@ var NRS = (function (NRS, $, undefined) {
                 var minReservePerUnitNQT = new BigInteger(minReserve).multiply(new BigInteger("" + Math.pow(10, decimals)));
                 $("#reserve_currency_minReserve_text").html(NRS.formatQuantity(NRS.convertToNXT(minReservePerUnitNQT.multiply(new BigInteger(resSupply))), decimals));
                 $("#reserve_currency_currentReserve").val(currentReserve);
-                var currentReservePerUnitNQT = new BigInteger(currentReserve).multiply(new BigInteger("" + Math.pow(10, decimals)));
+                var currentReservePerUnitNQT = new BigInteger(currentReserve);
                 $("#reserve_currency_currentReserve_text").html(NRS.formatQuantity(NRS.convertToNXT(currentReservePerUnitNQT.multiply(new BigInteger(resSupply))), decimals));
                 $("#reserve_currency_resSupply").val(resSupply);
                 $("#reserve_currency_resSupply_text").html(NRS.formatQuantity(resSupply, decimals));
@@ -1490,8 +1489,7 @@ var NRS = (function (NRS, $, undefined) {
 
     NRS.forms.currencyReserveIncrease = function ($modal) {
         var data = NRS.getFormData($modal.find("form:first"));
-        var decimals = parseInt(data.decimals, 10);
-        data.amountPerUnitNQT = NRS.calculatePricePerWholeQNT(NRS.convertToNQT(data.amountPerUnitNQT), decimals);
+        data.amountPerUnitNQT = NRS.convertToNQT(data.amountPerUnitNQT);
         return {
             "data": data
         };
@@ -1519,7 +1517,7 @@ var NRS = (function (NRS, $, undefined) {
         NRS.sendRequest("getCurrency", {
             "currency": currency
         }, function (response) {
-            var currentReservePerUnitNQT = new BigInteger(response.currentReservePerUnitNQT).multiply(new BigInteger("" + Math.pow(10, response.decimals)));
+            var currentReservePerUnitNQT = new BigInteger(response.currentReservePerUnitNQT);
             $("#claimRate").html(NRS.formatAmount(currentReservePerUnitNQT) + " [" + NRS.getActiveChainName() + "/" + currencyCode + "]"); // TODO test
         });
 

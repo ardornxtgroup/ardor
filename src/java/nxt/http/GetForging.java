@@ -78,4 +78,8 @@ public final class GetForging extends APIServlet.APIRequestHandler {
         return false;
     }
 
+    @Override
+    String getDocsUrlPath() {
+        return "Forging#Start_.2F_Stop_.2F_Get_Forging";
+    }
 }

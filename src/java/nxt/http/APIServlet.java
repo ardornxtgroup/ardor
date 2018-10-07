@@ -58,6 +58,7 @@ public final class APIServlet extends HttpServlet {
         private final List<String> parameters;
         private final String fileParameter;
         private final Set<APITag> apiTags;
+        private final String docsUrlPath;
 
         protected APIRequestHandler(APITag[] apiTags, String... parameters) {
             this(null, apiTags, parameters);
@@ -79,6 +80,22 @@ public final class APIServlet extends HttpServlet {
             this.parameters = Collections.unmodifiableList(parameters);
             this.apiTags = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(apiTags)));
             this.fileParameter = fileParameter;
+            StringBuilder buf = new StringBuilder();
+            buf.append(apiTags[0].getDisplayName().replace(' ', '_'));
+            buf.append('#');
+            char[] className = getClass().getSimpleName().toCharArray();
+            for (int i = 0; i < className.length; i++) {
+                char c = className[i];
+                if (i == 0) {
+                    c = Character.toUpperCase(c);
+                }
+                buf.append(c);
+                if (i < className.length - 2 && Character.isUpperCase(className[i+1])
+                        && (Character.isLowerCase(c) || Character.isLowerCase(className[i+2]))) {
+                    buf.append('_');
+                }
+            }
+            docsUrlPath = buf.toString();
         }
 
         public final List<String> getParameters() {
@@ -139,9 +156,14 @@ public final class APIServlet extends HttpServlet {
             return false;
         }
 
+        String getDocsUrlPath() {
+            return docsUrlPath;
+        }
+
     }
 
     private static final boolean enforcePost = Nxt.getBooleanProperty("nxt.apiServerEnforcePOST");
+    private static final boolean fixResponseContentType = Nxt.getBooleanProperty("nxt.apiFixResponseContentType");
     static final Map<String,APIRequestHandler> apiRequestHandlers;
     static final Map<String,APIRequestHandler> disabledRequestHandlers;
 
@@ -155,7 +177,6 @@ public final class APIServlet extends HttpServlet {
                 map.put(api.getName(), api.getHandler());
             }
         }
-
         AddOns.registerAPIRequestHandlers(map);
 
         API.disabledAPIs.forEach(api -> {
@@ -190,6 +211,10 @@ public final class APIServlet extends HttpServlet {
         return apiRequestHandlers.get(requestType);
     }
 
+    public static Map<String, APIRequestHandler> getAPIRequestHandlers() {
+        return apiRequestHandlers;
+    }
+
     static void initClass() {}
 
     @Override
@@ -198,7 +223,7 @@ public final class APIServlet extends HttpServlet {
     }
 
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    public void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         process(req, resp);
     }
 
@@ -207,7 +232,11 @@ public final class APIServlet extends HttpServlet {
         resp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate, private");
         resp.setHeader("Pragma", "no-cache");
         resp.setDateHeader("Expires", 0);
-        resp.setContentType("text/plain; charset=UTF-8");
+        if (fixResponseContentType) {
+            resp.setContentType("application/json");
+        } else {
+            resp.setContentType("text/plain; charset=UTF-8");
+        }
 
         JSONStreamAware response = JSON.emptyJSON;
         long startTime = System.currentTimeMillis();
@@ -306,7 +335,7 @@ public final class APIServlet extends HttpServlet {
         } catch (ExceptionInInitializerError err) {
             Logger.logErrorMessage("Initialization Error", err.getCause());
             response = ERROR_INCORRECT_REQUEST;
-        } catch (Exception e) {
+        } catch (Exception | IllegalAccessError e) {
             Logger.logErrorMessage("Error processing request", e);
             response = ERROR_INCORRECT_REQUEST;
         } finally {

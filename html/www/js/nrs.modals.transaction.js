@@ -189,9 +189,10 @@ var NRS = (function (NRS, $, undefined) {
 
             var transactionDetails = $.extend({}, transaction);
             delete transactionDetails.attachment;
-            if (transactionDetails.referencedTransaction == "0") {
-                delete transactionDetails.referencedTransaction;
+            if (transactionDetails.referencedTransaction !== undefined) {
+                transactionDetails.referencedTransaction_formatted_html = NRS.getTransactionLink(transactionDetails.referencedTransaction.transactionFullHash, null, false, transactionDetails.referencedTransaction.chain);
             }
+            delete transactionDetails.referencedTransaction;
             transactionDetails.entity = NRS.fullHashToId(transactionDetails.fullHash);
             if (transaction.fxtTransaction && transaction.fxtTransaction != 0)   {
                 transactionDetails.fxt_transaction_formatted_html = NRS.getTransactionLink(null, null, false, null, transaction.fxtTransaction);
@@ -1126,7 +1127,7 @@ var NRS = (function (NRS, $, undefined) {
                     }
                 } else if (NRS.isOfType(transaction, "ReserveIncrease")) {
                     if (currency) {
-                        var amountPerUnitNQT = new BigInteger(transaction.attachment.amountPerUnitNQT).multiply(new BigInteger("" + Math.pow(10, currency.decimals)));
+                        var amountPerUnitNQT = new BigInteger(transaction.attachment.amountPerUnitNQT);
                         var resSupply = currency.reserveSupplyQNT;
                         data = {
                             "type": $.t("reserve_increase"),
@@ -1140,7 +1141,7 @@ var NRS = (function (NRS, $, undefined) {
                     }
                 } else if (NRS.isOfType(transaction, "ReserveClaim")) {
                     if (currency) {
-                        var reservePerUnitNQT = new BigInteger(currency.currentReservePerUnitNQT).multiply(new BigInteger("" + Math.pow(10, currency.decimals)));
+                        var reservePerUnitNQT = new BigInteger(currency.currentReservePerUnitNQT);
                         data = {
                             "type": $.t("reserve_claim"),
                             "code": currency.code,
@@ -1355,9 +1356,29 @@ var NRS = (function (NRS, $, undefined) {
                 data.order_formatted_html = NRS.getTransactionLink(transaction.attachment.orderHash);
                 infoTable.find("tbody").append(NRS.createInfoTable(data, { chain: transaction.chain }));
                 infoTable.show();
+            } else if (NRS.isOfType(transaction, "ContractReference")) {
+                var fullHash = transaction.attachment.contract.transactionFullHash;
+                data = {
+                    "type": $.t("set_contract_reference"),
+                    "name": transaction.attachment.contractName,
+                    "parameters": transaction.attachment.contractParams,
+                    "contract_formatted_html": NRS.getTransactionLink(fullHash, fullHash, false, transaction.attachment.contract.chain)
+                };
+                infoTable.find("tbody").append(NRS.createInfoTable(data, { chain: transaction.chain }));
+                infoTable.show();
+            } else if (NRS.isOfType(transaction, "ContractReferenceDelete")) {
+                data = {
+                    "type": $.t("delete_contract_reference"),
+                    // TODO currently we cannot use NRS.getEntityLink() here since there is no one parameter getProperty API
+                    // and we cannot pass more than once param to key and id. In addition we only have the 64 bit id of the
+                    // property not the full hash so we cannot load the setProperty transaction.
+                    // Will solve this one day
+                    "contractReference": transaction.attachment.contractReference
+                };
+                infoTable.find("tbody").append(NRS.createInfoTable(data, { chain: transaction.chain }));
+                infoTable.show();
             }
-
-            if (NRS.notOfType(transaction, "ArbitraryMessage")) {
+            if (!NRS.isOfType(transaction, "ArbitraryMessage")) {
                 if (transaction.attachment) {
                     var transactionInfoOutputBottom = $("#transaction_info_output_bottom");
                     if (transaction.attachment.message) {

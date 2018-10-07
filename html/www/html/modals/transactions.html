@@ -234,12 +234,119 @@
                             <textarea class="form-control" id="raw_transaction_modal_signature_hash" rows="1" readonly></textarea>
                         </div>
                     </div>
+
                     <input type="hidden" name="request_type" value="broadcastTransaction"/>
                 </form>
             </div>
             <div class="modal-footer" style="margin-top:0;">
                 <button type="button" class="btn" data-dismiss="modal" data-i18n="close">Close</button>
                 <button type="button" id="raw_transaction_broadcast" class="btn btn-primary" data-i18n="broadcast">Broadcast</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="generate_voucher_modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" data-i18n="generate_voucher">GENERATE VOUCHER</h4>
+            </div>
+            <div class="modal-body">
+                <form role="form" id="generate_voucher_form" autocomplete="off">
+                    <div class="callout callout-danger error_message" style="display:none"></div>
+                    <label for="voucher_json" data-i18n="voucher_data">Voucher Data</label>
+                    <a href="#" id="voucher_json_download">
+                        <i class="fa fa-download"></i>
+                    </a>
+                    <div class="form-group">
+                        <pre><code class="json hljs" id="generated_voucher_json"></code></pre>
+                    </div>
+                    <div id="voucher_qr_code_container">
+                        <label data-i18n="voucher_qr_code">VOUCHER QR CODE</label>
+                        <div class="form-group">
+                            <div id="voucher_qr_code"></div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer" style="margin-top:0;">
+                <button type="button" class="btn" data-dismiss="modal" data-i18n="close">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="load_voucher_modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-700">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">
+                    <span data-i18n="submit_voucher">SUBMIT VOUCHER</span>
+                </h4>
+            </div>
+            <div class="modal-body">
+                <form role="form" autocomplete="off">
+                    <div class="callout callout-danger remote_warning" style="display:none">
+                        <strong><span data-i18n="warning">Warning</span>:</strong>
+                        <span data-i18n="passphrase_remote_warning">Your passphrase will be sent to the server!</span>
+                    </div>
+                    <div class="callout callout-danger error_message" style="display:none"></div>
+                    <div class="form-group">
+                        <div class="form-group">
+                            <label for="voucher_json" data-i18n="voucher_json">VOUCHER JSON</label>
+                            <label for="voucher_json_file">
+                                <i class="fa fa-upload"></i>
+                            </label>
+                            <div class="upload_container">
+                                <input type="file" id="voucher_json_file">
+                            </div>
+                        </div>
+                    </div>
+                    <div id="voucher_reader_container" class="form-group">
+                        <label for="voucher_reader_link" data-i18n="voucher_reader">Voucher Reader</label>
+                        <a href="#" id="voucher_reader_link">
+                            <i class="fa fa-qrcode"></i>
+                        </a>
+                        <div id="voucher_reader" style="width:384px;height:384px;"></div>
+                    </div>
+                    <div class="form-group">
+                        <textarea class="form-control" name="voucher" id="voucher_json" rows="10" placeholder="VOUCHER JSON" data-i18n="[placeholder]voucher_json"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="voucher_creator_account" data-i18n="creator_account">Creator Account</label>
+                        <input id="voucher_creator_account" class="form-control" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="voucher_request_type" data-i18n="request_type">Request Type</label>
+                        <input id="voucher_request_type" class="form-control" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="parse_voucher_output" data-i18n="voucher_data">Voucher Data</label>
+                        <div id="parse_voucher_output" class="output" style="max-height:200px;overflow:auto">
+                            <table class="table table-striped output_table" id="parse_voucher_output_table" style="margin-bottom:0;table-layout:fixed">
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div data-replace-with-modal-template="fee_calculation_modal_template"></div>
+                    <div data-replace-with-modal-template="secret_phrase_modal_template"></div>
+                    <div data-replace-with-modal-template="advanced_deadline_template"></div>
+                    <div data-replace-with-modal-template="advanced_approve_template"></div>
+                    <div data-replace-with-modal-template="advanced_rt_hash_template"></div>
+                    <div data-replace-with-modal-template="advanced_broadcast_template"></div>
+                    <div data-replace-with-modal-template="advanced_note_to_self_template"></div>
+
+                    <div class="callout account_info" style="display:none;margin-bottom: 0;"></div>
+                    <input type="hidden" name="request_type" value="loadVoucher"/>
+                </form>
+            </div>
+            <div class="modal-footer" style="margin-top:0;">
+                <div class="advanced_info"><a href="#" data-i18n="advanced">advanced</a></div>
+                <button type="button" class="btn btn-default" data-dismiss="modal" data-i18n="cancel">Cancel</button>
+                <button type="button" id="voucher_submit_btn" class="btn btn-primary" data-loading-text="Submitting..." data-i18n="submit;[data-loading-text]submitting">Submit</button>
             </div>
         </div>
     </div>
@@ -262,6 +369,10 @@
 
                 <div id="transaction_json_modal_sign_transaction" class="tab_content" style="display:none">
                     <form role="form" id="sign_transaction_form" autocomplete="off">
+                        <div class="callout callout-danger remote_warning" style="display:none">
+                            <strong><span data-i18n="warning">Warning</span>:</strong>
+                            <span data-i18n="passphrase_remote_warning">Your passphrase will be sent to the server!</span>
+                        </div>
                         <div class="callout callout-danger error_message" style="display:none"></div>
                         <div class="form-group">
                             <label for="unsigned_transaction_bytes" data-i18n="unsigned_transaction_bytes">UNSIGNED TRANSACTION BYTES</label>

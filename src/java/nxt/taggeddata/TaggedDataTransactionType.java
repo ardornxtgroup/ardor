@@ -36,7 +36,7 @@ import java.nio.ByteBuffer;
 
 public abstract class TaggedDataTransactionType extends ChildTransactionType {
 
-    private static final byte SUBTYPE_DATA_TAGGED_DATA_UPLOAD = 0;
+    public static final byte SUBTYPE_DATA_TAGGED_DATA_UPLOAD = 0;
 
     public static TransactionType findTransactionType(byte subtype) {
         switch (subtype) {

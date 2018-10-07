@@ -1,0 +1,8 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Ardor Local" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="nxt.Nxt" />
+    <module name="Ardor" />
+    <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
+    <method />
+  </configuration>
+</component>

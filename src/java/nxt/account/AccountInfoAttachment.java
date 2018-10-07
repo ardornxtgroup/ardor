@@ -21,19 +21,26 @@ import nxt.NxtException;
 import nxt.blockchain.Attachment;
 import nxt.blockchain.TransactionType;
 import nxt.util.Convert;
+import nxt.util.bbh.StringRw;
 import org.json.simple.JSONObject;
 
 import java.nio.ByteBuffer;
 
+import static nxt.util.bbh.LengthRwPrimitiveType.BYTE;
+import static nxt.util.bbh.LengthRwPrimitiveType.SHORT;
+
 public final class AccountInfoAttachment extends Attachment.AbstractAttachment {
+
+    public static final StringRw NAME_RW = new StringRw(BYTE, Constants.MAX_ACCOUNT_NAME_LENGTH);
+    public static final StringRw DESCRIPTION_RW = new StringRw(SHORT, Constants.MAX_ACCOUNT_DESCRIPTION_LENGTH);
 
     private final String name;
     private final String description;
 
     AccountInfoAttachment(ByteBuffer buffer) throws NxtException.NotValidException {
         super(buffer);
-        this.name = Convert.readString(buffer, buffer.get(), Constants.MAX_ACCOUNT_NAME_LENGTH);
-        this.description = Convert.readString(buffer, buffer.getShort(), Constants.MAX_ACCOUNT_DESCRIPTION_LENGTH);
+        this.name = NAME_RW.readFromBuffer(buffer);
+        this.description = DESCRIPTION_RW.readFromBuffer(buffer);
     }
 
     AccountInfoAttachment(JSONObject attachmentData) {

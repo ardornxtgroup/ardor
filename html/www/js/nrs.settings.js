@@ -43,7 +43,7 @@ var NRS = (function(NRS, $) {
         "changelly_api_key": "77c34bb4f2bc40519df33a474097936f",
         "changelly_api_secret": "76021037dd6358c33de88810fa4093852bf278a683843c37ea9913acc2746ee0",
         "changelly_coin0": "BTC",
-        "changelly_coin1": "ARDR",
+        "changelly_coin1": "BCH",
         "changelly_coin2": "ETH",
 		"max_nxt_decimals": "4",
         "fake_entity_warning": "1",
@@ -57,34 +57,21 @@ var NRS = (function(NRS, $) {
 	};
 
 	NRS.languages = {
-		"de": "Deutsch",                 // german
-		"en": "English",                 // english
-		"es-es": "Español",              // spanish
-		"ca": "Català",                  // catalan
-		"fi": "Suomi (Experimental)",    // finnish
-		"fr": "Français",                // french
-		"gl": "Galego (Experimental)",   // galician
-		"el": "Ελληνικά (Experimental)", // greek
-		"sh": "Hrvatski (Experimental)", // croatian
-		"hi": "हिन्दी (Experimental)",  // hindi
-		"id": "Bahasa Indonesia",        // indonesian
-		"it": "Italiano",                // italian
-		"ja": "日本語",                   // japanese
-		"lt": "Lietuviškai",             // lithuanian
-		"nl": "Nederlands",              // dutch
-		"cs": "Čeština (Beta)",          // czech
-		"sk": "Slovensky (Beta)",        // slovakian
-		"pt-pt": "Português",            // portugese
-		"pt-br": "Português Brasileiro", // portugese, brazilian
-		"sr": "Српски (Experimental)",   // serbian, cyrillic
-		"sr-cs": "Srpski (Experimental)",// serbian, latin
-		"bg": "Български",               // bulgarian
-		"ro": "Român",                   // romanian
-		"tr": "Türk (Experimental)",     // turkish
-		"uk": "Yкраiнска",               // ukrainian
-		"ru": "Русский",                 // russian
-		"zh-cn": "中文 simplified",      // chinese simplified
-		"zh-tw": "中文 traditional"      // chinese traditional
+		"en": "English",
+        "de": "German",
+		"es": "Spanish",
+		"fr": "French",
+		"el": "Greek",
+		"id": "Indonesian",
+		"it": "Italian",
+		"ja": "日本語 (Japanese)",
+		"ko": "Korean",
+		"pt": "Portuguese",
+		"ru": "Russian",
+		"th": "Thai",
+		"vi": "Vietnamese",
+		"zh-cn": "中文 (Chinese Simplified)",
+		"zh-tw": "中文 (Chinese Traditional)"
 	};
 
 	var userStyles = {};

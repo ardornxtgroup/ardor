@@ -20,15 +20,14 @@ import javafx.application.Platform;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import nxt.Nxt;
+import nxt.addons.JO;
 import nxt.http.API;
-import nxt.util.JSON;
 import nxt.util.Logger;
-import org.json.simple.JSONObject;
 
 import java.awt.*;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
@@ -79,22 +78,14 @@ public class JavaScriptBridge {
             bytes = Files.readAllBytes(Paths.get(Nxt.getUserHomeDir(), fileName));
         } catch (IOException e) {
             Logger.logInfoMessage("Cannot read file " + fileName + " error " + e.getMessage());
-            JSONObject response = new JSONObject();
+            JO response = new JO();
             response.put("error", "contacts_file_not_found");
             response.put("file", fileName);
             response.put("folder", Nxt.getUserHomeDir());
             response.put("type", "1");
-            return JSON.toJSONString(response);
+            return response.toJSONString();
         }
-        try {
-            return new String(bytes, "utf8");
-        } catch (UnsupportedEncodingException e) {
-            Logger.logInfoMessage("Cannot parse file " + fileName + " content error " + e.getMessage());
-            JSONObject response = new JSONObject();
-            response.put("error", "unsupported_encoding");
-            response.put("type", "2");
-            return JSON.toJSONString(response);
-        }
+        return new String(bytes, StandardCharsets.UTF_8);
     }
 
     public String getAdminPassword() {

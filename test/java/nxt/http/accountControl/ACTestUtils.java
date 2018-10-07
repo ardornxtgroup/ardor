@@ -68,6 +68,7 @@ public class ACTestUtils {
         }
 
         public PhasingBuilder startSubPoll(String subPollName) {
+            setParamValidation(false);
             currentSubPollName = subPollName;
             return this;
         }

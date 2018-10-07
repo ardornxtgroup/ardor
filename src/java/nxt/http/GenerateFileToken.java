@@ -20,10 +20,7 @@ import nxt.account.Token;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.Part;
-import java.io.IOException;
 
 import static nxt.http.JSONResponses.INCORRECT_FILE;
 import static nxt.http.JSONResponses.INCORRECT_TOKEN;
@@ -40,17 +37,11 @@ public final class GenerateFileToken extends APIServlet.APIRequestHandler {
     @Override
     protected JSONStreamAware processRequest(HttpServletRequest req) throws ParameterException {
         String secretPhrase = ParameterParser.getSecretPhrase(req, true);
-        byte[] data;
-        try {
-            Part part = req.getPart("file");
-            if (part == null) {
-                throw new ParameterException(INCORRECT_FILE);
-            }
-            ParameterParser.FileData fileData = new ParameterParser.FileData(part).invoke();
-            data = fileData.getData();
-        } catch (IOException | ServletException e) {
-            throw new ParameterException(INCORRECT_FILE);
+        ParameterParser.FileData fileData = ParameterParser.getFileData(req, "file", true);
+        if (fileData == null) {
+            return INCORRECT_FILE;
         }
+        byte[] data = fileData.getData();
         try {
             String tokenString = Token.generateToken(secretPhrase, data);
             JSONObject response = JSONData.token(Token.parseToken(tokenString, data));

@@ -17,16 +17,24 @@
 package nxt;
 
 import nxt.account.Account;
-import nxt.blockchain.*;
+import nxt.blockchain.BlockchainProcessor;
+import nxt.blockchain.Chain;
+import nxt.blockchain.ChildChain;
+import nxt.blockchain.FxtChain;
+import nxt.blockchain.TransactionProcessorImpl;
 import nxt.crypto.Crypto;
+import nxt.dbschema.Db;
 import nxt.http.APICall;
 import nxt.util.Convert;
 import nxt.util.JSONAssert;
 import nxt.util.Logger;
 import nxt.util.Time;
+import org.hamcrest.CoreMatchers;
 import org.json.simple.JSONObject;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.BeforeClass;
 
 import java.util.ArrayList;
@@ -51,20 +59,27 @@ public abstract class BlockchainTest extends AbstractBlockchainTest {
     protected static final String forgerPublicKey = Convert.toHexString(Crypto.getPublicKey(forgerSecretPhrase));
 
     public static final String aliceSecretPhrase = "hope peace happen touch easy pretend worthless talk them indeed wheel state";
-    private static final String bobSecretPhrase2 = "rshw9abtpsa2";
-    private static final String chuckSecretPhrase = "eOdBVLMgySFvyiTy8xMuRXDTr45oTzB7L5J";
-    private static final String daveSecretPhrase = "t9G2ymCmDsQij7VtYinqrbGCOAtDDA3WiNr";
-    private static final String rikerSecretPhrase = "5hiig9BPdYoBzWni0QPaCDno6Wz0Vg8oX9yMcXRjEhmkuQKhvB";
+    public static final String bobSecretPhrase2 = "rshw9abtpsa2";
+    public static final String chuckSecretPhrase = "eOdBVLMgySFvyiTy8xMuRXDTr45oTzB7L5J";
+    public static final String daveSecretPhrase = "t9G2ymCmDsQij7VtYinqrbGCOAtDDA3WiNr";
+    public static final String rikerSecretPhrase = "5hiig9BPdYoBzWni0QPaCDno6Wz0Vg8oX9yMcXRjEhmkuQKhvB";
+    protected static final String rikerPublicKey = Convert.toHexString(Crypto.getPublicKey(rikerSecretPhrase));
 
     protected static boolean isNxtInitialized = false;
+    private static boolean isRunInSuite = false;
+
+    public static void setIsRunInSuite(boolean isRunInSuite) {
+        BlockchainTest.isRunInSuite = isRunInSuite;
+    }
 
     public static void initNxt(Map<String, String> additionalProperties) {
         if (!isNxtInitialized) {
             Properties properties = ManualForgingTest.newTestProperties();
             properties.setProperty("nxt.isTestnet", "true");
+            properties.setProperty("nxt.isAutomatedTest", "true");
             properties.setProperty("nxt.isOffline", "true");
             properties.setProperty("nxt.enableFakeForging", "true");
-            properties.setProperty("nxt.fakeForgingPublicKey", forgerPublicKey);
+            properties.setProperty("nxt.fakeForgingPublicKeys", forgerPublicKey + ";" + rikerPublicKey);
             properties.setProperty("nxt.timeMultiplier", "1");
             properties.setProperty("nxt.testnetGuaranteedBalanceConfirmations", "1");
             properties.setProperty("nxt.testnetLeasingDelay", "1");
@@ -72,6 +87,7 @@ public abstract class BlockchainTest extends AbstractBlockchainTest {
             properties.setProperty("nxt.deleteFinishedShufflings", "false");
             properties.setProperty("nxt.disableSecurityPolicy", "true");
             properties.setProperty("nxt.disableAdminPassword", "true");
+            properties.setProperty("nxt.testDbDir", "./nxt_unit_test_db/nxt");
 
             additionalProperties.forEach(properties::setProperty);
 
@@ -84,6 +100,14 @@ public abstract class BlockchainTest extends AbstractBlockchainTest {
     public static void init() {
         initNxt(Collections.emptyMap());
         initBlockchainTest();
+        Assume.assumeThat(Db.PREFIX, CoreMatchers.equalTo("nxt.testDb"));
+    }
+
+    @AfterClass
+    public static void shutdownNxt() {
+        if (!isRunInSuite) {
+            Nxt.shutdown();
+        }
     }
 
     protected static void initBlockchainTest() {
@@ -110,10 +134,17 @@ public abstract class BlockchainTest extends AbstractBlockchainTest {
                     param("feeNQT", FxtChain.FXT.ONE_COIN * 11);
 
             APICall.Builder sendIgnisBuilder = new APICall.Builder("sendMoney").secretPhrase(rikerSecretPhrase).
+                    param("chain", "" + ChildChain.IGNIS.getId()).
                     param("amountNQT", 100_000 * ChildChain.IGNIS.ONE_COIN).
                     param("feeNQT", ChildChain.IGNIS.ONE_COIN * 11);
 
-            List<String> transactionsToBundle = new ArrayList<>();
+            APICall.Builder sendAeurBuilder = new APICall.Builder("sendMoney").secretPhrase(rikerSecretPhrase).
+                    param("chain", "" + ChildChain.AEUR.getId()).
+                    param("amountNQT", 100_000 * ChildChain.AEUR.ONE_COIN).
+                    param("feeNQT", ChildChain.AEUR.ONE_COIN * 11);
+
+            List<String> ignisTransactionsToBundle = new ArrayList<>();
+            List<String> aeurTransactionsToBundle = new ArrayList<>();
             for (String secret : Arrays.asList(aliceSecretPhrase, bobSecretPhrase2, chuckSecretPhrase, daveSecretPhrase, forgerSecretPhrase)) {
                 byte[] publicKey = Crypto.getPublicKey(secret);
                 String publicKeyStr = Convert.toHexString(publicKey);
@@ -123,14 +154,13 @@ public abstract class BlockchainTest extends AbstractBlockchainTest {
                 new JSONAssert(sendFxtBuilder.build().invoke()).str("fullHash");
 
                 sendIgnisBuilder.param("recipient", id).param("recipientPublicKey", publicKeyStr);
-                transactionsToBundle.add(new JSONAssert(sendIgnisBuilder.build().invoke()).str("fullHash"));
+                ignisTransactionsToBundle.add(new JSONAssert(sendIgnisBuilder.build().invoke()).str("fullHash"));
+                sendAeurBuilder.param("recipient", id);
+                aeurTransactionsToBundle.add(new JSONAssert(sendAeurBuilder.build().invoke()).str("fullHash"));
             }
 
-            APICall.Builder builder = new APICall.Builder("bundleTransactions").secretPhrase(rikerSecretPhrase).
-                    param("chain", "" + FxtChain.FXT.getId()).param("deadline", 10).
-                    param("transactionFullHash", transactionsToBundle.toArray(new String[transactionsToBundle.size()]));
-
-            new JSONAssert(builder.build().invoke()).str("fullHash");
+            bundleTransactions(ignisTransactionsToBundle);
+            bundleTransactions(aeurTransactionsToBundle);
 
             try {
                 blockchainProcessor.generateBlock(rikerSecretPhrase, Nxt.getEpochTime());
@@ -139,6 +169,14 @@ public abstract class BlockchainTest extends AbstractBlockchainTest {
                 Assert.fail();
             }
         }
+    }
+
+    protected static void bundleTransactions(List<String> transactionsToBundle) {
+        APICall.Builder builder = new APICall.Builder("bundleTransactions").secretPhrase(rikerSecretPhrase).
+                param("chain", "" + FxtChain.FXT.getId()).param("deadline", 10).
+                param("transactionFullHash", transactionsToBundle.toArray(new String[0]));
+
+        new JSONAssert(builder.build().invoke()).str("fullHash");
     }
 
     private static void startBundlers() {
@@ -162,6 +200,14 @@ public abstract class BlockchainTest extends AbstractBlockchainTest {
     }
 
     public static void generateBlock() {
+        generateBlock(forgerSecretPhrase);
+    }
+
+    public static void generateBlock(Tester tester) {
+        generateBlock(tester.getSecretPhrase());
+    }
+
+    private static void generateBlock(String forgerSecretPhrase) {
         try {
             blockchainProcessor.generateBlock(forgerSecretPhrase, Nxt.getEpochTime());
         } catch (BlockchainProcessor.BlockNotAcceptedException e) {

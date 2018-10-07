@@ -16,13 +16,17 @@
 
 package nxt.installer;
 
+import com.izforge.izpack.event.RegistryInstallerListener;
+
 import java.io.BufferedReader;
-import java.io.FileWriter;
+import java.io.BufferedWriter;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -33,16 +37,18 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("WeakerAccess")
 final class ConfigHandler {
-
+    private static final Logger logger = Logger.getLogger(RegistryInstallerListener.class.getName());
     private static final String FILE_HEADER =
-            "# This file contains customized settings.\n" +
-                    "# You can modify this file and add more settings.\n" +
-                    "# See conf/nxt-default.properties for a full list\n#\n\n";
-    private static final String JAR = "nxt.jar";
+            "# This file contains settings configured during installation.\n" +
+                    "# Do not modify this file, you may override these settings inside the nxt.properties file.\n" +
+                    "# See conf/nxt-default.properties for a full list of properties.\n\n";
+    private static final String JAR = "ardor.jar";
     private static final String SERVER = "http://localhost";
     private static final int[] PORTS = {26876, 27876};   // try to detect both testnet and real servers
     private static final String VAR_PREFIX = "nxt.installer.";
@@ -69,14 +75,34 @@ final class ConfigHandler {
     }
 
     public boolean shutdownServer() {
+        // TODO this will only work in case the node did not define an admin password or nxt.apiServerHost
+        // Ideally we should invoke GetStateCall here and check the needsAdminPassword attribute and only
+        // enable the shutdown option in this case. This will introduce dependency between the custom panel
+        // and the Nxt project which does not exist at the moment so could have further implications.
         boolean done = false;
         for (int port : PORTS) {
             try {
-                URL url = new URL(SERVER + ':' + port + "/nxt?requestType=shutdown");
+                String spec = SERVER + ':' + port + "/nxt?";
+                logger.log(Level.INFO, "Shutdown url: " + spec);
+                String urlParameters = "requestType=shutdown";
+                byte[] postData = urlParameters.getBytes(StandardCharsets.UTF_8);
+                int postDataLength = postData.length;
+                URL url = new URL(spec);
                 HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setDoOutput(true);
+                conn.setInstanceFollowRedirects(false);
                 conn.setRequestMethod("POST");
+                conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+                conn.setRequestProperty("charset", "utf-8");
+                conn.setRequestProperty("Content-Length", Integer.toString(postDataLength));
+                conn.setUseCaches(false);
+                try (DataOutputStream wr = new DataOutputStream(conn.getOutputStream())) {
+                    wr.write(postData);
+                }
                 done |= (conn.getResponseCode() == HttpURLConnection.HTTP_OK);
+                logger.log(Level.INFO, "Shutdown response: " + conn.getResponseCode());
             } catch (IOException e) {
+                logger.log(Level.INFO, "Server is not listening");
                 // try next port
             }
         }
@@ -88,50 +114,72 @@ final class ConfigHandler {
     }
 
     public boolean cleanNxtInstallDir(String installPath, boolean retry) {
+        logger.log(Level.INFO, "Trying to clean installation dir " + installPath);
         if (isNxtInstallDir(installPath)) {
             if (rmdir(installPath)) {
+                logger.log(Level.INFO, "Installation dir removed " + installPath);
                 return true;
             }
             if (retry) {
                 for (int tries = 3; tries > 0; tries--) {
                     try {
-                        Thread.sleep(5000);
+                        Thread.sleep(1000);
                     } catch (InterruptedException e) {
                         break;
                     }
                     if (rmdir(installPath)) {
+                        logger.log(Level.INFO, "Installation dir " + installPath + " removed on " + (3 - tries) + " try");
                         return true;
                     }
                 }
             }
+        } else {
+            logger.log(Level.INFO, installPath + " is not an Ardor installation dir");
         }
         return false;
     }
 
     private boolean rmdir(String path) {
         try {
-            for (Path p : Files.walk(Paths.get(path))
-                    .sorted(Comparator.reverseOrder())
-                    .toArray(Path[]::new)) {
+            for (Path p : Files.walk(Paths.get(path)).sorted(Comparator.reverseOrder()).toArray(Path[]::new)) {
                 Files.delete(p);
             }
         } catch (IOException e) {
+            logger.log(Level.WARNING, e.toString());
             return false;
         }
         return true;
     }
 
     public static class Setting {
-        final String description;
-        final Map<String, String> properties = new HashMap<>();
-        final List<String> lines = new LinkedList<>();
+        private final boolean defaultValue;
+        private final String description;
+        private final Map<String, String> properties = new HashMap<>();
+        private final List<String> lines = new LinkedList<>();
 
-        Setting(String description) {
+        Setting(String description, boolean defaultValue) {
             this.description = description;
+            this.defaultValue = defaultValue;
         }
 
         String getName() {
             return description.split("\\. ", 2)[0];
+        }
+
+        public boolean isDefault() {
+            return defaultValue;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public Map<String, String> getProperties() {
+            return properties;
+        }
+
+        public List<String> getLines() {
+            return lines;
         }
     }
 
@@ -170,9 +218,14 @@ final class ConfigHandler {
 
                 List<String> lines = new LinkedList<>();
                 StringBuilder description = new StringBuilder();
+                boolean defaultValue = false;
                 while (line != null && line.startsWith("#")) {
                     description.append(line.substring(1).trim()).append('\n');
-                    lines.add(line);
+                    if (line.equals("# Default:true")) {
+                        defaultValue = true;
+                    } else {
+                        lines.add(line);
+                    }
                     line = in.readLine();
                 }
                 if (line != null && line.contains("=")) {
@@ -184,7 +237,7 @@ final class ConfigHandler {
                     while (line != null) {
                         line = line.trim();
                         if (line.endsWith("\\")) {
-                            value.append(line.substring(0, line.length() - 1));
+                            value.append(line, 0, line.length() - 1);
                             line = in.readLine();
                             lines.add(line);
                         } else {
@@ -193,11 +246,11 @@ final class ConfigHandler {
                         }
                     }
                     if (setting == null) {
-                        setting = new Setting(description.toString().trim());
+                        setting = new Setting(description.toString().trim(), defaultValue);
                     }
                     setting.properties.put(name, value.toString());
-                    setting.lines.addAll(lines);
-                    setting.lines.add("");
+                    setting.getLines().addAll(lines);
+                    setting.getLines().add("");
                 }
             } while (line != null);
         } catch (IOException e) {
@@ -208,15 +261,17 @@ final class ConfigHandler {
     }
 
     public String writeSettings(List<Setting> settings) {
-        return settings.stream().flatMap(s -> s.lines.stream()).collect(Collectors.joining("\n"));
+        return settings.stream().flatMap(s -> s.getLines().stream()).collect(Collectors.joining("\n"));
     }
 
     public boolean writeSettingsFile(String content, String path) {
-        String propFile = path + '/' + FILE_PATH;
-        try (FileWriter out = new FileWriter(propFile)) {
+        Path propFile = Paths.get(path, FILE_PATH);
+        try (BufferedWriter out = Files.newBufferedWriter(propFile)) {
+            out.write("# This file is " + propFile +"\n");
             out.write(FILE_HEADER);
             out.write(content);
         } catch (IOException e) {
+            logger.log(Level.WARNING, "Failed to write " + propFile.toAbsolutePath() + ", " + e);
             return false;
         }
         return true;

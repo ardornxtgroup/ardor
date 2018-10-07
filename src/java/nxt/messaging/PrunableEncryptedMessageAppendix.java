@@ -88,7 +88,7 @@ public class PrunableEncryptedMessageAppendix extends Appendix.AbstractAppendix 
         }
     }
 
-    PrunableEncryptedMessageAppendix(JSONObject attachmentJSON) {
+    public PrunableEncryptedMessageAppendix(JSONObject attachmentJSON) {
         super(attachmentJSON);
         String hashString = Convert.emptyToNull((String) attachmentJSON.get("encryptedMessageHash"));
         JSONObject encryptedMessageJSON = (JSONObject) attachmentJSON.get("encryptedMessage");
@@ -125,7 +125,7 @@ public class PrunableEncryptedMessageAppendix extends Appendix.AbstractAppendix 
     }
 
     @Override
-    public final int getMyFullSize() {
+    public int getMyFullSize() {
         if (!hasPrunableData()) {
             throw new IllegalStateException("Prunable data not available");
         }

@@ -78,4 +78,8 @@ public final class GetExpectedSellOffers extends APIServlet.APIRequestHandler {
         return response;
     }
 
+    @Override
+    String getDocsUrlPath() {
+        return "Monetary_System#Get_Buy_.2F_Sell_Offers";
+    }
 }

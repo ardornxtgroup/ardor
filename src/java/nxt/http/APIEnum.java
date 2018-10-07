@@ -301,7 +301,14 @@ public enum APIEnum {
     SET_PHASING_ASSET_CONTROL("setPhasingAssetControl", SetPhasingAssetControl.instance),
     GET_PHASING_ASSET_CONTROL("getPhasingAssetControl", GetPhasingAssetControl.instance),
     INCREASE_ASSET_SHARES("increaseAssetShares", IncreaseAssetShares.instance),
-    GET_EXECUTED_TRANSACTIONS("getExecutedTransactions", GetExecutedTransactions.instance);
+    GET_EXECUTED_TRANSACTIONS("getExecutedTransactions", GetExecutedTransactions.instance),
+    ADD_BUNDLING_RULE("addBundlingRule", AddBundlingRule.instance),
+    GET_BUNDLING_OPTIONS("getBundlingOptions", GetBundlingOptions.instance),
+    PROCESS_VOUCHER("processVoucher", ProcessVoucher.instance),
+    SET_CONTRACT_REFERENCE("setContractReference", SetContractReference.instance),
+    DELETE_CONTRACT_REFERENCE("deleteContractReference", DeleteContractReference.instance),
+    GET_CONTRACT_REFERENCES("getContractReferences", GetContractReferences.instance),
+    CALCULATE_FEE("calculateFee", CalculateFee.instance);
 
     private static final Map<String, APIEnum> apiByName = new HashMap<>();
 

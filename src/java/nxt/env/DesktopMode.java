@@ -36,7 +36,9 @@ public class DesktopMode implements RuntimeMode {
 
     @Override
     public void setServerStatus(ServerStatus status, URI wallet, File logFileDir) {
-        desktopSystemTray.setToolTip(new SystemTrayDataProvider(status.getMessage(), wallet, logFileDir));
+        if (desktopSystemTray != null) {
+            desktopSystemTray.setToolTip(new SystemTrayDataProvider(status.getMessage(), wallet, logFileDir));
+        }
     }
 
     @Override
@@ -52,7 +54,9 @@ public class DesktopMode implements RuntimeMode {
 
     @Override
     public void shutdown() {
-        desktopSystemTray.shutdown();
+        if (desktopSystemTray != null) {
+            desktopSystemTray.shutdown();
+        }
         if (desktopApplication == null) {
             return;
         }

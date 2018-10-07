@@ -70,6 +70,8 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
         return instance;
     }
 
+    public static void init() {}
+
     private final Map<DbKey, UnconfirmedTransaction> transactionCache = new HashMap<>();
     private volatile boolean cacheInitialized = false;
 

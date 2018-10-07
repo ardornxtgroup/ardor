@@ -10,16 +10,16 @@ echo PACKAGE="${PACKAGE}"
 CHANGELOG=ardor-client-${VERSION}.changelog.txt
 OBFUSCATE=$2
 
-FILES="changelogs conf html lib resource contrib logs"
+FILES="changelogs conf html lib testlib resource contrib logs"
 FILES="${FILES} ardor.exe ardorservice.exe"
 FILES="${FILES} 3RD-PARTY-LICENSES.txt LICENSE.txt"
 FILES="${FILES} DEVELOPERS-GUIDE.md OPERATORS-GUIDE.md README.md README.txt USERS-GUIDE.md"
-FILES="${FILES} mint.bat mint.sh run.bat run.sh run-desktop.sh start.sh stop.sh compact.sh compact.bat sign.sh sign.bat passphraseRecovery.sh passphraseRecovery.bat"
-FILES="${FILES} nxt.policy nxtdesktop.policy Ardor_Wallet.url Dockerfile"
+FILES="${FILES} mint.bat mint.sh run.bat run.sh run-desktop.sh start.sh stop.sh compact.sh compact.bat sign.sh sign.bat passphraseRecovery.sh passphraseRecovery.bat contractManager.sh contractManager.bat"
+FILES="${FILES} nxt.policy nxtdesktop.policy contractManager.policy Ardor_Wallet.url Dockerfile"
 
 # unix2dos *.bat
 echo compile
-./win-compile.sh
+./compile.sh
 rm -rf html/doc/*
 rm -rf ardor
 rm -rf ${PACKAGE}.jar
@@ -27,7 +27,6 @@ rm -rf ${PACKAGE}.exe
 rm -rf ${PACKAGE}.zip
 mkdir -p ardor/
 mkdir -p ardor/logs
-mkdir -p ardor/addons/src
 
 if [ "${OBFUSCATE}" == "obfuscate" ];
 then
@@ -36,11 +35,10 @@ proguard.bat @nxt.pro
 mv ../nxt.map ../nxt.map.${VERSION}
 mkdir -p ardor/src/
 else
-FILES="${FILES} classes src JPL-Ardor.pdf"
-FILES="${FILES} compile.sh javadoc.sh jar.sh package.sh"
-FILES="${FILES} win-compile.sh win-javadoc.sh win-package.sh"
+FILES="${FILES} classes src test addons JPL-Ardor.pdf"
+FILES="${FILES} compile.sh javadoc.sh jar.sh package.sh generateAPICalls.sh"
 echo javadoc
-./win-javadoc.sh
+./javadoc.sh
 fi
 echo copy resources
 cp installer/lib/JavaExe.exe ardor.exe
@@ -59,6 +57,7 @@ done
 cd ardor
 echo generate jar files
 ../jar.sh
+../jar-tests.sh
 echo package installer Jar
 ../installer/build-installer.sh ../${PACKAGE}
 echo create installer exe

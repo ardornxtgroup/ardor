@@ -16,6 +16,7 @@
 
 package nxt.env;
 
+import nxt.Nxt;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -68,17 +69,24 @@ public class RuntimeEnvironment {
         return isHeadless;
     }
 
-    private static boolean isDesktopEnabled() {
-        return "desktop".equalsIgnoreCase(System.getProperty(RUNTIME_MODE_ARG)) && !isHeadless();
+    private static boolean isDesktopEnabled(String configuredMode) {
+        boolean isDesktopModeConfigured;
+        if (configuredMode == null) {
+            isDesktopModeConfigured = "desktop".equalsIgnoreCase(Nxt.getStringProperty(RUNTIME_MODE_ARG));
+        } else {
+            isDesktopModeConfigured = "desktop".equalsIgnoreCase(configuredMode);
+        }
+        return ("desktop".equalsIgnoreCase(System.getProperty(RUNTIME_MODE_ARG)) || isDesktopModeConfigured)
+                && !isHeadless();
     }
 
     public static boolean isDesktopApplicationEnabled() {
-        return isDesktopEnabled() && hasJavaFX;
+        return isDesktopEnabled(null) && Nxt.getBooleanProperty("nxt.launchDesktopApplication") && hasJavaFX;
     }
 
-    public static RuntimeMode getRuntimeMode() {
+    public static RuntimeMode getRuntimeMode(String configuredMode) {
         System.out.println("isHeadless=" + isHeadless());
-        if (isDesktopEnabled()) {
+        if (isDesktopEnabled(configuredMode)) {
             return new DesktopMode();
         } else if (isWindowsService()) {
             return new WindowsServiceMode();
@@ -87,7 +95,7 @@ public class RuntimeEnvironment {
         }
     }
 
-    public static DirProvider getDirProvider() {
+    public static DirProvider getDirProvider(String configuredMode) {
         String dirProvider = System.getProperty(DIRPROVIDER_ARG);
         if (dirProvider != null) {
             try {
@@ -97,7 +105,7 @@ public class RuntimeEnvironment {
                 throw new RuntimeException(e.getMessage(), e);
             }
         }
-        if (isDesktopEnabled()) {
+        if (isDesktopEnabled(configuredMode)) {
             if (isWindowsRuntime()) {
                 return new WindowsUserDirProvider();
             }

@@ -34,7 +34,7 @@ public class LeaseTest extends BlockchainTest {
                 param("secretPhrase", BOB.getSecretPhrase()).
                 param("recipient", ALICE.getStrId()).
                 param("period", "2").
-                param("feeNQT", "0").
+                param("feeNQT", Constants.ONE_FXT * 2).
                 param("chain", FxtChain.FXT.getName()).
                 build().invoke();
         Logger.logDebugMessage("leaseBalance: " + response);
@@ -42,7 +42,7 @@ public class LeaseTest extends BlockchainTest {
                 param("secretPhrase", CHUCK.getSecretPhrase()).
                 param("recipient", ALICE.getStrId()).
                 param("period", "3").
-                param("feeNQT", "0").
+                param("feeNQT", Constants.ONE_FXT * 2).
                 param("chain", FxtChain.FXT.getName()).
                 build().invoke();
         Logger.logDebugMessage("leaseBalance: " + response);
@@ -54,7 +54,7 @@ public class LeaseTest extends BlockchainTest {
                 param("includeEffectiveBalance", "true").
                 build().invoke();
         Logger.logDebugMessage("getLesseeAccount: " + lesseeResponse);
-        Assert.assertEquals(ALICE.getInitialFxtEffectiveBalance(), lesseeResponse.get("effectiveBalanceFXT"));
+        Assert.assertEquals(ALICE.getInitialFxtBalance() / Constants.ONE_FXT, lesseeResponse.get("effectiveBalanceFXT"));
 
         // lease is registered
         JSONObject leasedResponse1 = new APICall.Builder("getAccount").

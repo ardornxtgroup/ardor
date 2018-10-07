@@ -161,8 +161,8 @@ public abstract class AssetExchangeTransactionType extends ChildTransactionType 
         public void validateAttachment(ChildTransactionImpl transaction) throws NxtException.ValidationException {
             AssetIssuanceAttachment attachment = (AssetIssuanceAttachment)transaction.getAttachment();
             if (attachment.getName().length() < Constants.MIN_ASSET_NAME_LENGTH
-                    || attachment.getName().length() > Constants.MAX_ASSET_NAME_LENGTH
-                    || attachment.getDescription().length() > Constants.MAX_ASSET_DESCRIPTION_LENGTH
+                    || !AssetIssuanceAttachment.NAME_RW.validate(attachment.getName())
+                    || !AssetIssuanceAttachment.DESCRIPTION_RW.validate(attachment.getDescription())
                     || attachment.getDecimals() < 0 || attachment.getDecimals() > 8
                     || attachment.getQuantityQNT() <= 0
                     || attachment.getQuantityQNT() > Constants.MAX_ASSET_QUANTITY_QNT

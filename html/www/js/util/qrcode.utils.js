@@ -85,33 +85,57 @@ var NRS = (function (NRS) {
         var reader = $("#" + readerId);
         if (reader.is(':visible')) {
             reader.fadeOut();
-            if (reader.data('stream')) {
-                reader.html5_qrcode_stop();
-            }
+            NRS.stopScanQRCode();
             return;
         }
         reader.empty();
         reader.fadeIn();
-        reader.html5_qrcode(
+        html5_qrcode(reader,
             function (data) {
                 NRS.logConsole(data);
                 callback(data);
                 reader.hide();
-                reader.html5_qrcode_stop();
+                NRS.stopScanQRCode();
             },
-            function (error) {},
-            function (videoError, localMediaStream) {
-                NRS.logConsole(videoError);
+            function (error) {
+                NRS.logConsole(error.message);
                 reader.hide();
-                if (!localMediaStream) {
-                    $.growl($.t("video_not_supported"));
-                }
-                if (reader.data('stream')) {
-                    reader.html5_qrcode_stop();
-                }
+                $.growl($.t("video_error"));
+                NRS.stopScanQRCode();
             }
         );
     }
+
+    var scanner;
+
+    function html5_qrcode(currentElem, qrcodeSuccess, qrcodeError) {
+        var vidElem = $('<video></video>').appendTo(currentElem);
+        var video = vidElem[0];
+        scanner = new Instascan.Scanner({ video: video });
+
+        scanner.addListener('scan', function (content) {
+            qrcodeSuccess(content);
+            scanner.stop();
+        });
+
+        Instascan.Camera.getCameras().then(function (cameras) {
+            if (cameras.length > 0) {
+                scanner.start(cameras[0]);
+            } else {
+                qrcodeError(e);
+                NRS.stopScanQRCode();
+            }
+        }).catch(function(e) {
+            qrcodeError(e);
+            NRS.stopScanQRCode();
+        });
+    }
+
+    NRS.stopScanQRCode = function() {
+        if (scanner) {
+            scanner.stop();
+        }
+    };
 
     return NRS;
 }(NRS || {}));

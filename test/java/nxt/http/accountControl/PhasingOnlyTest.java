@@ -267,7 +267,7 @@ public class PhasingOnlyTest extends BlockchainTest {
     public void testPropertyVoting() {
         Builder builder = new ACTestUtils.Builder("setPhasingOnlyControl", ALICE.getSecretPhrase());
         ACTestUtils.setControlPhasingParams(builder, VotingModel.PROPERTY, null, 1L,
-                0L, MinBalanceModel.NONE, Convert.EMPTY_LONG, 0, 0, 0);
+                0L, MinBalanceModel.NONE, null, 0, 0, 0);
 
         String propertyName = "propac1";
         String propertyValue = "prop_val";

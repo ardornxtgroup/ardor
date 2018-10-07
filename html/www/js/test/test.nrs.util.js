@@ -271,4 +271,11 @@ NRS.loadServerConstants(function() {
         assert.equal(response.transactionJSON.attachment.message, "'", "exclude.message.from.escaping");
     });
 
+    QUnit.test("payment.request", function (assert) {
+        var request = NRS.generatePaymentRequest({type: 0, id: 2, amountNQT: 123456789, message: "Payment #1"}, "hope peace happen touch easy pretend worthless talk them indeed wheel state", false);
+        assert.equal(NRS.parsePaymentRequest(request).message, "Payment #1", "plain.payment.request");
+        request = NRS.generatePaymentRequest({type: 0, id: 2, amountNQT: 123456789, message: "Payment #1"}, "hope peace happen touch easy pretend worthless talk them indeed wheel state", true, "584486d2ba4dbd7eaeadd071f9f8c3593cee620e1e374033551147d68899b529");
+        assert.equal(NRS.parsePaymentRequest(request, "5hiig9BPdYoBzWni0QPaCDno6Wz0Vg8oX9yMcXRjEhmkuQKhvB").message, "Payment #1", "encrypted.payment.request");
+    });
+
 }, true);

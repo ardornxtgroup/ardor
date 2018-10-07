@@ -66,7 +66,7 @@ var NRS = (function(NRS, $, undefined) {
         is_remote_node_ssl: true,
         validators_count: 3,
         bootstrap_nodes_count: 5,
-		chain: "1"
+		chain: "2"
     };
 	NRS.contacts = {};
 
@@ -1163,6 +1163,20 @@ var NRS = (function(NRS, $, undefined) {
         });
     }
 
+    function hideOptionalDashboardTiles() {
+        // Hide the optional tiles and move the block info tile to the first row
+        $(".optional_dashboard_tile").hide();
+        var blockInfoTile = $(".block_info_dashboard_tile").detach();
+        blockInfoTile.appendTo($(".dashboard_first_row"));
+    }
+
+    function showOptionalDashboardTiles() {
+		// Show the optional tiles and move the block info tile to the second row
+        $(".optional_dashboard_tile").show();
+        var blockInfoTile = $(".block_info_dashboard_tile").detach();
+        blockInfoTile.appendTo($(".dashboard_second_row"));
+    }
+
     NRS.getAccountInfo = function(firstRun, callback, isAccountSwitch) {
         NRS.sendRequest("getAccount", {
 			"account": NRS.account,
@@ -1177,6 +1191,11 @@ var NRS = (function(NRS, $, undefined) {
 				NRS.logConsole("Get account info error (" + response.errorCode + ") " + response.errorDescription);
 				$("#account_balance, #account_balance_sidebar, #account_currencies_balance, #account_nr_currencies, #account_purchase_count, #account_pending_sale_count, #account_completed_sale_count, #account_message_count, #account_alias_count").html("0");
                 NRS.updateDashboardMessage();
+                if (NRS.isParentChain() || !NRS.isDisplayOptionalDashboardTiles()) {
+                	hideOptionalDashboardTiles();
+				} else {
+                	showOptionalDashboardTiles();
+				}
 			} else {
 				if (NRS.accountRS && NRS.accountInfo.accountRS != NRS.accountRS) {
 					$.growl("Generated Reed Solomon address different from the one in the blockchain!", {
@@ -1437,10 +1456,7 @@ var NRS = (function(NRS, $, undefined) {
                             .addClass("col-lg-" + (secondRowTiles < 3 ? "6" : "4"))
                     }
                 } else {
-                    // Hide the optional tiles and move the block info tile to the first row
-                    $(".optional_dashboard_tile").hide();
-                    var blockInfoTile = $(".block_info_dashboard_tile").detach();
-                    blockInfoTile.appendTo($(".dashboard_first_row"));
+                    hideOptionalDashboardTiles();
                 }
 
                 var leasingChange = false;
@@ -1670,7 +1686,7 @@ var NRS = (function(NRS, $, undefined) {
 						if (!response.maxFees.hasOwnProperty(chain)) {
 							continue;
 						}
-						data.maximum_fees_formatted_html = NRS.getChain(chain).name.concat(":", NRS.formatQuantity(response.maxFees[chain], NRS.getChain(chain).decimals), "<br>");
+						data.maximum_fees_formatted_html = NRS.getChainName(chain).concat(":", NRS.formatQuantity(response.maxFees[chain], NRS.getChain(chain).decimals), "<br>");
 					}
 					data.can_finish_early = response.canFinishEarly;
 					infoTable.find("tbody").append(NRS.createInfoTable(data));

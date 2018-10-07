@@ -42,6 +42,7 @@ import nxt.util.Convert;
 import nxt.util.Listener;
 import nxt.util.Listeners;
 import nxt.util.Logger;
+import nxt.util.bbh.StringRw;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -55,6 +56,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+
+import static nxt.util.bbh.LengthRwPrimitiveType.BYTE;
 
 @SuppressWarnings({"UnusedDeclaration", "SuspiciousNameCombination"})
 public final class Account {
@@ -457,6 +460,9 @@ public final class Account {
         }
 
     }
+
+    public static final StringRw PROPERTY_NAME_RW = new StringRw(BYTE, Constants.MAX_ACCOUNT_PROPERTY_NAME_LENGTH);
+    public static final StringRw PROPERTY_VALUE_RW = new StringRw(BYTE, Constants.MAX_ACCOUNT_PROPERTY_VALUE_LENGTH);
 
     static class DoubleSpendingException extends RuntimeException {
 

@@ -48,6 +48,17 @@ public final class UnencryptedPrunableEncryptedMessageAppendix extends PrunableE
     }
 
     @Override
+    public int getMyFullSize() {
+        if (getEncryptedData() != null) {
+            return super.getMyFullSize();
+        }
+        if (!hasPrunableData()) {
+            throw new IllegalStateException("Prunable data not available");
+        }
+        return 1 + 4 + EncryptedData.getEncryptedSize(getPlaintext());
+    }
+
+    @Override
     protected void putMyBytes(ByteBuffer buffer) {
         if (getEncryptedData() == null) {
             throw new NxtException.NotYetEncryptedException("Prunable encrypted message not yet encrypted");

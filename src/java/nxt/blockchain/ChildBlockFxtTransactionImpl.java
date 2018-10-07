@@ -37,8 +37,8 @@ final class ChildBlockFxtTransactionImpl extends FxtTransactionImpl implements C
     private List<ChildTransactionImpl> childTransactions;
     private List<ChildTransactionImpl> sortedChildTransactions;
 
-    ChildBlockFxtTransactionImpl(FxtTransactionImpl.BuilderImpl builder, String secretPhrase) throws NxtException.NotValidException {
-        super(builder, secretPhrase);
+    ChildBlockFxtTransactionImpl(BuilderImpl builder, String secretPhrase, boolean isVoucher) throws NxtException.NotValidException {
+        super(builder, secretPhrase, isVoucher);
     }
 
     @Override
@@ -160,7 +160,8 @@ final class ChildBlockFxtTransactionImpl extends FxtTransactionImpl implements C
             digest.update(blockHash);
             byte[] hash = digest.digest();
             if (Convert.byteArrayComparator.compare(previousHash, hash) >= 0) {
-                throw new NxtException.NotValidException("Child transactions are not correctly sorted");
+                throw new NxtException.NotValidException(String.format("Child transactions are not correctly sorted for child block %s",
+                        this.getStringId()));
             }
             previousHash = hash;
             list.add(childTransaction);

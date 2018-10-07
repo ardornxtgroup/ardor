@@ -16,7 +16,9 @@
 
 package nxt.util;
 
+import nxt.Constants;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Test;
 
 import java.text.DateFormat;
@@ -29,12 +31,28 @@ public class EpochTimeTest {
     private static final int testTime = 1333920;
 
     @Test
-    public void simple() {
+    public void testFromEpochTimeProd() {
+        Assume.assumeFalse(Constants.isTestnet);
+
         long time = Convert.fromEpochTime(testTime);
         DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy hh:mm:ss");
         dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-        Assert.assertEquals("16/01/2017 10:31:59", dateFormat.format(new Date(time)));
+        Assert.assertEquals("16/01/2018 10:31:59", dateFormat.format(new Date(time)));
+    }
+
+    @Test
+    public void testFromToEpochTimeRoundTrip() {
+        long time = Convert.fromEpochTime(testTime);
         Assert.assertEquals(testTime, Convert.toEpochTime(time));
     }
 
+    @Test
+    public void testFromEpochTimeTestNet() {
+        Assume.assumeTrue(Constants.isTestnet);
+
+        long time = Convert.fromEpochTime(testTime);
+        DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy hh:mm:ss");
+        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+        Assert.assertEquals("11/01/2018 12:31:59", dateFormat.format(new Date(time)));
+    }
 }

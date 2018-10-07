@@ -234,13 +234,19 @@ var NRS = (function (NRS, $, undefined) {
         //check to see if secretPhrase supplied matches logged in account, if not - show error.
         if ("secretPhrase" in data) {
             accountId = NRS.getAccountId(NRS.rememberPassword ? _password : data.secretPhrase);
-            if (accountId != NRS.account) {
-                callback({
-                    "errorCode": 1,
-                    "errorDescription": $.t("error_passphrase_incorrect")
-                });
+            if (accountId != NRS.account && !data.isVoucher) {
+                if (data.secretPhrase === "") {
+                    callback({
+                        "errorCode": 1,
+                        "errorDescription": $.t("error_passphrase_not_specified")
+                    });
+                } else {
+                    callback({
+                        "errorCode": 1,
+                        "errorDescription": $.t("error_passphrase_incorrect_v2", { account: NRS.getAccountId(data.secretPhrase, true) })
+                    });
+                }
             } else {
-                //ok, accountId matches..continue with the real request.
                 NRS.processAjaxRequest(requestType, data, callback, options);
             }
         } else {
@@ -248,17 +254,17 @@ var NRS = (function (NRS, $, undefined) {
         }
     };
 
-    function isVolatileRequest(doNotSign, type, requestType, secretPhrase) {
-        if (secretPhrase && NRS.isMobileApp()) {
+    function isVolatileRequest(data, type, requestType) {
+        if (data.secretPhrase && NRS.isMobileApp()) {
             return true;
         }
-        return (NRS.isPassphraseAtRisk() || doNotSign) && type == "POST" && !NRS.isSubmitPassphrase(requestType);
+        return (NRS.isPassphraseAtRisk() || data.doNotSign || data.isVoucher) && type == "POST" && !NRS.isSubmitPassphrase(requestType);
     }
 
     NRS.requestId = 0;
 
     NRS.processAjaxRequest = function (requestType, data, callback, options) {
-        var extra = null;
+        var extra = {};
         if (data["_extra"]) {
             extra = data["_extra"];
             delete data["_extra"];
@@ -313,14 +319,16 @@ var NRS = (function (NRS, $, undefined) {
         }
 
         var secretPhrase = "";
-        var isVolatile = isVolatileRequest(data.doNotSign, httpMethod, requestType, data.secretPhrase);
+        var isVolatile = isVolatileRequest(data, httpMethod, requestType);
         if (isVolatile) {
             if (NRS.rememberPassword) {
                 secretPhrase = _password;
             } else {
                 secretPhrase = data.secretPhrase;
+                if (data.isVoucher) {
+                    extra.voucherSecretPhrase = secretPhrase;
+                }
             }
-
             delete data.secretPhrase;
 
             if (NRS.accountInfo && NRS.accountInfo.publicKey) {
@@ -491,13 +499,15 @@ var NRS = (function (NRS, $, undefined) {
                                 }
                             },
                             function (callback) {
-                                if (response.unsignedTransactionBytes &&
-                                    !NRS.verifyTransactionBytes(converters.hexStringToByteArray(response.unsignedTransactionBytes), requestType, data, response.transactionJSON.attachment, isVolatile)) {
-                                    callback({
-                                        "errorCode": 1,
-                                        "errorDescription": $.t("error_bytes_validation_server")
-                                    }, data);
-                                    return;
+                                if (response.unsignedTransactionBytes) {
+                                    var result = NRS.verifyTransactionBytes(response.unsignedTransactionBytes, requestType, data, response.transactionJSON.attachment, isVolatile);
+                                    if (result.fail) {
+                                        callback({
+                                            "errorCode": 1,
+                                            "errorDescription": $.t("error_bytes_validation_server_v2", { param: result.param, expected: result.expected, actual: result.actual })
+                                        }, data);
+                                        return;
+                                    }
                                 }
                                 callback(null);
                             }
@@ -550,31 +560,40 @@ var NRS = (function (NRS, $, undefined) {
 
     NRS.verifyAndBroadcast = function (signature, requestType, data, callback, response, extra, isVerifyECBlock) {
         var transactionBytes = response.unsignedTransactionBytes;
-        if (!NRS.verifyTransactionBytes(converters.hexStringToByteArray(transactionBytes), requestType, data, response.transactionJSON.attachment, isVerifyECBlock)) {
+        var result = NRS.verifyTransactionBytes(transactionBytes, requestType, data, response.transactionJSON.attachment, isVerifyECBlock);
+        if (result.fail) {
             callback({
                 "errorCode": 1,
-                "errorDescription": $.t("error_bytes_validation_server")
+                "errorDescription": $.t("error_bytes_validation_server_v2", { param: result.param, expected: result.expected, actual: result.actual })
             }, data);
             return;
         }
-        var sigPos = 2 * 69; // 2 * (bytes before signature from TransactionImpl newTransactionBuilder())
-        var sigLen = 2 * 64;
+        var sigPos = 2 * NRS.constants.SIGNATURE_POSITION;
+        var sigLen = 2 * NRS.constants.SIGNATURE_LENGTH;
         var payload = transactionBytes.substr(0, sigPos) + signature + transactionBytes.substr(sigPos + sigLen);
         if (data.broadcast == "false") {
             response.transactionBytes = payload;
             response.transactionJSON.signature = signature;
             NRS.logConsole("before showRawTransactionModal data.broadcast == false");
-            NRS.showRawTransactionModal(response);
+            if (data.isVoucher) {
+                signature = NRS.signBytes(response.unsignedTransactionBytes, converters.stringToHexString(extra.voucherSecretPhrase));
+                var publicKey = NRS.getPublicKey(converters.stringToHexString(extra.voucherSecretPhrase));
+                delete extra.voucherSecretPhrase;
+                NRS.showVoucherModal(response, signature, publicKey, requestType);
+            } else {
+                NRS.showRawTransactionModal(response);
+            }
         } else {
             if (extra) {
                 data["_extra"] = extra;
             }
-            NRS.broadcastTransactionBytes(payload, callback, response, data, requestType);
+            NRS.broadcastTransactionBytes(payload, callback, response, data);
         }
     };
 
-    NRS.verifyTransactionBytes = function (byteArray, requestType, data, attachment, isVerifyECBlock) {
+    NRS.verifyTransactionBytes = function (transactionBytes, requestType, data, attachment, isVerifyECBlock) {
         try {
+            var byteArray = converters.hexStringToByteArray(transactionBytes);
             var transaction = {};
             var pos = 0;
             transaction.chain = String(converters.byteArrayToSignedInt32(byteArray, pos));
@@ -609,37 +628,41 @@ var NRS = (function (NRS, $, undefined) {
             if (isVerifyECBlock) {
                 var ecBlock = NRS.constants.LAST_KNOWN_BLOCK;
                 if (transaction.ecBlockHeight != ecBlock.height) {
-                    return false;
+                    return { fail: true, param: "ecBlockHeight", actual: transaction.ecBlockHeight, expected: ecBlock.height };
                 }
                 if (transaction.ecBlockId != ecBlock.id) {
-                    return false;
+                    return { fail: true, param: "ecBlockId", actual: transaction.ecBlockId, expected: ecBlock.id };
                 }
             }
 
-            if (transaction.publicKey != NRS.accountInfo.publicKey && transaction.publicKey != data.publicKey) {
-                return false;
+            if (transaction.chain != data.chain && !(transaction.chain == "1" && transaction.chain == data.exchange)) {
+                return {fail: true, param: "chain", actual: transaction.chain, expected: data.chain};
             }
 
-            if (transaction.deadline !== data.deadline) {
-                return false;
+            if (transaction.publicKey != NRS.accountInfo.publicKey && transaction.publicKey != data.publicKey && transaction.publicKey != data.senderPublicKey) {
+                return { fail: true, param: "publicKey", actual: transaction.publicKey, expected: NRS.accountInfo.publicKey || data.publicKey };
+            }
+
+            if (transaction.deadline != data.deadline) {
+                return { fail: true, param: "deadline", actual: transaction.deadline, expected: data.deadline };
             }
 
             if (transaction.recipient !== data.recipient) {
                 if (!((data.recipient === undefined || data.recipient == "") && transaction.recipient == "0")) {
-                    return false;
+                    return { fail: true, param: "recipient", actual: transaction.recipient, expected: data.recipient };
                 }
             }
 
             if (transaction.amountNQT !== data.amountNQT && !(requestType === "exchangeCoins" && transaction.amountNQT === "0")) {
-                return false;
+                return { fail: true, param: "chain", actual: transaction.chain, expected: data.chain };
             }
 
             if ("referencedTransactionFullHash" in data) {
                 if (transaction.referencedTransactionFullHash !== data.referencedTransactionFullHash) {
-                    return false;
+                    return { fail: true, param: "referencedTransactionFullHash", actual: transaction.referencedTransactionFullHash, expected: data.referencedTransactionFullHash };
                 }
             } else if (transaction.referencedTransactionFullHash && transaction.referencedTransactionFullHash !== "") {
-                return false;
+                return { fail: true, param: "referencedTransactionFullHash", actual: transaction.referencedTransactionFullHash, expected: "" };
             }
             //has empty attachment, so no attachmentVersion byte...
             if (!(requestType == "sendMoney" || requestType == "sendMessage")) {
@@ -647,29 +670,30 @@ var NRS = (function (NRS, $, undefined) {
             }
             return NRS.verifyTransactionTypes(byteArray, transaction, requestType, data, pos, attachment);
         } catch (e) {
-            NRS.logConsole("Exception in verifyTransactionBytes " + e.message);
-            return false;
+            NRS.logException(e);
+            return { fail: true, param: "exception", actual: e.message, expected: "" };
         }
     };
 
     NRS.verifyTransactionTypes = function (byteArray, transaction, requestType, data, pos, attachment) {
         var length = 0;
         var i = 0;
-        var serverHash, sha256, utfBytes, isText, hashWords, calculatedHash;
+        var serverHash, sha256, utfBytes, isText, hashWords, calculatedHash, result;
+        var notOfTypeError = { fail: true, param: "requestType", actual: requestType, expected: "type:" + transaction.type + ", subtype:" + transaction.subtype};
         switch (requestType) {
             case "sendMoney":
                 if (NRS.notOfType(transaction, "FxtPayment") && NRS.notOfType(transaction, "OrdinaryPayment")) {
-                    return false;
+                    return notOfTypeError;
                 }
                 break;
             case "sendMessage":
                 if (NRS.notOfType(transaction, "ArbitraryMessage")) {
-                    return false;
+                    return notOfTypeError;
                 }
                 break;
             case "setAlias":
                 if (NRS.notOfType(transaction, "AliasAssignment")) {
-                    return false;
+                    return notOfTypeError;
                 }
                 length = parseInt(byteArray[pos], 10);
                 pos++;
@@ -680,12 +704,12 @@ var NRS = (function (NRS, $, undefined) {
                 transaction.aliasURI = converters.byteArrayToString(byteArray, pos, length);
                 pos += length;
                 if (transaction.aliasName !== data.aliasName || transaction.aliasURI !== data.aliasURI) {
-                    return false;
+                    return { fail: true, param: requestType, actual: data.aliasName + "/" + data.aliasURI, expected: transaction.aliasName + "/" + transaction.aliasURI};
                 }
                 break;
             case "createPoll":
                 if (NRS.notOfType(transaction, "PollCreation")) {
-                    return false;
+                    return notOfTypeError;
                 }
                 length = converters.byteArrayToSignedShort(byteArray, pos);
                 pos += 2;
@@ -725,22 +749,22 @@ var NRS = (function (NRS, $, undefined) {
 
                 if (transaction.name !== data.name || transaction.description !== data.description ||
                     transaction.minNumberOfOptions !== data.minNumberOfOptions || transaction.maxNumberOfOptions !== data.maxNumberOfOptions) {
-                    return false;
+                    return { fail: true, param: requestType + "Poll", actual: JSON.stringify(data), expected: JSON.stringify(transaction) };
                 }
 
                 for (i = 0; i < nr_options; i++) {
                     if (transaction["option" + (i < 10 ? "0" + i : i)] !== data["option" + (i < 10 ? "0" + i : i)]) {
-                        return false;
+                        return { fail: true, param: requestType + "Options", actual: JSON.stringify(data), expected: JSON.stringify(transaction) };
                     }
                 }
 
                 if (("option" + (i < 10 ? "0" + i : i)) in data) {
-                    return false;
+                    return { fail: true, param: requestType + "Option", actual: JSON.stringify(data), expected: JSON.stringify(transaction) };
                 }
                 break;
             case "castVote":
                 if (NRS.notOfType(transaction, "VoteCasting")) {
-                    return false;
+                    return notOfTypeError;
                 }
                 transaction.poll = String(converters.byteArrayToBigInteger(byteArray, pos));
                 pos += 8;
@@ -751,14 +775,15 @@ var NRS = (function (NRS, $, undefined) {
                 for (i = 0; i < voteLength; i++) {
                     transaction["vote" + (i < 10 ? "0" + i : i)] = byteArray[pos];
                     pos++;
+                    // TODO validate vote bytes against data
                 }
                 if (transaction.poll !== data.poll) {
-                    return false;
+                    return { fail: true, param: requestType + "Poll", actual: JSON.stringify(data), expected: JSON.stringify(transaction) };
                 }
                 break;
             case "setAccountInfo":
                 if (NRS.notOfType(transaction, "AccountInfo")) {
-                    return false;
+                    return notOfTypeError;
                 }
                 length = parseInt(byteArray[pos], 10);
                 pos++;
@@ -769,12 +794,12 @@ var NRS = (function (NRS, $, undefined) {
                 transaction.description = converters.byteArrayToString(byteArray, pos, length);
                 pos += length;
                 if (transaction.name !== data.name || transaction.description !== data.description) {
-                    return false;
+                    return { fail: true, param: requestType, actual: JSON.stringify(data), expected: JSON.stringify(transaction) };
                 }
                 break;
             case "sellAlias":
                 if (NRS.notOfType(transaction, "AliasSell")) {
-                    return false;
+                    return notOfTypeError;
                 }
                 length = parseInt(byteArray[pos], 10);
                 pos++;
@@ -783,40 +808,40 @@ var NRS = (function (NRS, $, undefined) {
                 transaction.priceNQT = String(converters.byteArrayToBigInteger(byteArray, pos));
                 pos += 8;
                 if (transaction.alias !== data.aliasName || transaction.priceNQT !== data.priceNQT) {
-                    return false;
+                    return { fail: true, param: requestType, actual: JSON.stringify(data), expected: JSON.stringify(transaction) };
                 }
                 break;
             case "buyAlias":
                 if (NRS.notOfType(transaction, "AliasBuy")) {
-                    return false;
+                    return notOfTypeError;
                 }
                 length = parseInt(byteArray[pos], 10);
                 pos++;
                 transaction.alias = converters.byteArrayToString(byteArray, pos, length);
                 pos += length;
                 if (transaction.alias !== data.aliasName) {
-                    return false;
+                    return { fail: true, param: requestType, actual: JSON.stringify(data), expected: JSON.stringify(transaction) };
                 }
                 break;
             case "deleteAlias":
                 if (NRS.notOfType(transaction, "AliasDelete")) {
-                    return false;
+                    return notOfTypeError;
                 }
                 length = parseInt(byteArray[pos], 10);
                 pos++;
                 transaction.alias = converters.byteArrayToString(byteArray, pos, length);
                 pos += length;
                 if (transaction.alias !== data.aliasName) {
-                    return false;
+                    return { fail: true, param: requestType, actual: JSON.stringify(data), expected: JSON.stringify(transaction) };
                 }
                 break;
             case "approveTransaction":
                 if (NRS.notOfType(transaction, "PhasingVoteCasting")) {
-                    return false;
+                    return notOfTypeError;
                 }
                 var fullHashesLength = byteArray[pos];
                 if (fullHashesLength !== 1) {
-                    return false;
+                    return { fail: true, param: requestType + "fullHashesLength", actual: fullHashesLength, expected: 1 };
                 }
                 pos++;
                 var phasedTransaction = converters.byteArrayToSignedInt32(byteArray, pos);
@@ -824,14 +849,14 @@ var NRS = (function (NRS, $, undefined) {
                 phasedTransaction += ":" + converters.byteArrayToHexString(byteArray.slice(pos, pos + 32));
                 pos += 32;
                 if (phasedTransaction !== data.phasedTransaction) {
-                    return false;
+                    return { fail: true, param: requestType + "PhasedTransaction", actual: JSON.stringify(data), expected: JSON.stringify(transaction) };
                 }
                 var numberOfSecrets = converters.byteArrayToSignedShort(byteArray, pos);
                 pos += 2;
                 if (numberOfSecrets < 0 || numberOfSecrets > 1
                     || numberOfSecrets == 0 && data.revealedSecretText !== ""
                     || numberOfSecrets == 1 && data.revealedSecretText === "") {
-                    return false;
+                    return { fail: true, param: requestType + "NumberOfSecrets", actual: JSON.stringify(data), expected: numberOfSecrets };
                 }
                 // We only support one secret per phasing model
                 transaction.revealedSecretLength = converters.byteArrayToSignedShort(byteArray, pos);
@@ -842,29 +867,29 @@ var NRS = (function (NRS, $, undefined) {
                 }
                 if (transaction.revealedSecret !== data.revealedSecret &&
                     transaction.revealedSecret !== converters.byteArrayToHexString(NRS.getUtf8Bytes(data.revealedSecretText))) {
-                    return false;
+                    return { fail: true, param: requestType + "RevealedSecret", actual: JSON.stringify(data), expected: JSON.stringify(transaction) };
                 }
                 break;
             case "setAccountProperty":
                 if (NRS.notOfType(transaction, "AccountProperty")) {
-                    return false;
+                    return notOfTypeError;
                 }
                 length = byteArray[pos];
                 pos++;
                 if (converters.byteArrayToString(byteArray, pos, length) !== data.property) {
-                    return false;
+                    return { fail: true, param: requestType + "Key", actual: JSON.stringify(data), expected: JSON.stringify(transaction) };
                 }
                 pos += length;
                 length = byteArray[pos];
                 pos++;
                 if (converters.byteArrayToString(byteArray, pos, length) !== data.value) {
-                    return false;
+                    return { fail: true, param: requestType + "Value", actual: JSON.stringify(data), expected: JSON.stringify(transaction) };
                 }
                 pos += length;
                 break;
             case "deleteAccountProperty":
                 if (NRS.notOfType(transaction, "AccountPropertyDelete")) {
-                    return false;
+                    return notOfTypeError;
                 }
                 // no way to validate the property id, just skip it
                 String(converters.byteArrayToBigInteger(byteArray, pos));
@@ -872,7 +897,7 @@ var NRS = (function (NRS, $, undefined) {
                 break;
             case "issueAsset":
                 if (NRS.notOfType(transaction, "AssetIssuance")) {
-                    return false;
+                    return notOfTypeError;
                 }
                 length = byteArray[pos];
                 pos++;
@@ -887,25 +912,25 @@ var NRS = (function (NRS, $, undefined) {
                 transaction.decimals = String(byteArray[pos]);
                 pos++;
                 if (transaction.name !== data.name || transaction.description !== data.description || transaction.quantityQNT !== data.quantityQNT || transaction.decimals !== data.decimals) {
-                    return false;
+                    return { fail: true, param: requestType, actual: JSON.stringify(data), expected: JSON.stringify(transaction) };
                 }
                 break;
             case "transferAsset":
                 if (NRS.notOfType(transaction, "AssetTransfer")) {
-                    return false;
+                    return notOfTypeError;
                 }
                 transaction.asset = String(converters.byteArrayToBigInteger(byteArray, pos));
                 pos += 8;
                 transaction.quantityQNT = String(converters.byteArrayToBigInteger(byteArray, pos));
                 pos += 8;
                 if (transaction.asset !== data.asset || transaction.quantityQNT !== data.quantityQNT) {
-                    return false;
+                    return { fail: true, param: requestType, actual: JSON.stringify(data), expected: JSON.stringify(transaction) };
                 }
                 break;
             case "placeAskOrder":
             case "placeBidOrder":
                 if (NRS.notOfType(transaction, "AskOrderPlacement") && NRS.notOfType(transaction, "BidOrderPlacement")) {
-                    return false;
+                    return notOfTypeError;
                 }
                 transaction.asset = String(converters.byteArrayToBigInteger(byteArray, pos));
                 pos += 8;
@@ -914,47 +939,47 @@ var NRS = (function (NRS, $, undefined) {
                 transaction.priceNQTPerShare = String(converters.byteArrayToBigInteger(byteArray, pos));
                 pos += 8;
                 if (transaction.asset !== data.asset || transaction.quantityQNT !== data.quantityQNT || transaction.priceNQTPerShare !== data.priceNQTPerShare) {
-                    return false;
+                    return { fail: true, param: requestType, actual: JSON.stringify(data), expected: JSON.stringify(transaction) };
                 }
                 break;
             case "cancelAskOrder":
             case "cancelBidOrder":
                 if (NRS.notOfType(transaction, "AskOrderCancellation") && NRS.notOfType(transaction, "BidOrderCancellation")) {
-                    return false;
+                    return notOfTypeError;
                 }
                 transaction.order = String(converters.byteArrayToBigInteger(byteArray, pos));
                 pos += 8;
                 if (transaction.order !== data.order) {
-                    return false;
+                    return { fail: true, param: requestType, actual: JSON.stringify(data), expected: JSON.stringify(transaction) };
                 }
                 break;
             case "deleteAssetShares":
                 if (NRS.notOfType(transaction, "AssetDelete")) {
-                    return false;
+                    return notOfTypeError;
                 }
                 transaction.asset = String(converters.byteArrayToBigInteger(byteArray, pos));
                 pos += 8;
                 transaction.quantityQNT = String(converters.byteArrayToBigInteger(byteArray, pos));
                 pos += 8;
                 if (transaction.asset !== data.asset || transaction.quantityQNT !== data.quantityQNT) {
-                    return false;
+                    return { fail: true, param: requestType, actual: JSON.stringify(data), expected: JSON.stringify(transaction) };
                 }
                 break;
             case "increaseAssetShares":
                 if (NRS.notOfType(transaction, "AssetIncrease")) {
-                    return false;
+                    return notOfTypeError;
                 }
                 transaction.asset = String(converters.byteArrayToBigInteger(byteArray, pos));
                 pos += 8;
                 transaction.quantityQNT = String(converters.byteArrayToBigInteger(byteArray, pos));
                 pos += 8;
                 if (transaction.asset !== data.asset || transaction.quantityQNT !== data.quantityQNT) {
-                    return false;
+                    return { fail: true, param: requestType, actual: JSON.stringify(data), expected: JSON.stringify(transaction) };
                 }
                 break;
             case "dividendPayment":
                 if (NRS.notOfType(transaction, "DividendPayment")) {
-                    return false;
+                    return notOfTypeError;
                 }
                 transaction.holding = String(converters.byteArrayToBigInteger(byteArray, pos));
                 pos += 8;
@@ -971,25 +996,27 @@ var NRS = (function (NRS, $, undefined) {
                     transaction.asset !== data.asset ||
                     transaction.height !== data.height ||
                     transaction.amountNQTPerShare !== data.amountNQTPerShare) {
-                    return false;
+                    return { fail: true, param: requestType, actual: JSON.stringify(data), expected: JSON.stringify(transaction) };
                 }
                 break;
             case "setPhasingAssetControl":
                 if (NRS.notOfType(transaction, "SetPhasingAssetControl")) {
-                    return false;
+                    return notOfTypeError;
                 }
                 if (data.asset !== String(converters.byteArrayToBigInteger(byteArray, pos))) {
-                    return false;
+                    return { fail: true, param: requestType + "Asset", actual: JSON.stringify(data), expected: String(converters.byteArrayToBigInteger(byteArray, pos))};
                 }
                 pos += 8;
-                pos = validateControlPhasingData(data, byteArray, pos, false);
-                if (pos == -1) {
-                    return false;
+                result = validateControlPhasingData(data, byteArray, pos, false);
+                if (result.fail) {
+                    return result;
+                } else {
+                    pos = result.pos;
                 }
                 break;
             case "dgsListing":
                 if (NRS.notOfType(transaction, "DigitalGoodsListing")) {
-                    return false;
+                    return notOfTypeError;
                 }
                 length = converters.byteArrayToSignedShort(byteArray, pos);
                 pos += 2;
@@ -1008,46 +1035,46 @@ var NRS = (function (NRS, $, undefined) {
                 transaction.priceNQT = String(converters.byteArrayToBigInteger(byteArray, pos));
                 pos += 8;
                 if (transaction.name !== data.name || transaction.description !== data.description || transaction.tags !== data.tags || transaction.quantity !== data.quantity || transaction.priceNQT !== data.priceNQT) {
-                    return false;
+                    return { fail: true, param: requestType, actual: JSON.stringify(data), expected: JSON.stringify(transaction) };
                 }
                 break;
             case "dgsDelisting":
                 if (NRS.notOfType(transaction, "DigitalGoodsDelisting")) {
-                    return false;
+                    return notOfTypeError;
                 }
                 transaction.goods = String(converters.byteArrayToBigInteger(byteArray, pos));
                 pos += 8;
                 if (transaction.goods !== data.goods) {
-                    return false;
+                    return { fail: true, param: requestType, actual: JSON.stringify(data), expected: JSON.stringify(transaction) };
                 }
                 break;
             case "dgsPriceChange":
                 if (NRS.notOfType(transaction, "DigitalGoodsPriceChange")) {
-                    return false;
+                    return notOfTypeError;
                 }
                 transaction.goods = String(converters.byteArrayToBigInteger(byteArray, pos));
                 pos += 8;
                 transaction.priceNQT = String(converters.byteArrayToBigInteger(byteArray, pos));
                 pos += 8;
                 if (transaction.goods !== data.goods || transaction.priceNQT !== data.priceNQT) {
-                    return false;
+                    return { fail: true, param: requestType, actual: JSON.stringify(data), expected: JSON.stringify(transaction) };
                 }
                 break;
             case "dgsQuantityChange":
                 if (NRS.notOfType(transaction, "DigitalGoodsQuantityChange")) {
-                    return false;
+                    return notOfTypeError;
                 }
                 transaction.goods = String(converters.byteArrayToBigInteger(byteArray, pos));
                 pos += 8;
                 transaction.deltaQuantity = String(converters.byteArrayToSignedInt32(byteArray, pos));
                 pos += 4;
                 if (transaction.goods !== data.goods || transaction.deltaQuantity !== data.deltaQuantity) {
-                    return false;
+                    return { fail: true, param: requestType, actual: JSON.stringify(data), expected: JSON.stringify(transaction) };
                 }
                 break;
             case "dgsPurchase":
                 if (NRS.notOfType(transaction, "DigitalGoodsPurchase")) {
-                    return false;
+                    return notOfTypeError;
                 }
                 transaction.goods = String(converters.byteArrayToBigInteger(byteArray, pos));
                 pos += 8;
@@ -1058,12 +1085,12 @@ var NRS = (function (NRS, $, undefined) {
                 transaction.deliveryDeadlineTimestamp = String(converters.byteArrayToSignedInt32(byteArray, pos));
                 pos += 4;
                 if (transaction.goods !== data.goods || transaction.quantity !== data.quantity || transaction.priceNQT !== data.priceNQT || transaction.deliveryDeadlineTimestamp !== data.deliveryDeadlineTimestamp) {
-                    return false;
+                    return { fail: true, param: requestType, actual: JSON.stringify(data), expected: JSON.stringify(transaction) };
                 }
                 break;
             case "dgsDelivery":
                 if (NRS.notOfType(transaction, "DigitalGoodsDelivery")) {
-                    return false;
+                    return notOfTypeError;
                 }
                 transaction.purchase = String(converters.byteArrayToBigInteger(byteArray, pos));
                 pos += 8;
@@ -1082,56 +1109,58 @@ var NRS = (function (NRS, $, undefined) {
                 pos += 8;
                 var goodsIsText = (transaction.goodsIsText ? "true" : "false");
                 if (goodsIsText != data.goodsIsText) {
-                    return false;
+                    return { fail: true, param: requestType + "IsText", actual: goodsIsText, expected: data.goodsIsText };
                 }
                 if (transaction.purchase !== data.purchase || transaction.goodsData !== data.goodsData || transaction.goodsNonce !== data.goodsNonce || transaction.discountNQT !== data.discountNQT) {
-                    return false;
+                    return { fail: true, param: requestType, actual: JSON.stringify(data), expected: JSON.stringify(transaction) };
                 }
                 break;
             case "dgsFeedback":
                 if (NRS.notOfType(transaction, "DigitalGoodsFeedback")) {
-                    return false;
+                    return notOfTypeError;
                 }
                 transaction.purchase = String(converters.byteArrayToBigInteger(byteArray, pos));
                 pos += 8;
                 if (transaction.purchase !== data.purchase) {
-                    return false;
+                    return { fail: true, param: requestType, actual: JSON.stringify(data), expected: JSON.stringify(transaction) };
                 }
                 break;
             case "dgsRefund":
                 if (NRS.notOfType(transaction, "DigitalGoodsRefund")) {
-                    return false;
+                    return notOfTypeError;
                 }
                 transaction.purchase = String(converters.byteArrayToBigInteger(byteArray, pos));
                 pos += 8;
                 transaction.refundNQT = String(converters.byteArrayToBigInteger(byteArray, pos));
                 pos += 8;
                 if (transaction.purchase !== data.purchase || transaction.refundNQT !== data.refundNQT) {
-                    return false;
+                    return { fail: true, param: requestType, actual: JSON.stringify(data), expected: JSON.stringify(transaction) };
                 }
                 break;
             case "leaseBalance":
                 if (NRS.notOfType(transaction, "EffectiveBalanceLeasing")) {
-                    return false;
+                    return notOfTypeError;
                 }
                 transaction.period = String(converters.byteArrayToSignedShort(byteArray, pos));
                 pos += 2;
                 if (transaction.period !== data.period) {
-                    return false;
+                    return { fail: true, param: requestType, actual: JSON.stringify(data), expected: JSON.stringify(transaction) };
                 }
                 break;
             case "setPhasingOnlyControl":
                 if (NRS.notOfType(transaction, "SetPhasingOnly")) {
-                    return false;
+                    return notOfTypeError;
                 }
-                pos = validateControlPhasingData(data, byteArray, pos, true);
-                if (pos == -1) {
-                    return false;
+                result = validateControlPhasingData(data, byteArray, pos, true);
+                if (result.fail) {
+                    return result;
+                } else {
+                    pos = result.pos;
                 }
                 break;
             case "issueCurrency":
                 if (NRS.notOfType(transaction, "CurrencyIssuance")) {
-                    return false;
+                    return notOfTypeError;
                 }
                 length = byteArray[pos];
                 pos++;
@@ -1171,57 +1200,57 @@ var NRS = (function (NRS, $, undefined) {
                     transaction.type != data.type || transaction.initialSupplyQNT !== data.initialSupplyQNT || transaction.reserveSupplyQNT !== data.reserveSupplyQNT ||
                     transaction.maxSupplyQNT !== data.maxSupplyQNT || transaction.issuanceHeight !== data.issuanceHeight ||
                     transaction.ruleset !== data.ruleset || transaction.algorithm !== data.algorithm || transaction.decimals !== data.decimals) {
-                    return false;
+                    return { fail: true, param: requestType, actual: JSON.stringify(data), expected: JSON.stringify(transaction) };
                 }
                 if (transaction.minReservePerUnitNQT !== "0" && transaction.minReservePerUnitNQT !== data.minReservePerUnitNQT) {
-                    return false;
+                    return { fail: true, param: requestType + "MinReservePerUnitNQT", actual: JSON.stringify(data), expected: JSON.stringify(transaction) };
                 }
                 if (transaction.minDifficulty !== "0" && transaction.minDifficulty !== data.minDifficulty) {
-                    return false;
+                    return { fail: true, param: requestType + "MinDifficulty", actual: JSON.stringify(data), expected: JSON.stringify(transaction) };
                 }
                 if (transaction.maxDifficulty !== "0" && transaction.maxDifficulty !== data.maxDifficulty) {
-                    return false;
+                    return { fail: true, param: requestType + "MaxDifficulty", actual: JSON.stringify(data), expected: JSON.stringify(transaction) };
                 }
                 break;
             case "currencyReserveIncrease":
                 if (NRS.notOfType(transaction, "ReserveIncrease")) {
-                    return false;
+                    return notOfTypeError;
                 }
                 transaction.currency = String(converters.byteArrayToBigInteger(byteArray, pos));
                 pos += 8;
                 transaction.amountPerUnitNQT = String(converters.byteArrayToBigInteger(byteArray, pos));
                 pos += 8;
                 if (transaction.currency !== data.currency || transaction.amountPerUnitNQT !== data.amountPerUnitNQT) {
-                    return false;
+                    return { fail: true, param: requestType, actual: JSON.stringify(data), expected: JSON.stringify(transaction) };
                 }
                 break;
             case "currencyReserveClaim":
                 if (NRS.notOfType(transaction, "ReserveClaim")) {
-                    return false;
+                    return notOfTypeError;
                 }
                 transaction.currency = String(converters.byteArrayToBigInteger(byteArray, pos));
                 pos += 8;
                 transaction.unitsQNT = String(converters.byteArrayToBigInteger(byteArray, pos));
                 pos += 8;
                 if (transaction.currency !== data.currency || transaction.unitsQNT !== data.unitsQNT) {
-                    return false;
+                    return { fail: true, param: requestType, actual: JSON.stringify(data), expected: JSON.stringify(transaction) };
                 }
                 break;
             case "transferCurrency":
                 if (NRS.notOfType(transaction, "CurrencyTransfer")) {
-                    return false;
+                    return notOfTypeError;
                 }
                 transaction.currency = String(converters.byteArrayToBigInteger(byteArray, pos));
                 pos += 8;
                 transaction.unitsQNT = String(converters.byteArrayToBigInteger(byteArray, pos));
                 pos += 8;
                 if (transaction.currency !== data.currency || transaction.unitsQNT !== data.unitsQNT) {
-                    return false;
+                    return { fail: true, param: requestType, actual: JSON.stringify(data), expected: JSON.stringify(transaction) };
                 }
                 break;
             case "publishExchangeOffer":
                 if (NRS.notOfType(transaction, "PublishExchangeOffer")) {
-                    return false;
+                    return notOfTypeError;
                 }
                 transaction.currency = String(converters.byteArrayToBigInteger(byteArray, pos));
                 pos += 8;
@@ -1242,12 +1271,12 @@ var NRS = (function (NRS, $, undefined) {
                 if (transaction.currency !== data.currency || transaction.buyRateNQTPerUnit !== data.buyRateNQTPerUnit || transaction.sellRateNQTPerUnit !== data.sellRateNQTPerUnit ||
                     transaction.totalBuyLimitQNT !== data.totalBuyLimitQNT || transaction.totalSellLimitQNT !== data.totalSellLimitQNT ||
                     transaction.initialBuySupplyQNT !== data.initialBuySupplyQNT || transaction.initialSellSupplyQNT !== data.initialSellSupplyQNT || transaction.expirationHeight !== data.expirationHeight) {
-                    return false;
+                    return { fail: true, param: requestType, actual: JSON.stringify(data), expected: JSON.stringify(transaction) };
                 }
                 break;
             case "currencyBuy":
                 if (NRS.notOfType(transaction, "ExchangeBuy")) {
-                    return false;
+                    return notOfTypeError;
                 }
                 transaction.currency = String(converters.byteArrayToBigInteger(byteArray, pos));
                 pos += 8;
@@ -1256,12 +1285,12 @@ var NRS = (function (NRS, $, undefined) {
                 transaction.unitsQNT = String(converters.byteArrayToBigInteger(byteArray, pos));
                 pos += 8;
                 if (transaction.currency !== data.currency || transaction.rateNQTPerUnit !== data.rateNQTPerUnit || transaction.unitsQNT !== data.unitsQNT) {
-                    return false;
+                    return { fail: true, param: requestType, actual: JSON.stringify(data), expected: JSON.stringify(transaction) };
                 }
                 break;
             case "currencySell":
                 if (NRS.notOfType(transaction, "ExchangeSell")) {
-                    return false;
+                    return notOfTypeError;
                 }
                 transaction.currency = String(converters.byteArrayToBigInteger(byteArray, pos));
                 pos += 8;
@@ -1270,12 +1299,12 @@ var NRS = (function (NRS, $, undefined) {
                 transaction.unitsQNT = String(converters.byteArrayToBigInteger(byteArray, pos));
                 pos += 8;
                 if (transaction.currency !== data.currency || transaction.rateNQTPerUnit !== data.rateNQTPerUnit || transaction.unitsQNT !== data.unitsQNT) {
-                    return false;
+                    return { fail: true, param: requestType, actual: JSON.stringify(data), expected: JSON.stringify(transaction) };
                 }
                 break;
             case "currencyMint":
                 if (NRS.notOfType(transaction, "CurrencyMinting")) {
-                    return false;
+                    return notOfTypeError;
                 }
                 transaction.currency = String(converters.byteArrayToBigInteger(byteArray, pos));
                 pos += 8;
@@ -1287,25 +1316,25 @@ var NRS = (function (NRS, $, undefined) {
                 pos += 8;
                 if (transaction.currency !== data.currency || transaction.nonce !== data.nonce || transaction.unitsQNT !== data.unitsQNT ||
                     transaction.counter !== data.counter) {
-                    return false;
+                    return { fail: true, param: requestType, actual: JSON.stringify(data), expected: JSON.stringify(transaction) };
                 }
                 break;
             case "deleteCurrency":
                 if (NRS.notOfType(transaction, "CurrencyDeletion")) {
-                    return false;
+                    return notOfTypeError;
                 }
                 transaction.currency = String(converters.byteArrayToBigInteger(byteArray, pos));
                 pos += 8;
                 if (transaction.currency !== data.currency) {
-                    return false;
+                    return { fail: true, param: requestType, actual: JSON.stringify(data), expected: JSON.stringify(transaction) };
                 }
                 break;
             case "uploadTaggedData":
                 if (NRS.notOfType(transaction, "TaggedDataUpload")) {
-                    return false;
+                    return notOfTypeError;
                 }
                 if (byteArray[pos] != 0) {
-                    return false;
+                    return { fail: true, param: requestType + "Pos", actual: JSON.stringify(data), expected: "" };
                 }
                 pos++;
                 serverHash = converters.byteArrayToHexString(byteArray.slice(pos, pos + 32));
@@ -1335,79 +1364,90 @@ var NRS = (function (NRS, $, undefined) {
                 hashWords = sha256.finalize();
                 calculatedHash = converters.wordArrayToByteArrayEx(hashWords);
                 if (serverHash !== converters.byteArrayToHexString(calculatedHash)) {
-                    return false;
+                    return { fail: true, param: requestType + "ServerHash", actual: serverHash, expected: calculatedHash };
                 }
                 break;
             case "shufflingCreate":
                 if (NRS.notOfType(transaction, "ShufflingCreation")) {
-                    return false;
+                    return notOfTypeError;
                 }
                 var holding = String(converters.byteArrayToBigInteger(byteArray, pos));
                 if (holding !== "0" && holding !== data.holding ||
                     holding === "0" && data.holding !== undefined && data.holding !== "" && data.holding !== "0") {
-                    return false;
+                    return { fail: true, param: requestType, actual: holding, expected: data.holding };
                 }
                 pos += 8;
                 var holdingType = String(byteArray[pos]);
                 if (holdingType !== "0" && holdingType !== data.holdingType ||
                     holdingType === "0" && data.holdingType !== undefined && data.holdingType !== "" && data.holdingType !== "0") {
-                    return false;
+                    return { fail: true, param: requestType, actual: holdingType, expected: data.holdingType };
                 }
                 pos++;
                 var amount = String(converters.byteArrayToBigInteger(byteArray, pos));
                 if (amount !== data.amount) {
-                    return false;
+                    return { fail: true, param: requestType, actual: amount, expected: data.amount };
                 }
                 pos += 8;
                 var participantCount = String(byteArray[pos]);
                 if (participantCount !== data.participantCount) {
-                    return false;
+                    return { fail: true, param: requestType, actual: participantCount, expected: data.participantCount };
                 }
                 pos++;
                 var registrationPeriod = converters.byteArrayToSignedShort(byteArray, pos);
                 if (registrationPeriod !== data.registrationPeriod) {
-                    return false;
+                    return { fail: true, param: requestType, actual: registrationPeriod, expected: data.registrationPeriod };
                 }
                 pos += 2;
                 break;
             case "exchangeCoins":
+                var typeStr = transaction.chain == "1" ? "FxtCoinExchangeOrderIssue" : "CoinExchangeOrderIssue";
+                if (NRS.notOfType(transaction, typeStr)) {
+                    return notOfTypeError;
+                }
                 var chain = String(converters.byteArrayToSignedInt32(byteArray, pos));
-                if (chain !== data.chain) {
-                    return false;
+                if (chain != data.chain) {
+                    return { fail: true, param: requestType, actual: chain, expected: data.chain };
                 }
                 pos += 4;
                 var exchange = String(converters.byteArrayToSignedInt32(byteArray, pos));
-                if (exchange !== data.exchange) {
-                    return false;
+                if (exchange != data.exchange) {
+                    return { fail: true, param: requestType, actual: exchange, expected: data.exchange };
                 }
                 pos += 4;
                 var quantityQNT = String(converters.byteArrayToBigInteger(byteArray, pos));
                 if (quantityQNT !== data.quantityQNT) {
-                    return false;
+                    return { fail: true, param: requestType, actual: quantityQNT, expected: data.quantityQNT };
                 }
                 pos += 8;
                 var priceNQTPerCoin = String(converters.byteArrayToBigInteger(byteArray, pos));
                 if (priceNQTPerCoin !== data.priceNQTPerCoin) {
-                    return false;
+                    return { fail: true, param: requestType, actual: priceNQTPerCoin, expected: data.priceNQTPerCoin };
                 }
                 pos += 8;
                 break;
             case "cancelCoinExchange":
+                typeStr = transaction.chain == "1" ? "FxtCoinExchangeOrderCancel" : "CoinExchangeOrderCancel";
+                if (NRS.notOfType(transaction, typeStr)) {
+                    return notOfTypeError;
+                }
                 var orderHash = converters.byteArrayToHexString(byteArray.slice(pos, pos + 32));
                 if (NRS.fullHashToId(orderHash) !== data.order) {
-                    return false;
+                    return { fail: true, param: requestType, actual: NRS.fullHashToId(orderHash), expected: data.order };
                 }
                 pos += 32;
                 break;
             case "bundleTransactions":
+                if (NRS.notOfType(transaction, "ChildChainBlock")) {
+                    return notOfTypeError;
+                }
                 var isPrunable = byteArray[pos];
                 if (isPrunable != 0) {
-                    return false;
+                    return { fail: true, param: requestType, actual: isPrunable, expected: 0 };
                 }
                 pos++;
                 chain = String(converters.byteArrayToSignedInt32(byteArray, pos));
                 if (chain != data.childChain) {
-                    return false;
+                    return { fail: true, param: requestType, actual: chain, expected: data.childChain };
                 }
                 pos += 4;
                 serverHash = converters.byteArrayToHexString(byteArray.slice(pos, pos + 32));
@@ -1417,13 +1457,12 @@ var NRS = (function (NRS, $, undefined) {
                 hashWords = sha256.finalize();
                 calculatedHash = converters.wordArrayToByteArrayEx(hashWords);
                 if (serverHash !== converters.byteArrayToHexString(calculatedHash)) {
-                    return false;
+                    return { fail: true, param: requestType, actual: converters.byteArrayToHexString(calculatedHash), expected: serverHash };
                 }
                 pos += 32;
                 break;
             default:
-                //invalid requestType..
-                return false;
+                return notOfTypeError;
         }
 
         return NRS.verifyAppendix(byteArray, transaction, requestType, data, pos);
@@ -1432,21 +1471,23 @@ var NRS = (function (NRS, $, undefined) {
     NRS.verifyAppendix = function (byteArray, transaction, requestType, data, pos) {
         var attachmentVersion;
         var flags;
+        var result;
 
         // MessageAppendix
         if ((transaction.flags & 1) != 0 ||
             ((requestType == "sendMessage" && data.message && !(data.messageIsPrunable === "true")))) {
             attachmentVersion = byteArray[pos];
             if (attachmentVersion < 0 || attachmentVersion > 2) {
-                return false;
+                return { fail: true, param: "MessageAppendix", actual: attachmentVersion, expected: JSON.stringify(data) };
             }
             pos++;
             flags = byteArray[pos];
             pos++;
             transaction.messageIsText = flags && 1;
             var messageIsText = (transaction.messageIsText ? "true" : "false");
+            // TODO special case bytes false data true
             if (messageIsText != data.messageIsText) {
-                return false;
+                return { fail: true, param: "MessageAppendix", actual: messageIsText, expected: data.messageIsText };
             }
             var messageLength = converters.byteArrayToSignedShort(byteArray, pos);
             if (messageLength < 0) {
@@ -1461,17 +1502,17 @@ var NRS = (function (NRS, $, undefined) {
             }
             pos += messageLength;
             if (transaction.message !== data.message) {
-                return false;
+                return { fail: true, param: "MessageAppendix", actual: message, expected: data.message };
             }
-        } else if (data.message && !(data.messageIsPrunable === "true")) {
-            return false;
+        } else if (data.message && !(data.messageIsPrunable === "true" || data.messageHash)) {
+            return { fail: true, param: "MessageAppendix", actual: "message", expected: "" };
         }
 
         // EncryptedMessageAppendix
         if ((transaction.flags & 2) != 0) {
             attachmentVersion = byteArray[pos];
             if (attachmentVersion < 0 || attachmentVersion > 2) {
-                return false;
+                return { fail: true, param: "EncryptedMessageAppendix", actual: attachmentVersion, expected: JSON.stringify(data) };
             }
             pos++;
             flags = byteArray[pos];
@@ -1479,7 +1520,7 @@ var NRS = (function (NRS, $, undefined) {
             transaction.messageToEncryptIsText = flags && 1;
             var messageToEncryptIsText = (transaction.messageToEncryptIsText ? "true" : "false");
             if (messageToEncryptIsText != data.messageToEncryptIsText) {
-                return false;
+                return { fail: true, param: "EncryptedMessageAppendix", actual: messageToEncryptIsText, expected: data.messageToEncryptIsText };
             }
             var encryptedMessageLength = converters.byteArrayToSignedShort(byteArray, pos);
             if (encryptedMessageLength < 0) {
@@ -1491,17 +1532,17 @@ var NRS = (function (NRS, $, undefined) {
             transaction.encryptedMessageNonce = converters.byteArrayToHexString(byteArray.slice(pos, pos + 32));
             pos += 32;
             if (transaction.encryptedMessageData !== data.encryptedMessageData || transaction.encryptedMessageNonce !== data.encryptedMessageNonce) {
-                return false;
+                return { fail: true, param: "EncryptedMessageAppendix", actual: JSON.stringify(transaction), expected: JSON.stringify(data) };
             }
         } else if (data.encryptedMessageData && !(data.encryptedMessageIsPrunable === "true")) {
-            return false;
+            return { fail: true, param: "EncryptedMessageAppendix", actual: "", expected: JSON.stringify(data) };
         }
 
         // EncryptToSelfMessageAppendix
         if ((transaction.flags & 4) != 0) {
             attachmentVersion = byteArray[pos];
             if (attachmentVersion < 0 || attachmentVersion > 2) {
-                return false;
+                return { fail: true, param: "EncryptToSelfMessageAppendix", actual: attachmentVersion, expected: JSON.stringify(data) };
             }
             pos++;
             flags = byteArray[pos];
@@ -1509,7 +1550,7 @@ var NRS = (function (NRS, $, undefined) {
             transaction.messageToEncryptToSelfIsText = flags && 1;
             var messageToEncryptToSelfIsText = (transaction.messageToEncryptToSelfIsText ? "true" : "false");
             if (messageToEncryptToSelfIsText != data.messageToEncryptToSelfIsText) {
-                return false;
+                return { fail: true, param: "EncryptToSelfMessageAppendix", actual: messageToEncryptToSelfIsText, expected: data.messageToEncryptToSelfIsText };
             }
             var encryptedToSelfMessageLength = converters.byteArrayToSignedShort(byteArray, pos);
             if (encryptedToSelfMessageLength < 0) {
@@ -1521,10 +1562,10 @@ var NRS = (function (NRS, $, undefined) {
             transaction.encryptToSelfMessageNonce = converters.byteArrayToHexString(byteArray.slice(pos, pos + 32));
             pos += 32;
             if (transaction.encryptToSelfMessageData !== data.encryptToSelfMessageData || transaction.encryptToSelfMessageNonce !== data.encryptToSelfMessageNonce) {
-                return false;
+                return { fail: true, param: "EncryptToSelfMessageAppendix", actual: JSON.stringify(transaction), expected: JSON.stringify(data) };
             }
         } else if (data.encryptToSelfMessageData) {
-            return false;
+            return { fail: true, param: "EncryptToSelfMessageAppendix", actual: data.encryptToSelfMessageData, expected: "" };
         }
 
         // PrunablePlainMessageAppendix
@@ -1532,19 +1573,19 @@ var NRS = (function (NRS, $, undefined) {
         if ((transaction.flags & 8) != 0) {
             attachmentVersion = byteArray[pos];
             if (attachmentVersion < 0 || attachmentVersion > 2) {
-                return false;
+                return { fail: true, param: "PrunablePlainMessageAppendix", actual: attachmentVersion, expected: JSON.stringify(data) };
             }
             pos++;
             flags = byteArray[pos];
             pos++;
             if (flags != 0) {
-                return false;
+                return { fail: true, param: "PrunablePlainMessageAppendix", actual: flags, expected: JSON.stringify(data) };
             }
             var serverHash = converters.byteArrayToHexString(byteArray.slice(pos, pos + 32));
             pos += 32;
             var sha256 = CryptoJS.algo.SHA256.create();
             var isText = [];
-            if (data.messageIsText == "true") {
+            if (String(data.messageIsText) == "true") {
                 isText.push(1);
             } else {
                 isText.push(0);
@@ -1559,7 +1600,7 @@ var NRS = (function (NRS, $, undefined) {
             var hashWords = sha256.finalize();
             var calculatedHash = converters.wordArrayToByteArrayEx(hashWords);
             if (serverHash !== converters.byteArrayToHexString(calculatedHash)) {
-                return false;
+                return { fail: true, param: "PrunablePlainMessageAppendix", actual: converters.byteArrayToHexString(calculatedHash), expected: serverHash };
             }
         }
 
@@ -1567,13 +1608,13 @@ var NRS = (function (NRS, $, undefined) {
         if ((transaction.flags & 16) != 0) {
             attachmentVersion = byteArray[pos];
             if (attachmentVersion < 0 || attachmentVersion > 2) {
-                return false;
+                return { fail: true, param: "PrunableEncryptedMessageAppendix", actual: attachmentVersion, expected: JSON.stringify(data) };
             }
             pos++;
             flags = byteArray[pos];
             pos++;
             if (flags != 0) {
-                return false;
+                return { fail: true, param: "PrunableEncryptedMessageAppendix", actual: flags, expected: JSON.stringify(data) };
             }
             serverHash = converters.byteArrayToHexString(byteArray.slice(pos, pos + 32));
             pos += 32;
@@ -1594,7 +1635,7 @@ var NRS = (function (NRS, $, undefined) {
             hashWords = sha256.finalize();
             calculatedHash = converters.wordArrayToByteArrayEx(hashWords);
             if (serverHash !== converters.byteArrayToHexString(calculatedHash)) {
-                return false;
+                return { fail: true, param: "PrunableEncryptedMessageAppendix", actual: converters.byteArrayToHexString(calculatedHash), expected: serverHash };
             }
         }
 
@@ -1602,54 +1643,51 @@ var NRS = (function (NRS, $, undefined) {
         if ((transaction.flags & 32) != 0) {
             attachmentVersion = byteArray[pos];
             if (attachmentVersion < 0 || attachmentVersion > 2) {
-                return false;
+                return { fail: true, param: "PublicKeyAnnouncementAppendix", actual: attachmentVersion, expected: JSON.stringify(data) };
             }
             pos++;
             var recipientPublicKey = converters.byteArrayToHexString(byteArray.slice(pos, pos + 32));
             if (recipientPublicKey != data.recipientPublicKey) {
-                return false;
+                return { fail: true, param: "PublicKeyAnnouncementAppendix", actual: recipientPublicKey, expected: data.recipientPublicKey };
             }
             pos += 32;
         } else if (data.recipientPublicKey) {
-            return false;
+            return { fail: true, param: "PublicKeyAnnouncementAppendix", actual: data.recipientPublicKey, expected: "undefined" };
         }
 
         // PhasingAppendix
         if ((transaction.flags & 64) != 0) {
             attachmentVersion = byteArray[pos];
             if (attachmentVersion < 0 || attachmentVersion > 1) {
-                return false;
+                return { fail: true, param: "PhasingAppendix", actual: attachmentVersion, expected: JSON.stringify(data) };
             }
             pos++;
             if (String(converters.byteArrayToSignedInt32(byteArray, pos)) !== data.phasingFinishHeight) {
-                return false;
+                return { fail: true, param: "PhasingAppendix", actual: String(converters.byteArrayToSignedInt32(byteArray, pos)), expected: data.phasingFinishHeight };
             }
             pos += 4;
             var params = JSON.parse(data["phasingParams"]);
-            pos = validateCommonPhasingData(byteArray, pos, params);
-            if (pos == -1) {
-                return false;
+            result = validateCommonPhasingData(byteArray, pos, params);
+            if (result.fail) {
+                return result;
+            } else {
+                pos = result.pos;
             }
             if (params.phasingVotingModel == NRS.constants.VOTING_MODELS.TRANSACTION) {
                 var linkedFullHashesLength = byteArray[pos];
                 pos++;
                 if (linkedFullHashesLength > 1) {
                     NRS.logConsole("currently only 1 full hash is supported");
-                    return false;
+                    return { fail: true, param: "PhasingAppendix", actual: linkedFullHashesLength, expected: 1 };
                 }
                 if (linkedFullHashesLength == 1) {
-                    var tokens = String(params.phasingLinkedTransaction).split(":");
-                    if (tokens.length != 2) {
-                        return false;
-                    }
-                    var chain = tokens[0];
-                    if (chain != String(converters.byteArrayToSignedInt32(byteArray, pos))) {
-                        return false;
+                    var transactionId = params.phasingLinkedTransactions[0];
+                    if (transactionId.chain != String(converters.byteArrayToSignedInt32(byteArray, pos))) {
+                        return { fail: true, param: "PhasingAppendixChain", actual: String(converters.byteArrayToSignedInt32(byteArray, pos)), expected: transactionId.chain };
                     }
                     pos += 4;
-                    var fullHash = tokens[1];
-                    if (fullHash != converters.byteArrayToHexString(byteArray.slice(pos, pos + 32))) {
-                        return false;
+                    if (transactionId.transactionFullHash != converters.byteArrayToHexString(byteArray.slice(pos, pos + 32))) {
+                        return { fail: true, param: "PhasingAppendixFullHash", actual: converters.byteArrayToHexString(byteArray.slice(pos, pos + 32)), expected: transactionId.transactionFullHash };
                     }
                     pos += 32;
                 }
@@ -1658,32 +1696,34 @@ var NRS = (function (NRS, $, undefined) {
                 var hashedSecretLength = byteArray[pos];
                 pos++;
                 if (hashedSecretLength > 0 && converters.byteArrayToHexString(byteArray.slice(pos, pos + hashedSecretLength)) !== params.phasingHashedSecret) {
-                    return false;
+                    return { fail: true, param: "PhasingAppendixSecret", actual: "", expected: params.phasingHashedSecret };
                 }
                 pos += hashedSecretLength;
                 var algorithm = String(byteArray[pos]);
                 if (algorithm !== "0" && algorithm != params.phasingHashedSecretAlgorithm) {
-                    return false;
+                    return { fail: true, param: "PhasingAppendixAlgorithm", actual: algorithm, expected:  params.phasingHashedSecretAlgorithm };
                 }
             }
 
             if (params.phasingVotingModel == NRS.constants.VOTING_MODELS.COMPOSITE) {
-                pos = validateCompositePhasingData(byteArray, pos, params);
-                if (pos == -1) {
-                    return false;
+                result = validateCompositePhasingData(byteArray, pos, params);
+                if (result.fail) {
+                    return result;
+                } else {
+                    pos = result.pos;
                 }
             }
         }
-        return true;
+        return { pos: pos };
     };
 
-    NRS.broadcastTransactionBytes = function (transactionData, callback, originalResponse, originalData, requestType) {
+    NRS.broadcastTransactionBytes = function (transactionBytes, callback, originalResponse, originalData) {
         var data = {
-            "transactionBytes": transactionData,
+            "transactionBytes": transactionBytes,
             "prunableAttachmentJSON": JSON.stringify(originalResponse.transactionJSON.attachment),
             "adminPassword": NRS.getAdminPassword()
         };
-        requestType = NRS.state.apiProxy ? "sendTransaction": "broadcastTransaction";
+        var requestType = NRS.state.apiProxy ? "sendTransaction": "broadcastTransaction";
         $.ajax({
             url: NRS.getRequestPath() + "?requestType=" + requestType,
             crossDomain: true,
@@ -1702,11 +1742,11 @@ var NRS = (function (NRS, $, undefined) {
                 if (!response.errorDescription) {
                     response.errorDescription = (response.errorMessage ? response.errorMessage : "Unknown error occurred.");
                 }
-                callback(response, originalData);
+                    callback(response, originalData);
             } else if (response.error) {
                 response.errorCode = 1;
                 response.errorDescription = response.error;
-                callback(response, originalData);
+                    callback(response, originalData);
             } else {
                 if ("transactionBytes" in originalResponse) {
                     delete originalResponse.transactionBytes;
@@ -1784,24 +1824,34 @@ var NRS = (function (NRS, $, undefined) {
 
     function validateControlPhasingData(data, byteArray, pos, hasFeeBurningData) {
         var params;
+        var result;
         if (byteArray[pos] == 0xFF) {
             // Removal of account control
             if (data.controlVotingModel != NRS.constants.VOTING_MODELS.NONE) {
-                return -1;
+                return { fail: true, param: "validateControlPhasingDataRemoval", actual: data.controlVotingModel, expected: NRS.constants.VOTING_MODELS.NONE};
             }
             params = { phasingVotingModel: "-1", phasingQuorum: "0", phasingMinBalance: "0" }; // The server puts these bytes as control params so make sure they are there
-            pos = validateCommonPhasingData(byteArray, pos, params);
+            result = validateCommonPhasingData(byteArray, pos, params);
+            if (result.fail) {
+                return result;
+            } else {
+                pos = result.pos;
+            }
         } else {
             params = JSON.parse(data["controlParams"]);
-            pos = validateCommonPhasingData(byteArray, pos, params);
-            if (pos == -1) {
-                return -1;
+            result = validateCommonPhasingData(byteArray, pos, params);
+            if (result.fail) {
+                return result;
+            } else {
+                pos = result.pos;
             }
         }
         if (params.phasingVotingModel == NRS.constants.VOTING_MODELS.COMPOSITE) {
-            pos = validateCompositePhasingData(byteArray, pos, params);
-            if (pos == -1) {
-                return -1;
+            result = validateCompositePhasingData(byteArray, pos, params);
+            if (result.fail) {
+                return result;
+            } else {
+                pos = result.pos;
             }
         }
         if (hasFeeBurningData) {
@@ -1815,36 +1865,36 @@ var NRS = (function (NRS, $, undefined) {
                 controlMaxFees += ":" + String(converters.byteArrayToBigInteger(byteArray, pos));
                 pos += 8;
                 if (controlMaxFees != data.controlMaxFees) {
-                    return -1;
+                    return { fail: true, param: "validateControlPhasingControlMaxFees", actual: controlMaxFees, expected: data.controlMaxFees };
                 }
             }
             var minDuration = converters.byteArrayToSignedShort(byteArray, pos);
             pos += 2;
-            if (data.controlMinDuration && minDuration != data.controlMinDuration) {
-                return -1;
+            if (data.controlMinDuration && minDuration != data.controlMinDuration || !data.controlMinDuration && minDuration != 0) {
+                return { fail: true, param: "validateControlPhasingControlMinDuration", actual: minDuration, expected: data.controlMinDuration };
             }
             var maxDuration = converters.byteArrayToSignedShort(byteArray, pos);
             pos += 2;
-            if (data.controlMaxDuration && maxDuration != data.controlMaxDuration) {
-                return -1;
+            if (data.controlMaxDuration && maxDuration != data.controlMaxDuration || !data.controlMaxDuration && maxDuration != 0) {
+                return { fail: true, param: "validateControlPhasingControlMaxDuration", actual: minDuration, expected: data.controlMaxDuration };
             }
         }
-        return pos;
+        return { pos: pos };
     }
 
     function validateCommonPhasingData(byteArray, pos, params) {
         if (byteArray[pos] != (parseInt(params["phasingVotingModel"]) & 0xFF)) {
-            return -1;
+            return { fail: true, param: "validateCommonPhasingData", actual: byteArray[pos], expected: parseInt(params["phasingVotingModel"]) & 0xFF };
         }
         pos++;
         var quorum = String(converters.byteArrayToBigInteger(byteArray, pos));
-        if (quorum !== "0" && quorum !== String(params["phasingQuorum"])) {
-            return -1;
+        if (quorum !== "0" && quorum !== String(params["phasingQuorum"])) { // TODO improve this validation
+            return { fail: true, param: "validateCommonPhasingDataQuorum", actual: quorum, expected: String(params["phasingQuorum"]) };
         }
         pos += 8;
         var minBalance = String(converters.byteArrayToBigInteger(byteArray, pos));
-        if (minBalance !== "0" && minBalance !== params["phasingMinBalance"]) {
-            return -1;
+        if (minBalance !== "0" && minBalance !== params["phasingMinBalance"]) { // TODO improve this validation
+            return { fail: true, param: "validateCommonPhasingDataMinBalance", actual: minBalance, expected: params["phasingMinBalance"] };
         }
         pos += 8;
         var whiteListLength = byteArray[pos];
@@ -1854,98 +1904,98 @@ var NRS = (function (NRS, $, undefined) {
             var accountRS = NRS.convertNumericToRSAccountFormat(accountId);
             pos += 8;
             if (String(accountId) !== params["phasingWhitelist"][i] && String(accountRS) !== params["phasingWhitelist"][i]) {
-                return -1;
+                return { fail: true, param: "validateCommonPhasingDataAccount", actual: accountId + " or " + accountRS, expected: params["phasingWhitelist"][i]};
             }
         }
         var holdingId = String(converters.byteArrayToBigInteger(byteArray, pos));
-        if (holdingId !== "0" && holdingId !== params["phasingHolding"]) {
-            return -1;
+        if (holdingId !== "0" && holdingId !== params["phasingHolding"]) { // TODO improve this validation
+            return { fail: true, param: "validateCommonPhasingDataHolding", actual: holdingId, expected: params["phasingHolding"]};
         }
         pos += 8;
         var minBalanceModel = String(byteArray[pos]);
         if (minBalanceModel !== "0" && minBalanceModel !== String(params["phasingMinBalanceModel"])) {
-            return -1;
+            return { fail: true, param: "validateCommonPhasingDataMinBalanceModel", actual: minBalanceModel, expected: params["phasingMinBalanceModel"]};
         }
         pos++;
 
         if (params.phasingVotingModel == NRS.constants.VOTING_MODELS.PROPERTY) {
             if (params.phasingSenderProperty === undefined) {
                 if (String(converters.byteArrayToBigInteger(byteArray, pos)) !== "0") {
-                    return false;
+                    return { fail: true, param: "validateCommonPhasingDataNoSenderProperty1", actual: "", expected: ""};
                 }
                 pos += 8;
                 if (byteArray[pos] !== 0) {
-                    return false;
+                    return { fail: true, param: "validateCommonPhasingDataNoSenderProperty2", actual: "", expected: ""};
                 }
                 pos++;
                 if (byteArray[pos] !== 0) {
-                    return false;
+                    return { fail: true, param: "validateCommonPhasingDataNoSenderProperty3", actual: "", expected: ""};
                 }
                 pos++;
             } else {
                 if (String(converters.byteArrayToBigInteger(byteArray, pos)) !== params.phasingSenderProperty.setter) {
-                    return false;
+                    return { fail: true, param: "validateCommonPhasingDataSenderProperty", actual: String(converters.byteArrayToBigInteger(byteArray, pos)), expected: params.phasingSenderProperty.setter };
                 }
                 pos += 8;
                 var length = byteArray[pos];
                 pos++;
                 if (converters.byteArrayToString(byteArray, pos, length) !== params.phasingSenderProperty.name) {
-                    return false;
+                    return { fail: true, param: "validateCommonPhasingDataSenderPropertyName", actual: converters.byteArrayToString(byteArray, pos, length), expected: params.phasingSenderProperty.name };
                 }
                 pos += length;
                 length = byteArray[pos];
                 pos++;
                 if (params.phasingSenderProperty.value === undefined) {
                     if (length !== 0) {
-                        return false;
+                        return { fail: true, param: "validateCommonPhasingDataSenderPropertyNoValue", actual: "", expected: "" };
                     }
                 } else {
                     if (converters.byteArrayToString(byteArray, pos, length) !== params.phasingSenderProperty.value) {
-                        return false;
+                        return { fail: true, param: "validateCommonPhasingDataSenderPropertyValue", actual: converters.byteArrayToString(byteArray, pos, length), expected: params.phasingSenderProperty.value };
                     }
                 }
                 pos += length;
             }
             if (params.phasingRecipientProperty === undefined) {
                 if (String(converters.byteArrayToBigInteger(byteArray, pos)) !== "0") {
-                    return false;
+                    return { fail: true, param: "validateCommonPhasingDataNoRecipientProperty1", actual: "", expected: ""};
                 }
                 pos += 8;
                 if (byteArray[pos] !== 0) {
-                    return false;
+                    return { fail: true, param: "validateCommonPhasingDataNoRecipientProperty2", actual: "", expected: ""};
                 }
                 pos++;
                 if (byteArray[pos] !== 0) {
-                    return false;
+                    return { fail: true, param: "validateCommonPhasingDataNoRecipientProperty3", actual: "", expected: ""};
                 }
                 pos++;
             } else {
                 if (String(converters.byteArrayToBigInteger(byteArray, pos)) !== params.phasingRecipientProperty.setter) {
-                    return false;
+                    return { fail: true, param: "validateCommonPhasingDataRecipientProperty", actual: String(converters.byteArrayToBigInteger(byteArray, pos)), expected: params.phasingRecipientProperty.setter };
                 }
                 pos += 8;
                 length = byteArray[pos];
                 pos++;
                 if (converters.byteArrayToString(byteArray, pos, length) !== params.phasingRecipientProperty.name) {
-                    return false;
+                    return { fail: true, param: "validateCommonPhasingDataRecipientPropertyName", actual: converters.byteArrayToString(byteArray, pos, length), expected: params.phasingRecipientProperty.name };
                 }
                 pos += length;
                 length = byteArray[pos];
                 pos++;
                 if (params.phasingRecipientProperty.value === undefined) {
                     if (length !== 0) {
-                        return false;
+                        return { fail: true, param: "validateCommonPhasingDataRecipientPropertyNoValue", actual: "", expected: "" };
                     }
                 } else {
                     if (converters.byteArrayToString(byteArray, pos, length) !== params.phasingRecipientProperty.value) {
-                        return false;
+                        return { fail: true, param: "validateCommonPhasingDataRecipientPropertyValue", actual: converters.byteArrayToString(byteArray, pos, length), expected: params.phasingRecipientProperty.value };
                     }
                 }
                 pos += length;
             }
         }
 
-        return pos;
+        return { pos: pos };
     }
 
     function validateCompositePhasingData(byteArray, pos, params) {
@@ -1953,7 +2003,7 @@ var NRS = (function (NRS, $, undefined) {
         pos += 2;
         var expression = converters.byteArrayToString(byteArray, pos, length);
         if (params.phasingExpression != expression) {
-            return -1;
+            return { fail: true, param: "validateCompositePhasingDataExpression", actual: expression, expected: params.phasingExpression };
         }
         pos += length;
         length = byteArray[pos];
@@ -1964,14 +2014,16 @@ var NRS = (function (NRS, $, undefined) {
             var subPollName = converters.byteArrayToString(byteArray, pos, subPollNameLength);
             pos += subPollNameLength;
             if (!params.phasingSubPolls[subPollName]) {
-                return -1;
+                return { fail: true, param: "validateCompositePhasingDataNoPollName", actual: "", expected: subPollName };
             }
-            pos = validateCommonPhasingData(byteArray, pos, params.phasingSubPolls[subPollName]);
-            if (pos == -1) {
-                return -1;
+            var result = validateCommonPhasingData(byteArray, pos, params.phasingSubPolls[subPollName]);
+            if (result.fail) {
+                return result;
+            } else {
+                pos = result.pos;
             }
         }
-        return pos;
+        return { pos: pos };
     }
 
     return NRS;

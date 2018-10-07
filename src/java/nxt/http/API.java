@@ -82,7 +82,7 @@ public final class API {
     public static final int TESTNET_API_PORT = 26876;
     public static final int TESTNET_API_SSLPORT = 26877;
     public static final int MIN_COMPRESS_SIZE = 256;
-    private static final String[] DISABLED_HTTP_METHODS = {"TRACE", "OPTIONS", "HEAD"};
+    private static final String[] DISABLED_HTTP_METHODS = {"TRACE", "HEAD"};
 
     public static final int openAPIPort;
     public static final int openAPISSLPort;

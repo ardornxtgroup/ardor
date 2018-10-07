@@ -254,12 +254,16 @@ public final class Convert {
     }
 
     public static String readString(ByteBuffer buffer, int numBytes, int maxLength) throws NxtException.NotValidException {
-        if (numBytes > 3 * maxLength) {
+        if (numBytes > getMaxStringSize(maxLength)) {
             throw new NxtException.NotValidException("Max parameter length exceeded");
         }
         byte[] bytes = new byte[numBytes];
         buffer.get(bytes);
         return Convert.toString(bytes);
+    }
+
+    public static int getMaxStringSize(int length) {
+        return 3 * length;
     }
 
     public static String truncate(String s, String replaceNull, int limit, boolean dots) {
@@ -336,5 +340,23 @@ public final class Convert {
                 .multiply(BigDecimal.valueOf(rateNQT, rateDecimals))
                 .movePointRight(rateDecimals)
                 .toBigInteger().longValueExact();
+    }
+
+    public static byte[] longToBytes(long l) {
+        byte[] result = new byte[8];
+        for (int i = 7; i >= 0; i--) {
+            result[i] = (byte)(l & 0xFF);
+            l >>= 8;
+        }
+        return result;
+    }
+
+    public static long bytesToLong(byte[] b) {
+        long result = 0;
+        for (int i = 0; i < 8; i++) {
+            result <<= 8;
+            result |= (b[i] & 0xFF);
+        }
+        return result;
     }
 }

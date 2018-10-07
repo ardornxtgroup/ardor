@@ -16,13 +16,21 @@
 
 package nxt.util;
 
+import nxt.Nxt;
+import nxt.addons.JO;
 import org.json.simple.JSONAware;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -259,4 +267,5 @@ public final class JSON {
         else if (start < string.length())
             sb.append(string.substring(start));
     }
+
 }

@@ -59,6 +59,18 @@ public class SecureRandomTest {
         }
     }
 
+    @Test
+    public void reproducibleRandom() throws NoSuchAlgorithmException {
+        SecureRandom secureRandom = SecureRandom.getInstance("SHA1PRNG");
+        long seed = 12345678L;
+        secureRandom.setSeed(seed);
+        Assert.assertEquals(3325995872096263519L, secureRandom.nextLong());
+        System.out.println(secureRandom.nextLong());
+        SecureRandom secureRandom2 = SecureRandom.getInstance("SHA1PRNG");
+        secureRandom2.setSeed(seed);
+        Assert.assertEquals(3325995872096263519L, secureRandom2.nextLong());
+    }
+
     public static void main(String[] args) {
         long startTime = System.currentTimeMillis();
         new SecureRandomTest().simpleSecureRandom();

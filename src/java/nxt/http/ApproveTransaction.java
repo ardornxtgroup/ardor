@@ -38,7 +38,7 @@ public class ApproveTransaction extends CreateTransaction {
 
     private ApproveTransaction() {
         super(new APITag[]{APITag.CREATE_TRANSACTION, APITag.PHASING}, "phasedTransaction", "phasedTransaction", "phasedTransaction",
-                "revealedSecret", "revealedSecret", "revealedSecret", "revealedSecretIsText");
+                "revealedSecret", "revealedSecret", "revealedSecret", "revealedSecretIsText", "revealedSecretText");
     }
 
     @Override

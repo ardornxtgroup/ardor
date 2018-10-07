@@ -53,6 +53,7 @@ var NRS = (function(NRS, $) {
                 chainDetails.shuffling_deposit_formatted_html = NRS.formatQuantity(chainDetails.SHUFFLING_DEPOSIT_NQT, chain.decimals);
                 delete chainDetails.SHUFFLING_DEPOSIT_NQT;
             }
+            chainDetails.display_name = NRS.getChainDisplayName(chain.name);
             chainDetails.chain_id = chainDetails.id;
             delete chainDetails.id;
             NRS.sendRequest("getBundlerRates", {}, function(response) {

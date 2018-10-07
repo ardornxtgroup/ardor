@@ -24,6 +24,7 @@ import nxt.account.HoldingType;
 import nxt.ae.Asset;
 import nxt.aliases.AliasHome;
 import nxt.blockchain.Appendix;
+import nxt.blockchain.Bundler;
 import nxt.blockchain.Chain;
 import nxt.blockchain.ChainTransactionId;
 import nxt.blockchain.ChildChain;
@@ -51,6 +52,7 @@ import nxt.util.Search;
 import nxt.voting.PhasingParams;
 import nxt.voting.PollHome;
 import nxt.voting.VoteWeighting;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 import org.json.simple.JSONValue;
@@ -222,6 +224,14 @@ public final class ParameterParser {
             return null;
         }
         return (JSONObject)JSONValue.parse(paramValue);
+    }
+
+    public static JSONArray getJsonArray(HttpServletRequest req, String name) {
+        String paramValue = Convert.emptyToNull(req.getParameter(name));
+        if (paramValue == null) {
+            return null;
+        }
+        return (JSONArray)JSONValue.parse(paramValue);
     }
 
     public static String getParameter(HttpServletRequest req, String name) throws ParameterException {
@@ -424,20 +434,11 @@ public final class ParameterParser {
                 throw new ParameterException(JSONResponses.incorrect(messageType + "Data"));
             }
         } else {
-            if (req.getContentType() == null || !req.getContentType().startsWith("multipart/form-data")) {
+            FileData fileData = getFileData(req, messageType + "File",false);
+            if (fileData == null) {
                 return null;
             }
-            try {
-                Part part = req.getPart(messageType + "File");
-                if (part == null) {
-                    return null;
-                }
-                FileData fileData = new FileData(part).invoke();
-                data = fileData.getData();
-            } catch (IOException | ServletException e) {
-                Logger.logDebugMessage("error in reading file data", e);
-                throw new ParameterException(JSONResponses.incorrect(messageType + "File"));
-            }
+            data = fileData.getData();
         }
         return new EncryptedData(data, nonce);
     }
@@ -495,7 +496,8 @@ public final class ParameterParser {
         String secretPhraseParam = prefix == null ? "secretPhrase" : (prefix + "SecretPhrase");
         String publicKeyParam = prefix == null ? "publicKey" : (prefix + "PublicKey");
         String secretPhrase = Convert.emptyToNull(req.getParameter(secretPhraseParam));
-        if (secretPhrase == null) {
+        boolean isVoucher = "true".equalsIgnoreCase(req.getParameter("voucher"));
+        if (secretPhrase == null || isVoucher) {
             try {
                 byte[] publicKey = Convert.parseHexString(Convert.emptyToNull(req.getParameter(publicKeyParam)));
                 if (publicKey == null) {
@@ -621,7 +623,7 @@ public final class ParameterParser {
         if (value == null) {
             return null;
         }
-        return getChainTransactionId(name, value);
+        return getChainTransactionId(value);
     }
 
     public static List<ChainTransactionId> getChainTransactionIds(HttpServletRequest req, String name) throws ParameterException {
@@ -631,15 +633,15 @@ public final class ParameterParser {
         }
         List<ChainTransactionId> result = new ArrayList<>();
         for (String value : values) {
-            result.add(getChainTransactionId(name, value));
+            result.add(getChainTransactionId(value));
         }
         return result;
     }
 
-    private static ChainTransactionId getChainTransactionId(String name, String value) throws ParameterException {
+    public static ChainTransactionId getChainTransactionId(String value) throws ParameterException {
         String[] s = value.split(":");
         if (s.length != 2) {
-            throw new ParameterException(JSONResponses.incorrect(name, "must be in chainId:fullHash format"));
+            throw new ParameterException(JSONResponses.incorrect(value, "must be in chainId:fullHash format"));
         }
         try {
             int chainId = Integer.parseInt(s[0]);
@@ -649,11 +651,11 @@ public final class ParameterParser {
             }
             byte[] hash = Convert.parseHexString(s[1]);
             if (hash == null || hash.length != 32) {
-                throw new ParameterException(JSONResponses.incorrect(name, "invalid fullHash length"));
+                throw new ParameterException(JSONResponses.incorrect(value, "invalid fullHash length"));
             }
             return new ChainTransactionId(chainId, hash);
         } catch (NumberFormatException e) {
-            throw new ParameterException(JSONResponses.incorrect(name, "must be in chainId:fullHash format"));
+            throw new ParameterException(JSONResponses.incorrect(value, "must be in chainId:fullHash format"));
         }
     }
 
@@ -724,28 +726,22 @@ public final class ParameterParser {
         if (req.getContentType() == null || !req.getContentType().startsWith("multipart/form-data")) {
             return null;
         }
-        try {
-            Part part = req.getPart("messageFile");
-            if (part == null) {
-                return null;
-            }
-            FileData fileData = new FileData(part).invoke();
-            byte[] message = fileData.getData();
-            String detectedMimeType = Search.detectMimeType(message);
-            if (detectedMimeType != null) {
-                messageIsText = detectedMimeType.startsWith("text/");
-            }
-            if (messageIsText && !Arrays.equals(message, Convert.toBytes(Convert.toString(message)))) {
-                messageIsText = false;
-            }
-            if (prunable) {
-                return new PrunablePlainMessageAppendix(message, messageIsText);
-            } else {
-                return new MessageAppendix(message, messageIsText);
-            }
-        } catch (IOException | ServletException e) {
-            Logger.logDebugMessage("error in reading file data", e);
-            throw new ParameterException(INCORRECT_ARBITRARY_MESSAGE);
+        FileData fileData = getFileData(req, "messageFile",false);
+        if (fileData == null) {
+            return null;
+        }
+        byte[] message = fileData.getData();
+        String detectedMimeType = Search.detectMimeType(message);
+        if (detectedMimeType != null) {
+            messageIsText = detectedMimeType.startsWith("text/");
+        }
+        if (messageIsText && !Arrays.equals(message, Convert.toBytes(Convert.toString(message)))) {
+            messageIsText = false;
+        }
+        if (prunable) {
+            return new PrunablePlainMessageAppendix(message, messageIsText);
+        } else {
+            return new MessageAppendix(message, messageIsText);
         }
     }
 
@@ -761,23 +757,17 @@ public final class ParameterParser {
                 if (req.getContentType() == null || !req.getContentType().startsWith("multipart/form-data")) {
                     return null;
                 }
-                try {
-                    Part part = req.getPart("messageToEncryptFile");
-                    if (part == null) {
-                        return null;
-                    }
-                    FileData fileData = new FileData(part).invoke();
-                    plainMessageBytes = fileData.getData();
-                    String detectedMimeType = Search.detectMimeType(plainMessageBytes);
-                    if (detectedMimeType != null) {
-                        isText = detectedMimeType.startsWith("text/");
-                    }
-                    if (isText && !Arrays.equals(plainMessageBytes, Convert.toBytes(Convert.toString(plainMessageBytes)))) {
-                        isText = false;
-                    }
-                } catch (IOException | ServletException e) {
-                    Logger.logDebugMessage("error in reading file data", e);
-                    throw new ParameterException(INCORRECT_MESSAGE_TO_ENCRYPT);
+                FileData fileData = getFileData(req, "messageToEncryptFile",false);
+                if (fileData == null) {
+                    return null;
+                }
+                plainMessageBytes = fileData.getData();
+                String detectedMimeType = Search.detectMimeType(plainMessageBytes);
+                if (detectedMimeType != null) {
+                    isText = detectedMimeType.startsWith("text/");
+                }
+                if (isText && !Arrays.equals(plainMessageBytes, Convert.toBytes(Convert.toString(plainMessageBytes)))) {
+                    isText = false;
                 }
             } else {
                 try {
@@ -826,24 +816,18 @@ public final class ParameterParser {
         String dataValue = Convert.emptyToNull(req.getParameter("data"));
         byte[] data;
         if (dataValue == null) {
-            try {
-                Part part = req.getPart("file");
-                if (part == null) {
-                    throw new ParameterException(INCORRECT_TAGGED_DATA_FILE);
-                }
-                FileData fileData = new FileData(part).invoke();
-                data = fileData.getData();
-                // Depending on how the client submits the form, the filename, can be a regular parameter
-                // or encoded in the multipart form. If its not a parameter we take from the form
-                if (filename.isEmpty() && fileData.getFilename() != null) {
-                    filename = fileData.getFilename().trim();
-                }
-                if (name == null) {
-                    name = filename;
-                }
-            } catch (IOException | ServletException e) {
-                Logger.logDebugMessage("error in reading file data", e);
+            FileData fileData = getFileData(req,"file", true);
+            if (fileData == null) {
                 throw new ParameterException(INCORRECT_TAGGED_DATA_FILE);
+            }
+            data = fileData.getData();
+            // Depending on how the client submits the form, the filename, can be a regular parameter
+            // or encoded in the multipart form. If its not a parameter we take from the form
+            if (filename.isEmpty() && fileData.getFilename() != null) {
+                filename = fileData.getFilename().trim();
+            }
+            if (name == null) {
+                name = filename;
             }
         } else {
             data = isText ? Convert.toBytes(dataValue) : Convert.parseHexString(dataValue);
@@ -895,6 +879,30 @@ public final class ParameterParser {
             throw new ParameterException(INCORRECT_TAGGED_DATA_FILENAME);
         }
         return new TaggedDataAttachment(name, description, tags, type, channel, isText, filename, data);
+    }
+
+    public static FileData getFileData(HttpServletRequest req, String paramName, boolean isMandatory) throws ParameterException {
+        if (req.getContentType() == null || !req.getContentType().startsWith("multipart/form-data")) {
+            if (isMandatory) {
+                throw new ParameterException(INCORRECT_FILE);
+            } else {
+                return null;
+            }
+        }
+        try {
+            Part part = req.getPart(paramName);
+            if (part == null) {
+                if (isMandatory) {
+                    throw new ParameterException(INCORRECT_FILE);
+                } else {
+                    return null;
+                }
+            }
+            return new FileData(part);
+        } catch (IOException | ServletException e) {
+            Logger.logDebugMessage("error in reading file data", e);
+            throw new ParameterException(INCORRECT_FILE);
+        }
     }
 
     public static Chain getChain(HttpServletRequest request) throws ParameterException {
@@ -967,12 +975,25 @@ public final class ParameterParser {
     private ParameterParser() {} // never
 
     public static class FileData {
-        private final Part part;
         private String filename;
         private byte[] data;
 
-        public FileData(Part part) {
-            this.part = part;
+        public FileData(Part part) throws ParameterException {
+            try {
+                try (InputStream is = part.getInputStream()) {
+                    int nRead;
+                    byte[] bytes = new byte[1024];
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    while ((nRead = is.read(bytes, 0, bytes.length)) != -1) {
+                        baos.write(bytes, 0, nRead);
+                    }
+                    data = baos.toByteArray();
+                }
+                filename = part.getSubmittedFileName();
+            } catch (IOException e) {
+                Logger.logDebugMessage("error in reading file data " + part.getSubmittedFileName(), e);
+                throw new ParameterException(JSONResponses.INCORRECT_FILE);
+            }
         }
 
         public String getFilename() {
@@ -983,19 +1004,59 @@ public final class ParameterParser {
             return data;
         }
 
-        public FileData invoke() throws IOException {
-            try (InputStream is = part.getInputStream()) {
-                int nRead;
-                byte[] bytes = new byte[1024];
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                while ((nRead = is.read(bytes, 0, bytes.length)) != -1) {
-                    baos.write(bytes, 0, nRead);
-                }
-                data = baos.toByteArray();
-                filename = part.getSubmittedFileName();
-            }
-            return this;
+    }
+
+    public static JSONObject parseVoucher(byte[] data) throws ParameterException {
+        // Parse the voucher
+        JSONObject voucherJson;
+        try {
+            voucherJson = (JSONObject)JSONValue.parseWithException(Convert.toString(data));
+            return parseVoucher(voucherJson);
+        } catch (ParseException e) {
+            return voucherError("Incorrect voucher " + e, e);
         }
+    }
+
+    public static JSONObject parseVoucher(JSONObject voucherJson) throws ParameterException {
+        // Verify the voucher bytes signature
+        String unsignedTransactionBytesHex = ((String) voucherJson.get("unsignedTransactionBytes"));
+        if (!Crypto.verify(Convert.parseHexString((String)voucherJson.get("signature")),
+                Convert.parseHexString(unsignedTransactionBytesHex),
+                Convert.parseHexString((String)voucherJson.get("publicKey")))) {
+            return voucherError("Cannot verify voucher signature", null);
+        }
+
+        // Verify that the transaction JSON matches the transaction bytes
+        JSONObject transactionJSON = (JSONObject)voucherJson.get("transactionJSON");
+        try {
+            Transaction transaction = ParameterParser.parseTransaction(transactionJSON.toJSONString(), null, null).build();
+            transactionJSON = transaction.getJSONObject();
+        } catch (NxtException.NotValidException e) {
+            return voucherError("Invalid voucher JSON", e);
+        }
+        JSONObject transactionFromBytes;
+        try {
+            Transaction transaction = ParameterParser.parseTransaction(null, unsignedTransactionBytesHex, ((JSONObject)transactionJSON.get("attachment")).toJSONString()).build();
+            transactionFromBytes = transaction.getJSONObject();
+        } catch (NxtException.NotValidException e) {
+            return voucherError("Invalid voucher Bytes", e);
+        }
+        if (!transactionJSON.equals(transactionFromBytes)) {
+            return voucherError(String.format("Voucher transaction bytes data %s differ from transaction json %s", transactionFromBytes, transactionJSON), null);
+        }
+        return voucherJson;
+    }
+
+    private static JSONObject voucherError(String message, Exception e) throws ParameterException {
+        if (e != null) {
+            Logger.logErrorMessage(message, e);
+        } else {
+            Logger.logErrorMessage(message);
+        }
+        JSONObject response = new JSONObject();
+        response.put("errorCode", 4);
+        response.put("errorDescription", message);
+        throw new ParameterException(response);
     }
 
     public static PhasingParams parsePhasingParams(HttpServletRequest req, String parameterPrefix) throws ParameterException {
@@ -1104,4 +1165,23 @@ public final class ParameterParser {
         return new PhasingParams.PropertyVoting(propertySetterId, propertyName, propertyValue);
     }
 
+    public static List<Bundler.Filter> getBundlingFilters(HttpServletRequest req) {
+        String[] filterStrings = req.getParameterValues("filter");
+        List<Bundler.Filter> filters;
+        if (filterStrings != null) {
+            filters = new ArrayList<>(filterStrings.length);
+            for (String filterStr : filterStrings) {
+                String[] nameAndParameter = filterStr.split(":", 2);
+                String name = nameAndParameter[0];
+                String parameter = null;
+                if (nameAndParameter.length == 2) {
+                    parameter = nameAndParameter[1];
+                }
+                filters.add(Bundler.createBundlingFilter(name, parameter));
+            }
+        } else {
+            filters = Collections.emptyList();
+        }
+        return filters;
+    }
 }

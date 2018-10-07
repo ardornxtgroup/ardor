@@ -54,6 +54,7 @@ import nxt.crypto.Crypto;
 import nxt.crypto.EncryptedData;
 import nxt.db.DbIterator;
 import nxt.dgs.DigitalGoodsHome;
+import nxt.lightcontracts.ContractReference;
 import nxt.messaging.PrunableMessageHome;
 import nxt.ms.Currency;
 import nxt.ms.CurrencyFounderHome;
@@ -66,6 +67,7 @@ import nxt.ms.ExchangeOfferHome;
 import nxt.ms.ExchangeRequestHome;
 import nxt.ms.MonetarySystemTransactionType;
 import nxt.ms.PublishExchangeOfferAttachment;
+import nxt.peer.BundlerRate;
 import nxt.peer.Peer;
 import nxt.shuffling.Shuffler;
 import nxt.shuffling.ShufflingHome;
@@ -1007,7 +1009,7 @@ public final class JSONData {
         return json;
     }
 
-    static JSONObject unconfirmedTransaction(Transaction transaction) {
+    public static JSONObject unconfirmedTransaction(Transaction transaction) {
         return unconfirmedTransaction(transaction, null);
     }
 
@@ -1071,7 +1073,7 @@ public final class JSONData {
         return json;
     }
 
-    static JSONObject transaction(Transaction transaction) {
+    public static JSONObject transaction(Transaction transaction) {
         return transaction(transaction, false);
     }
 
@@ -1247,10 +1249,58 @@ public final class JSONData {
         json.put("chain", bundler.getChildChain().getId());
         json.put("totalFeesLimitFQT", String.valueOf(bundler.getTotalFeesLimitFQT()));
         json.put("currentTotalFeesFQT", String.valueOf(bundler.getCurrentTotalFeesFQT()));
-        json.put("minRateNQTPerFXT", String.valueOf(bundler.getMinRateNQTPerFXT()));
-        json.put("overpayFQTPerFXT", String.valueOf(bundler.getOverpayFQTPerFXT()));
+        List<Bundler.Rule> bundlingRules = bundler.getBundlingRules();
+        if (bundlingRules.size() == 1) {
+            //return for backward compatibility
+            json.put("minRateNQTPerFXT", String.valueOf(bundlingRules.get(0).getMinRateNQTPerFXT()));
+            json.put("overpayFQTPerFXT", String.valueOf(bundlingRules.get(0).getOverpayFQTPerFXT()));
+        }
+        BundlerRate announcedRate = bundler.getBundlerRate();
+        if (announcedRate != null) {
+            json.put("announcedMinRateNQTPerFXT", String.valueOf(announcedRate.getRate()));
+        }
+        JSONArray rulesArray = new JSONArray();
+        for (Bundler.Rule rule : bundlingRules) {
+            rulesArray.add(bundlingRule(rule));
+        }
+        json.put("bundlingRules", rulesArray);
         return json;
     }
+
+    static JSONObject bundlingRule(Bundler.Rule rule) {
+        JSONObject json = new JSONObject();
+        json.put("minRateNQTPerFXT", String.valueOf(rule.getMinRateNQTPerFXT()));
+        json.put("feeCalculatorName", rule.getFeeCalculator().getName());
+        if (rule.getOverpayFQTPerFXT() != 0) {
+            json.put("overpayFQTPerFXT", String.valueOf(rule.getOverpayFQTPerFXT()));
+        }
+        List<Bundler.Filter> filters = rule.getFilters();
+        if (!filters.isEmpty()) {
+            JSONArray filtersJson = new JSONArray();
+            filters.forEach(filter -> filtersJson.add(bundlingFilter(filter)));
+            json.put("filters", filtersJson);
+        }
+        return json;
+    }
+
+    static JSONObject bundlingFilter(Bundler.Filter filter) {
+        JSONObject json = new JSONObject();
+        json.put("name", filter.getName());
+        if (filter.getParameter() != null) {
+            json.put("parameter", filter.getParameter());
+        }
+        return json;
+    }
+
+    public static JSONObject contractReference(ContractReference contractReference) {
+        JSONObject json = new JSONObject();
+        json.put("name", contractReference.getContractName());
+        json.put("params", contractReference.getContractParams());
+        json.put("contract", contractReference.getContractId().getJSON());
+        json.put("id", Long.toUnsignedString(contractReference.getId()));
+        return json;
+    }
+
 
     static void putPrunableAttachment(JSONObject json, Transaction transaction) {
         JSONObject prunableAttachment = transaction.getPrunableAttachmentJSON();
@@ -1272,7 +1322,7 @@ public final class JSONData {
         json.put("errorDescription", error + e.getMessage());
     }
 
-    static void putAccount(JSONObject json, String name, long accountId) {
+    public static void putAccount(JSONObject json, String name, long accountId) {
         json.put(name, Long.toUnsignedString(accountId));
         json.put(name + "RS", Convert.rsAccount(accountId));
     }

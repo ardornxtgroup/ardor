@@ -17,12 +17,24 @@
 package nxt.env;
 
 public enum ServerStatus {
-    BEFORE_DATABASE("Loading Database"), AFTER_DATABASE("Loading Resources"), STARTED("Online");
+    NOT_INITIALIZED(false, false, "Waiting for Initialization"), BEFORE_DATABASE(false, false, "Loading Database"), AFTER_DATABASE(true, false, "Loading Resources"), STARTED(true, true, "Online");
 
+    private final boolean isDatabaseReady;
+    private final boolean isApiPortReady;
     private final String message;
 
-    ServerStatus(String message) {
+    ServerStatus(boolean isDatabaseReady, boolean isApiPortReady, String message) {
+        this.isDatabaseReady = isDatabaseReady;
+        this.isApiPortReady = isApiPortReady;
         this.message = message;
+    }
+
+    public boolean isDatabaseReady() {
+        return isDatabaseReady;
+    }
+
+    public boolean isApiPortReady() {
+        return isApiPortReady;
     }
 
     public String getMessage() {

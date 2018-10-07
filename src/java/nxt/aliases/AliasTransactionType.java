@@ -21,6 +21,7 @@ import nxt.NxtException;
 import nxt.account.Account;
 import nxt.account.AccountLedger;
 import nxt.blockchain.Appendix;
+import nxt.blockchain.Attachment;
 import nxt.blockchain.ChildChain;
 import nxt.blockchain.ChildTransactionImpl;
 import nxt.blockchain.ChildTransactionType;
@@ -140,8 +141,8 @@ public abstract class AliasTransactionType extends ChildTransactionType {
         public void validateAttachment(ChildTransactionImpl transaction) throws NxtException.ValidationException {
             AliasAssignmentAttachment attachment = (AliasAssignmentAttachment) transaction.getAttachment();
             if (attachment.getAliasName().length() == 0
-                    || attachment.getAliasName().length() > Constants.MAX_ALIAS_LENGTH
-                    || attachment.getAliasURI().length() > Constants.MAX_ALIAS_URI_LENGTH) {
+                    || !AliasAssignmentAttachment.ALIAS_NAME_RW.validate(attachment.getAliasName())
+                    || !AliasAssignmentAttachment.ALIAS_URI_RW.validate(attachment.getAliasURI())) {
                 throw new NxtException.NotValidException("Invalid alias assignment: " + attachment.getJSONObject());
             }
             String normalizedAlias = attachment.getAliasName().toLowerCase(Locale.ROOT);

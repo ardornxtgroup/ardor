@@ -27,12 +27,12 @@
                                 <thead>
                                 <tr>
                                     <th data-i18n="order">Order</th>
-                                    <th data-i18n="exchange">Exchange</th>
                                     <th data-i18n="account">Account</th>
-                                    <th data-i18n="bid_amount">Bid Amount</th>
-                                    <th data-i18n="bid_rate">Bid Rate</th>
-                                    <th data-i18n="ask_amount">Ask Amount</th>
-                                    <th data-i18n="ask_rate">Ask Rate</th>
+                                    <th class="bid_amount"></th>
+                                    <th class="bid_rate"></th>
+                                    <th data-i18n="coin">Coin</th>
+                                    <th class="ask_amount"></th>
+                                    <th class="ask_rate"></th>
                                     <th data-i18n="action">Action</th>
                                 </tr>
                                 </thead>
@@ -59,12 +59,12 @@
                 <thead>
                 <tr>
                     <th data-i18n="date">Date</th>
-                    <th data-i18n="order">Order</th>
-                    <th data-i18n="match">Match</th>
-                    <th data-i18n="chain">Chains</th>
+                    <th class="coin_exchange_bid"></th>
+                    <th class="coin_exchange_ask"></th>
                     <th data-i18n="account">Account</th>
-                    <th data-i18n="rate" class='numeric'>Rate</th>
-                    <th data-i18n="amount" class='numeric'>Amount</th>
+                    <th class="coin_exchange_price numeric"></th>
+                    <th data-i18n="amount" class="numeric">Amount</th>
+                    <th data-i18n="coin">Coin</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -195,7 +195,7 @@
                                                         <tr>
                                                             <th></th>
                                                             <th data-i18n="account">Account</th>
-                                                            <th data-i18n="price" class="numeric">Price</th>
+                                                            <th class="coin_exchange_price numeric"></th>
                                                             <th class="coin_exchange_base_coin numeric"></th>
                                                             <th class="coin_exchange_counter_coin numeric"></th>
                                                             <th data-i18n="sum" class="numeric">Sum</th>
@@ -223,7 +223,7 @@
                                                         <tr>
                                                             <th></th>
                                                             <th data-i18n="account">Account</th>
-                                                            <th data-i18n="price" class="numeric">Price</th>
+                                                            <th class="coin_exchange_price numeric"></th>
                                                             <th class="coin_exchange_base_coin numeric"></th>
                                                             <th class="coin_exchange_counter_coin numeric"></th>
                                                             <th data-i18n="sum" class="numeric">Sum</th>
@@ -262,13 +262,12 @@
                                             <thead>
                                             <tr>
                                                 <th data-i18n="date">Date</th>
-                                                <th data-i18n="chain">Chain</th>
-                                                <th data-i18n="order">Order</th>
-                                                <th data-i18n="match">Match</th>
+                                                <th class="coin_exchange_bid"></th>
+                                                <th class="coin_exchange_ask">Match</th>
                                                 <th data-i18n="account">Account</th>
-                                                <th data-i18n="price" class='numeric'>Price</th>
-                                                <th class='coin_exchange_base_coin numeric'></th>
-                                                <th class='coin_exchange_counter_coin numeric'></th>
+                                                <th class="coin_exchange_price numeric"></th>
+                                                <th class="coin_exchange_base_coin numeric"></th>
+                                                <th class="coin_exchange_counter_coin numeric"></th>
                                             </tr>
                                             </thead>
                                             <tbody>

@@ -144,8 +144,9 @@ public class TestPropertyVoting extends BlockchainTest {
         //transaction without recipient must be executed immediately when phased by recipient property only
         propertyName = "prop2";
         String accountName = "AliceName";
-        builder = createGenericBuilder();
-        builder.param("requestType", "setAccountInfo");
+        builder = new ACTestUtils.PhasingBuilder("setAccountInfo", ALICE).
+                votingModel(VoteWeighting.VotingModel.PROPERTY).quorum(1);
+        builder.feeNQT(3 * ChildChain.IGNIS.ONE_COIN).param("phasingFinishHeight", Nxt.getBlockchain().getHeight() + 7);
         builder.param("name", accountName);
         builder.param("phasingRecipientPropertySetter", CHUCK.getStrId());
         builder.param("phasingRecipientPropertyName", propertyName);
@@ -181,6 +182,34 @@ public class TestPropertyVoting extends BlockchainTest {
 
         Assert.assertEquals(ACTestUtils.PhasingStatus.APPROVED, ACTestUtils.getPhasingStatus(fullHash));
         Assert.assertEquals(100 * ChildChain.IGNIS.ONE_COIN, BOB.getChainBalanceDiff(ChildChain.IGNIS.getId()));
+    }
+
+    @Test
+    public void testPropertyValueLength() {
+        String specialChar = "€";
+        StringBuilder sb = new StringBuilder();
+        for (int i=0; i < 42; i++) {
+            sb.append(specialChar);
+        }
+
+        String propertyName = "prop1";
+        String propertyValue = sb.toString();
+
+        APICall.Builder builder;
+
+        builder = createSetPropertyBuilder(CHUCK, ALICE, propertyName, propertyValue);
+        builder.build().invoke();
+        generateBlock();
+
+        ACTestUtils.PhasingBuilder phasingBuilder = createGenericBuilder();
+        phasingBuilder.property("Sender", CHUCK, propertyName, propertyValue + specialChar);
+
+        JSONAssert result = new JSONAssert(phasingBuilder.build().invoke());
+        Assert.assertTrue(result.str("errorDescription").contains("Invalid SenderPropertyValue"));
+
+        phasingBuilder.property("Sender", CHUCK, propertyName, propertyValue);
+        result = new JSONAssert(phasingBuilder.build().invoke());
+        result.fullHash();
     }
 
     public static APICall.Builder createSetPropertyBuilder(Tester setter, Tester recipient, String name, String value) {

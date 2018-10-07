@@ -21,19 +21,27 @@ import nxt.NxtException;
 import nxt.blockchain.Attachment;
 import nxt.blockchain.TransactionType;
 import nxt.util.Convert;
+import nxt.util.bbh.LengthRwPrimitiveType;
+import nxt.util.bbh.StringRw;
 import org.json.simple.JSONObject;
 
 import java.nio.ByteBuffer;
 
+import static nxt.util.bbh.LengthRwPrimitiveType.BYTE;
+import static nxt.util.bbh.LengthRwPrimitiveType.SHORT;
+
 public final class AliasAssignmentAttachment extends Attachment.AbstractAttachment {
+
+    public static final StringRw ALIAS_NAME_RW = new StringRw(BYTE, Constants.MAX_ALIAS_LENGTH);
+    public static final StringRw ALIAS_URI_RW = new StringRw(SHORT, Constants.MAX_ALIAS_URI_LENGTH);
 
     private final String aliasName;
     private final String aliasURI;
 
     AliasAssignmentAttachment(ByteBuffer buffer) throws NxtException.NotValidException {
         super(buffer);
-        aliasName = Convert.readString(buffer, buffer.get(), Constants.MAX_ALIAS_LENGTH).trim();
-        aliasURI = Convert.readString(buffer, buffer.getShort(), Constants.MAX_ALIAS_URI_LENGTH).trim();
+        aliasName = ALIAS_NAME_RW.readFromBuffer(buffer).trim();
+        aliasURI = ALIAS_URI_RW.readFromBuffer(buffer).trim();
     }
 
     AliasAssignmentAttachment(JSONObject attachmentData) {

@@ -58,7 +58,6 @@ public class TestCurrencyMint extends BlockchainTest {
         Logger.logDebugMessage("mintResponse: " + mintResponse);
         generateBlock();
         apiCall = new APICall.Builder("getCurrency").
-                feeNQT(ChildChain.IGNIS.ONE_COIN).
                 param("currency", currencyId).
                 build();
         JSONObject getCurrencyResponse = apiCall.invoke();
@@ -88,7 +87,6 @@ public class TestCurrencyMint extends BlockchainTest {
         Logger.logDebugMessage("mintResponse: " + mintResponse);
         generateBlock();
         apiCall = new APICall.Builder("getCurrency").
-                feeNQT(ChildChain.IGNIS.ONE_COIN).
                 param("currency", currencyId).
                 build();
         getCurrencyResponse = apiCall.invoke();

@@ -64,6 +64,12 @@ var NRS = (function(NRS, $, undefined) {
 	$(".add_message").on("change", function() {
 		if ($(this).is(":checked")) {
 			$(this).closest("form").find(".optional_message").fadeIn();
+			var permanentMessageControl = $(this).closest("form").find(".optional_message input[name=permanent_message]").parent();
+			if (NRS.isParentChain()) {
+				permanentMessageControl.hide();
+			} else {
+				permanentMessageControl.show();
+			}
 			$(this).closest(".form-group").css("margin-bottom", "5px");
 		} else {
 			$(this).closest("form").find(".optional_message").hide();
@@ -138,7 +144,6 @@ var NRS = (function(NRS, $, undefined) {
             });
         });
         $(this).find("input[name=secretPhrase]").prop("disabled", false);
-        var name = $(this).attr('id').replace('_modal', '');
 	});
 
 	modal.on("shown.bs.modal", function() {
@@ -162,10 +167,7 @@ var NRS = (function(NRS, $, undefined) {
     //Reset form to initial state when modal is closed
     modal.on("hidden.bs.modal", function() {
 		if(this.id === 'raw_transaction_modal') {
-			var reader = $('#raw_transaction_modal_signature_reader');
-			if (reader.data('stream')) {
-                reader.html5_qrcode_stop();
-            }
+            NRS.stopScanQRCode();
 		}
 		$(this).find("input[name=recipient], input[name=account_id]").not("[type=hidden]").trigger("unmask");
 		$(this).find(":input:not(button)").each(function() {

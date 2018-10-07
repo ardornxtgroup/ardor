@@ -16,6 +16,7 @@
  
  package nxt.util;
 
+import nxt.Tester;
 import nxt.http.accountControl.ACTestUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -44,6 +45,14 @@ public class JSONAssert {
             return (String) o;
         }
         throw new AssertionError("Type of " + key + " is not String");
+    }
+
+    public String fullHash() {
+        return str("fullHash");
+    }
+
+    public String id() {
+        return Tester.hexFullHashToStringId(fullHash());
     }
 
     public long integer(String key) {

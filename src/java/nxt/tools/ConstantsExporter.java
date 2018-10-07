@@ -17,6 +17,7 @@
 package nxt.tools;
 
 import nxt.Nxt;
+import nxt.configuration.Setup;
 import nxt.http.GetConstants;
 import nxt.util.JSON;
 import nxt.util.ThreadPool;
@@ -27,13 +28,17 @@ import java.io.IOException;
 import java.io.Writer;
 
 public class ConstantsExporter {
-    public static void main(String[] args) {
+
+    private static final Object sync = new Object();
+
+    public static void main(String[] args) throws InterruptedException {
         if (args.length != 1) {
             System.out.println("Usage: ConstantsExporter <destination constants.js file>");
             System.exit(1);
         }
 
-        ThreadPool.runBeforeStart(() -> {
+        // Don't use runBeforeStart since this causes deadlock on the class instantiation lock
+        ThreadPool.runAfterStart(() -> {
             Writer writer;
             try {
                 writer = new FileWriter(new File(args[0]));
@@ -51,9 +56,19 @@ public class ConstantsExporter {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }, true);
+            Nxt.shutdown();
 
-        Nxt.init();
-        Nxt.shutdown();
+            // Let the program end
+            synchronized (sync) {
+                sync.notify();
+            }
+        });
+
+        Nxt.init(Setup.COMMAND_LINE_TOOL);
+
+        // Wait for the getConstants thread to finish
+        synchronized (sync) {
+            sync.wait();
+        }
     }
 }

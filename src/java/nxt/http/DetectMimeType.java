@@ -18,15 +18,11 @@ package nxt.http;
 
 import nxt.NxtException;
 import nxt.util.Convert;
-import nxt.util.Logger;
 import nxt.util.Search;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.Part;
-import java.io.IOException;
 
 import static nxt.http.JSONResponses.INCORRECT_TAGGED_DATA_FILE;
 
@@ -44,21 +40,15 @@ public final class DetectMimeType extends APIServlet.APIRequestHandler {
         String dataValue = Convert.emptyToNull(req.getParameter("data"));
         byte[] data;
         if (dataValue == null) {
-            try {
-                Part part = req.getPart("file");
-                if (part == null) {
-                    throw new ParameterException(INCORRECT_TAGGED_DATA_FILE);
-                }
-                ParameterParser.FileData fileData = new ParameterParser.FileData(part).invoke();
-                data = fileData.getData();
-                // Depending on how the client submits the form, the filename, can be a regular parameter
-                // or encoded in the multipart form. If its not a parameter we take from the form
-                if (filename.isEmpty() && fileData.getFilename() != null) {
-                    filename = fileData.getFilename();
-                }
-            } catch (IOException | ServletException e) {
-                Logger.logDebugMessage("error in reading file data", e);
+            ParameterParser.FileData fileData = ParameterParser.getFileData(req, "file", true);
+            if (fileData == null) {
                 throw new ParameterException(INCORRECT_TAGGED_DATA_FILE);
+            }
+            data = fileData.getData();
+            // Depending on how the client submits the form, the filename, can be a regular parameter
+            // or encoded in the multipart form. If its not a parameter we take it from the form
+            if (filename.isEmpty() && fileData.getFilename() != null) {
+                filename = fileData.getFilename();
             }
         } else {
             boolean isText = !"false".equalsIgnoreCase(req.getParameter("isText"));

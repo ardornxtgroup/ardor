@@ -88,6 +88,16 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                         58, -59, 105, -15, 37, -75, 102, 83, -11, 89, 67, 44, 92, -70, -82, 123,
                         83, 76, 44, 39, -41, 14, -17, 85, -80, 2, -67, -19, 28, -66, -2, -7
                 });
+        map.put(Constants.CHECKSUM_BLOCK_2, Constants.isTestnet ?
+                new byte[] {
+                        65, -59, 8, -10, 76, 62, 69, -65, -19, 4, 107, 109, 5, 79, 5, 90, 45,
+                        -45, 2, 23, -74, -92, 90, 18, 52, -31, -15, 1, 40, -124, 6, -124
+                }
+                :
+                new byte[] {
+                        -63, 125, 46, -107, 86, -81, -17, -44, 50, -90, -51, 78, -10, -41, -104,
+                        -32, 96, 0, 2, -76, 3, 82, -69, -62, 112, 98, -107, 83, 25, -123, -119, -78
+                });
         checksums = Collections.unmodifiableNavigableMap(map);
     }
 
@@ -96,6 +106,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     public static BlockchainProcessorImpl getInstance() {
         return instance;
     }
+
+    public static void init() {}
 
     private final BlockchainImpl blockchain = BlockchainImpl.getInstance();
 
@@ -1717,7 +1729,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                     return poppedOffBlocks;
                 }
             } catch (RuntimeException e) {
-                Logger.logErrorMessage("Error popping off to " + commonBlock.getHeight() + ", " + e.toString());
+                Logger.logErrorMessage("Error popping off to " + commonBlock.getHeight() + ", " + e.toString(), e);
                 Db.db.rollbackTransaction();
                 BlockImpl lastBlock = BlockDb.findLastBlock();
                 blockchain.setLastBlock(lastBlock);

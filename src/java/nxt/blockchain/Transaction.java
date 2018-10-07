@@ -43,6 +43,8 @@ public interface Transaction extends AccountLedger.LedgerEventId {
 
         Transaction build(String secretPhrase) throws NxtException.NotValidException;
 
+        Transaction build(String secretPhrase, boolean isVoucher) throws NxtException.NotValidException;
+
     }
 
     Chain getChain();

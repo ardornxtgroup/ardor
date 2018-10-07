@@ -26,6 +26,7 @@ public final class Constants {
     public static final boolean isOffline = Nxt.getBooleanProperty("nxt.isOffline");
     public static final boolean isLightClient = Nxt.getBooleanProperty("nxt.isLightClient");
     public static final boolean isPermissioned = Nxt.getBooleanProperty("nxt.isPermissioned");
+    public static final boolean isAutomatedTest = isTestnet && Nxt.getBooleanProperty("nxt.isAutomatedTest");
     static {
         if (isPermissioned) {
             try {
@@ -153,16 +154,21 @@ public final class Constants {
     public static final int MAX_TAGGED_DATA_FILENAME_LENGTH = 100;
     public static final int MAX_TAGGED_DATA_DATA_LENGTH = 42 * 1024;
 
+    public static final int MAX_CONTRACT_NAME_LENGTH = 32;
+    public static final int MAX_CONTRACT_PARAMS_LENGTH = 160;
+
     public static final int MAX_REFERENCED_TRANSACTION_TIMESPAN = 60 * 1440 * 60;
     public static final int CHECKSUM_BLOCK_1 = Constants.isTestnet ? 17000 : 6000;
+    public static final int CHECKSUM_BLOCK_2 = Constants.isTestnet ? 230000 : 221000;
+    public static final int LIGHT_CONTRACTS_BLOCK = Constants.isTestnet ? Constants.isAutomatedTest ? 0 : 341500 : Integer.MAX_VALUE;
 
-    public static final int LAST_CHECKSUM_BLOCK = CHECKSUM_BLOCK_1;
+    public static final int LAST_CHECKSUM_BLOCK = CHECKSUM_BLOCK_2;
 
-    public static final int LAST_KNOWN_BLOCK = CHECKSUM_BLOCK_1;
-    public static final long LAST_KNOWN_BLOCK_ID = Convert.parseUnsignedLong(isTestnet ? "7136116332013816990" : "5659382559739578917");
+    public static final int LAST_KNOWN_BLOCK = CHECKSUM_BLOCK_2;
+    public static final long LAST_KNOWN_BLOCK_ID = Convert.parseUnsignedLong(isTestnet ? "2329106975025976796" : "9325030473083237377");
 
     public static final int[] MIN_VERSION = new int[] {2, 0, 10};
-    public static final int[] MIN_PROXY_VERSION = new int[] {2, 0, 10};
+    public static final int[] MIN_PROXY_VERSION = new int[] {2, 1};
 
     public static final long UNCONFIRMED_POOL_DEPOSIT_FQT = 10 * ONE_FXT;
 

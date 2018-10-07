@@ -36,6 +36,11 @@ class ShufflingUtil {
     static final long defaultHoldingShufflingAmount = 40000;
     static long shufflingAsset;
     static long shufflingCurrency;
+    static final int chainId = ChildChain.IGNIS.getId();
+    static final long SHUFFLING_REGISTER_FEE = ChildChain.IGNIS.ONE_COIN/100;
+    static final long SHUFFLING_PROCESSING_FEE = ChildChain.IGNIS.ONE_COIN/10;
+    static final long SHUFFLING_TOTAL_FEE = 2 * SHUFFLING_REGISTER_FEE + SHUFFLING_PROCESSING_FEE;
+    static final long SHUFFLING_RECIPIENTS_FEE = (ChildChain.IGNIS.ONE_COIN * 11)/100;
 
     static JSONObject create(Tester creator) {
         return create(creator, 4);

@@ -134,7 +134,8 @@ public class TestCompositeVoting extends BlockchainTest {
 
         ACTestUtils.PhasingBuilder builder = new ACTestUtils.PhasingBuilder("sendMoney", ALICE);
         long amount = 100 * ChildChain.IGNIS.ONE_COIN;
-        builder.feeNQT(4 * ChildChain.IGNIS.ONE_COIN).param("recipient", BOB.getStrId()).param("amountNQT", amount);
+        builder.setParamValidation(false).feeNQT(4 * ChildChain.IGNIS.ONE_COIN).
+                param("recipient", BOB.getStrId()).param("amountNQT", amount);
         builder.votingModel(VoteWeighting.VotingModel.COMPOSITE).quorum(1).phasingParam("Expression", "A & B");
         builder.startSubPoll("A").votingModel(VoteWeighting.VotingModel.HASH).hashedSecret(secretA, HashFunction.SHA256).quorum(1);
         builder.startSubPoll("B").votingModel(VoteWeighting.VotingModel.HASH).hashedSecret(secretB, HashFunction.SHA256).quorum(1);
@@ -552,6 +553,63 @@ public class TestCompositeVoting extends BlockchainTest {
         Assert.assertEquals(100 * ChildChain.IGNIS.ONE_COIN, BOB.getChainBalanceDiff(ChildChain.IGNIS.getId()));
     }
 
+    @Test
+    public void testLongVariable() {
+        APICall.Builder builder = createWhitelistAndHashBuilder(BOB, "a");
+
+        String literal = "Variable001";
+
+        builder.param("phasingExpression", "A & " + literal);
+
+        builder.param("phasingAVotingModel", VoteWeighting.VotingModel.ACCOUNT.getCode()).
+                param("phasingAWhitelisted", CHUCK.getStrId()).
+                param("phasingAQuorum", 1);
+
+        builder.param("phasing" + literal + "VotingModel", VoteWeighting.VotingModel.ACCOUNT.getCode()).
+                param("phasing" + literal + "Whitelisted", CHUCK.getStrId()).
+                param("phasing" + literal + "Quorum", 1);
+
+        JSONAssert response = new JSONAssert(builder.build().invoke());
+
+        Assert.assertTrue(response.str("errorDescription").contains("Invalid variable name"));
+    }
+
+    @Test
+    public void testLongExpression() {
+        APICall.Builder builder = createWhitelistAndHashBuilder(BOB, "a");
+
+        StringBuilder expression = new StringBuilder();
+        for (int i = 0; i < 10; i++) {
+            String literal = "Variable0" + i;
+            expression.append(literal).append(i < 9 ? " &" : "  ");
+            for (int j = 12; j < 100; j++) {
+                expression.append(' ');
+            }
+            builder.param("phasing" + literal + "VotingModel", VoteWeighting.VotingModel.ACCOUNT.getCode()).
+                    param("phasing" + literal + "Whitelisted", CHUCK.getStrId()).
+                    param("phasing" + literal + "Quorum", 1);
+        }
+        builder.param("phasingExpression", expression.toString() + " ");
+
+        JSONAssert response = new JSONAssert(builder.build().invoke());
+
+        Assert.assertTrue(response.str("errorDescription").contains("Invalid boolean expression"));
+
+        builder.param("phasingExpression", expression.toString());
+
+        response = new JSONAssert(builder.build().invoke());
+
+        generateBlock();
+
+        //single vote approves all sub-polls where CHUCK is whitelisted
+        approve(response.fullHash(), CHUCK, null);
+
+        generateBlock();
+
+        //Approved
+        Assert.assertEquals(100 * ChildChain.IGNIS.ONE_COIN, BOB.getChainBalanceDiff(ChildChain.IGNIS.getId()));
+    }
+
     private String distributeCurrency(long chuckCurrencyAmount) {
         APICall.Builder builder = new ACTestUtils.CurrencyBuilder().naming("CompositeV", "TCOMV", "Test Composite Voting");
         String currencyId = Tester.responseToStringId(ACTestUtils.assertTransactionSuccess(builder));
@@ -580,7 +638,6 @@ public class TestCompositeVoting extends BlockchainTest {
                 .param("secretPhrase", ALICE.getSecretPhrase())
                 .param("recipient", BOB.getRsAccount())
                 .param("asset", assetId)
-                .param("description", "asset testing")
                 .param("quantityQNT", bobAssetAmount)
                 .param("feeNQT", ChildChain.IGNIS.ONE_COIN);
         ACTestUtils.assertTransactionSuccess(builder);
@@ -627,7 +684,8 @@ public class TestCompositeVoting extends BlockchainTest {
     private ACTestUtils.PhasingBuilder createGenericBuilder(Tester sender, Tester recipient, long fee) {
         ACTestUtils.PhasingBuilder result = new ACTestUtils.PhasingBuilder("sendMoney", sender).
                 votingModel(VoteWeighting.VotingModel.COMPOSITE).quorum(1);
-        result.param("recipient", recipient.getStrId()).
+        result.setParamValidation(false).
+                param("recipient", recipient.getStrId()).
                 param("amountNQT", 100 * ChildChain.IGNIS.ONE_COIN).
                 param("feeNQT", fee);
         return result;

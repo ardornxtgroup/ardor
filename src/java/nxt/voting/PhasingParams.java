@@ -20,6 +20,7 @@ import nxt.Constants;
 import nxt.Nxt;
 import nxt.NxtException;
 import nxt.NxtException.ValidationException;
+import nxt.account.Account;
 import nxt.ae.Asset;
 import nxt.blockchain.Chain;
 import nxt.blockchain.ChainTransactionId;
@@ -31,6 +32,7 @@ import nxt.ms.Currency;
 import nxt.util.BooleanExpression;
 import nxt.util.Convert;
 import nxt.util.JSON;
+import nxt.util.bbh.StringRw;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -49,6 +51,8 @@ import java.util.TreeMap;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import static nxt.util.bbh.LengthRwPrimitiveType.BYTE;
+import static nxt.util.bbh.LengthRwPrimitiveType.SHORT;
 import static nxt.voting.VoteWeighting.VotingModel.ACCOUNT;
 import static nxt.voting.VoteWeighting.VotingModel.ASSET;
 import static nxt.voting.VoteWeighting.VotingModel.COMPOSITE;
@@ -134,19 +138,21 @@ public class PhasingParams {
     public static class CompositeVoting {
 
         public static final CompositeVoting EMPTY = new CompositeVoting("", null);
+        public static final StringRw EXPRESSION_RW = new StringRw(SHORT, Constants.MAX_PHASING_COMPOSITE_VOTE_EXPRESSION_LENGTH);
+        public static final StringRw SUB_POLL_NAME_RW = new StringRw(BYTE, Constants.MAX_PHASING_COMPOSITE_VOTE_SUBPOLL_NAME_LENGTH);
 
         private final String expressionStr;
         private final SortedMap<String, PhasingParams> subPolls;
         private final BooleanExpression expression;
 
         private CompositeVoting(ByteBuffer buffer) throws NxtException.NotValidException {
-            this.expressionStr = Convert.readString(buffer, buffer.getShort(), Constants.MAX_PHASING_COMPOSITE_VOTE_EXPRESSION_LENGTH);
+            this.expressionStr = EXPRESSION_RW.readFromBuffer(buffer);
             this.expression = new BooleanExpression(this.expressionStr);
             byte subPollsNum = buffer.get();
             if (subPollsNum > 0) {
                 SortedMap<String, PhasingParams> subPolls = new TreeMap<>();
                 for (int i = 0; i < subPollsNum; i++) {
-                    String subPollName = Convert.readString(buffer, buffer.get(), Constants.MAX_PHASING_COMPOSITE_VOTE_SUBPOLL_NAME_LENGTH);
+                    String subPollName = SUB_POLL_NAME_RW.readFromBuffer(buffer);
                     PhasingParams subPoll = new PhasingParams(buffer);
                     subPolls.put(subPollName, subPoll);
                 }
@@ -240,8 +246,8 @@ public class PhasingParams {
 
         private PropertyVoting(ByteBuffer buffer) throws NxtException.NotValidException {
             this.propertySetterId = buffer.getLong();
-            this.propertyName = Convert.readString(buffer, buffer.get(), Constants.MAX_ACCOUNT_PROPERTY_NAME_LENGTH);
-            this.propertyValue = Convert.readString(buffer, buffer.get(), Constants.MAX_ACCOUNT_PROPERTY_VALUE_LENGTH);
+            this.propertyName = Account.PROPERTY_NAME_RW.readFromBuffer(buffer);
+            this.propertyValue = Account.PROPERTY_VALUE_RW.readFromBuffer(buffer);
         }
 
         private PropertyVoting(JSONObject attachmentData) {
@@ -296,13 +302,11 @@ public class PhasingParams {
                 if (propertyName.isEmpty()) {
                     throw new NxtException.NotValidException(prefix + "PropertyName must not be empty");
                 }
-                if (propertyName.length() > Constants.MAX_ACCOUNT_PROPERTY_NAME_LENGTH) {
-                    throw new NxtException.NotValidException(prefix + "PropertyName length " + propertyName.length() +
-                            " exceeds " + Constants.MAX_ACCOUNT_PROPERTY_NAME_LENGTH + " chars");
+                if (!Account.PROPERTY_NAME_RW.validate(propertyName)) {
+                    throw new NxtException.NotValidException("Invalid " + prefix + "PropertyName " + propertyName);
                 }
-                if (propertyValue.length() > Constants.MAX_ACCOUNT_PROPERTY_VALUE_LENGTH) {
-                    throw new NxtException.NotValidException(prefix + "PropertyValue length " + propertyValue.length() +
-                            " exceeds " + Constants.MAX_ACCOUNT_PROPERTY_VALUE_LENGTH + " chars");
+                if (!Account.PROPERTY_VALUE_RW.validate(propertyValue)) {
+                    throw new NxtException.NotValidException("Invalid " + prefix + "PropertyValue " + propertyValue);
                 }
             }
         }
@@ -685,9 +689,8 @@ public class PhasingParams {
             if (getExpressionStr().isEmpty()) {
                 throw new NxtException.NotValidException("Composite voting requires boolean expression");
             }
-            if (getExpressionStr().length() > Constants.MAX_PHASING_COMPOSITE_VOTE_EXPRESSION_LENGTH) {
-                throw new NxtException.NotValidException("Boolean expression length " + getExpressionStr().length() +
-                        " exceeds " + Constants.MAX_PHASING_COMPOSITE_VOTE_EXPRESSION_LENGTH + " chars");
+            if (!CompositeVoting.EXPRESSION_RW.validate(getExpressionStr())) {
+                throw new NxtException.NotValidException("Invalid boolean expression size " + getExpressionStr());
             }
 
             if (getSubPolls().size() > Constants.MAX_PHASING_COMPOSITE_VOTE_VARIABLES_COUNT) {
@@ -707,8 +710,8 @@ public class PhasingParams {
             }
 
             for (String v : expression.getVariables()) {
-                if (v.length() > Constants.MAX_PHASING_COMPOSITE_VOTE_SUBPOLL_NAME_LENGTH) {
-                    throw new NxtException.NotValidException("Variable name \"" + v + "\" longer than " + Constants.MAX_PHASING_COMPOSITE_VOTE_SUBPOLL_NAME_LENGTH + " chars");
+                if (!CompositeVoting.SUB_POLL_NAME_RW.validate(v)) {
+                    throw new NxtException.NotValidException("Invalid variable name size " + v);
                 }
             }
 

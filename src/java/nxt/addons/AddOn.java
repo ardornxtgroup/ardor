@@ -18,6 +18,8 @@ package nxt.addons;
 
 import nxt.http.APIServlet;
 
+import java.util.Map;
+
 public interface AddOn {
 
     default void init() {}
@@ -31,5 +33,7 @@ public interface AddOn {
     default String getAPIRequestType() {
         return null;
     }
+
+    default Map<String, APIServlet.APIRequestHandler> getAPIRequests() { return null; }
 
 }

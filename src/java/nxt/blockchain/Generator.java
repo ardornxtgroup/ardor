@@ -39,6 +39,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public final class Generator implements Comparable<Generator> {
 
@@ -47,8 +48,9 @@ public final class Generator implements Comparable<Generator> {
     }
 
     private static final int MAX_FORGERS = Nxt.getIntProperty("nxt.maxNumberOfForgers");
-    private static final byte[] fakeForgingPublicKey = Nxt.getBooleanProperty("nxt.enableFakeForging") ?
-            Convert.parseHexString(Nxt.getStringProperty("nxt.fakeForgingPublicKey")) : null;
+    private static final List<String> fakeForgingPublicKeysStrings = Nxt.getBooleanProperty("nxt.enableFakeForging") ?
+            Nxt.getStringListProperty("nxt.fakeForgingPublicKeys") : Collections.EMPTY_LIST;
+    private static final List<byte[]> fakeForgingPublicKeys = fakeForgingPublicKeysStrings.stream().map(Convert::parseHexString).collect(Collectors.toList());
 
     private static final Listeners<Generator,Event> listeners = new Listeners<>();
 
@@ -254,7 +256,7 @@ public final class Generator implements Comparable<Generator> {
     }
 
     public static boolean allowsFakeForging(byte[] publicKey) {
-        return Constants.isTestnet && publicKey != null && Arrays.equals(publicKey, fakeForgingPublicKey);
+        return Constants.isTestnet && publicKey != null && fakeForgingPublicKeys.stream().anyMatch(pk -> Arrays.equals(pk, publicKey));
     }
 
     static BigInteger getHit(byte[] publicKey, Block block) {

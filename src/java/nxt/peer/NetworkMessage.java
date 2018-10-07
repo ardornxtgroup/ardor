@@ -157,7 +157,7 @@ public abstract class NetworkMessage {
         }
         byte[] nameBytes = new byte[length];
         bytes.get(nameBytes);
-        String messageName = new String(nameBytes);
+        String messageName = new String(nameBytes, UTF8);
         NetworkMessage processor = processors.get(messageName);
         try {
             if (processor != null) {

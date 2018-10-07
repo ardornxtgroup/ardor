@@ -31,7 +31,7 @@ public final class AliasDeleteAttachment extends Attachment.AbstractAttachment {
 
     AliasDeleteAttachment(final ByteBuffer buffer) throws NxtException.NotValidException {
         super(buffer);
-        this.aliasName = Convert.readString(buffer, buffer.get(), Constants.MAX_ALIAS_LENGTH);
+        this.aliasName = AliasAssignmentAttachment.ALIAS_NAME_RW.readFromBuffer(buffer);
     }
 
     AliasDeleteAttachment(final JSONObject attachmentData) {

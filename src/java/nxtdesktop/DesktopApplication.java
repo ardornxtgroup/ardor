@@ -16,7 +16,6 @@
 
 package nxtdesktop;
 
-import com.sun.javafx.scene.web.Debugger;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.concurrent.Worker;
@@ -47,6 +46,7 @@ import javax.net.ssl.HttpsURLConnection;
 import java.awt.*;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
@@ -123,7 +123,6 @@ public class DesktopApplication extends Application {
         DesktopApplication.stage = stage;
         Rectangle2D primaryScreenBounds = Screen.getPrimary().getVisualBounds();
         WebView browser = new WebView();
-        browser.setOnContextMenuRequested(new WalletContextMenu());
         WebView invisible = new WebView();
 
         int height = (int) Math.min(primaryScreenBounds.getMaxY() - 100, 1000);
@@ -152,8 +151,7 @@ public class DesktopApplication extends Application {
                     nrs = (JSObject) webEngine.executeScript("NRS");
                     updateClientState("Desktop Wallet started");
                     BlockchainProcessor blockchainProcessor = Nxt.getBlockchainProcessor();
-                    blockchainProcessor.addListener((block) ->
-                            updateClientState(BlockchainProcessor.Event.BLOCK_PUSHED, block), BlockchainProcessor.Event.BLOCK_PUSHED);
+                    blockchainProcessor.addListener(this::updateClientState, BlockchainProcessor.Event.BLOCK_PUSHED);
                     Nxt.getTransactionProcessor().addListener(transaction ->
                             updateClientState(TransactionProcessor.Event.ADDED_UNCONFIRMED_TRANSACTIONS, transaction), TransactionProcessor.Event.ADDED_UNCONFIRMED_TRANSACTIONS);
                     Nxt.getTransactionProcessor().addListener(transaction ->
@@ -164,10 +162,14 @@ public class DesktopApplication extends Application {
                             // Add the javafx_webview_debugger and websocket-* test libs to the classpath
                             // For more details, check https://github.com/mohamnag/javafx_webview_debugger
                             Class<?> aClass = Class.forName("com.mohamnag.fxwebview_debugger.DevToolsDebuggerServer");
-                            @SuppressWarnings("deprecation") Debugger debugger = webEngine.impl_getDebugger();
-                            Method startDebugServer = aClass.getMethod("startDebugServer", Debugger.class, int.class);
+                            Class webEngineClazz = WebEngine.class;
+                            Field debuggerField = webEngineClazz.getDeclaredField("debugger");
+                            debuggerField.setAccessible(true);
+                            Object debugger = debuggerField.get(webEngine);
+                            //noinspection JavaReflectionMemberAccess
+                            Method startDebugServer = aClass.getMethod("startDebugServer", debugger.getClass(), int.class);
                             startDebugServer.invoke(null, debugger, 51742);
-                        } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+                        } catch (NoSuchFieldException | ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
                             Logger.logInfoMessage("Cannot start JavaFx debugger", e);
                         }
                     }
@@ -199,13 +201,13 @@ public class DesktopApplication extends Application {
         Platform.setImplicitExit(false); // So that we can reopen the application in case the user closed it
     }
 
-    private void updateClientState(BlockchainProcessor.Event blockEvent, Block block) {
+    private void updateClientState(Block block) {
         if (Nxt.getBlockchainProcessor().isDownloading()) {
             if (System.currentTimeMillis() - updateTime < 10000L) {
                 return;
             }
         }
-        String msg = blockEvent.toString() + " id " + block.getStringId() + " height " + block.getHeight();
+        String msg = BlockchainProcessor.Event.BLOCK_PUSHED.toString() + " id " + block.getStringId() + " height " + block.getHeight();
         updateClientState(msg);
     }
 
