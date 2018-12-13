@@ -21,6 +21,7 @@ import nxt.peer.Peers;
 import nxt.util.Convert;
 import nxt.util.JSON;
 import nxt.util.Logger;
+import nxt.util.security.BlockchainPermission;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.client.api.Response;
@@ -53,6 +54,10 @@ public final class APIProxyServlet extends AsyncMiddleManServlet {
 
     @Override
     public void init(ServletConfig config) throws ServletException {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("api"));
+        }
         super.init(config);
         config.getServletContext().setAttribute("apiServlet", new APIServlet());
     }
@@ -61,7 +66,7 @@ public final class APIProxyServlet extends AsyncMiddleManServlet {
     protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         JSONStreamAware responseJson = null;
         try {
-            if (!API.isAllowed(request.getRemoteHost())) {
+            if (API.isForbiddenHost(request.getRemoteHost())) {
                 responseJson = ERROR_NOT_ALLOWED;
                 return;
             }

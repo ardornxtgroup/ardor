@@ -45,7 +45,7 @@ if [ -s tests.tmp ]; then
     echo "compiling tests..."
     /bin/rm -rf test/classes
     /bin/mkdir -p test/classes/
-    javac -encoding utf8 -sourcepath "${SP}${PATHSEP}test/java" -classpath "${CP}${PATHSEP}addons/classes${PATHSEP}testlib/*" -d test/classes @tests.tmp || exit 1
+    javac -encoding utf8 -sourcepath "${SP}${PATHSEP}test/java${PATHSEP}addons/test/java" -classpath "${CP}${PATHSEP}addons/classes${PATHSEP}testlib/*" -d test/classes @tests.tmp || exit 1
     echo "tests compiled successfully"
 else
     echo "no tests to compile"

@@ -16,12 +16,18 @@
 
 package nxt.addons;
 
+import nxt.Constants;
 import nxt.Nxt;
 import nxt.env.RuntimeEnvironment;
 import nxt.http.APIServlet;
 import nxt.http.APITag;
+import nxt.util.security.BlockchainSecurityProvider;
 import nxt.util.Logger;
 
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.security.Provider;
+import java.security.Security;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -35,30 +41,42 @@ public final class AddOns {
         List<AddOn> addOnsList = new ArrayList<>();
         Nxt.getStringListProperty("nxt.addOns").forEach(addOn -> {
             try {
-                addOnsList.add((AddOn)Class.forName(addOn).newInstance());
+                addOnsList.add((AddOn)Class.forName(addOn).getConstructor().newInstance());
             } catch (ReflectiveOperationException e) {
                 Logger.logErrorMessage(e.getMessage(), e);
             }
         });
         addOns = Collections.unmodifiableList(addOnsList);
         if (!addOns.isEmpty() && !Nxt.getBooleanProperty("nxt.disableSecurityPolicy")) {
-            System.setProperty("java.security.policy", RuntimeEnvironment.isDesktopApplicationEnabled() ? "nxtdesktop.policy" : "nxt.policy");
+            Logger.logMessage("Creating Jelurida security provider");
+            Provider blockchainSecurityProvider = new BlockchainSecurityProvider();
+            Security.addProvider(blockchainSecurityProvider);
+            if (System.getProperty("java.security.policy") == null) {
+                System.setProperty("java.security.policy", RuntimeEnvironment.isDesktopApplicationEnabled() ? "ardordesktop.policy" : "ardor.policy");
+            }
             Logger.logMessage("Setting security manager with policy " + System.getProperty("java.security.policy"));
             System.setSecurityManager(new SecurityManager() {
                 @Override
                 public void checkConnect(String host, int port) {
-                    // Allow all connections
+                    // Allow all connections (avoid the slow socket permission connection check which requires reverse DNS lookup)
                 }
                 @Override
                 public void checkConnect(String host, int port, Object context) {
-                    // Allow all connections
+                    // Allow all connections (avoid the slow socket permission connection check which requires reverse DNS lookup)
                 }
             });
         }
         addOns.forEach(addOn -> {
             Logger.logInfoMessage("Initializing " + addOn.getClass().getName());
             try {
-                addOn.init();
+                if (Constants.isAutomatedTest) {
+                    AccessController.doPrivileged((PrivilegedAction<Void>) () -> {
+                        addOn.init();
+                        return null;
+                    });
+                } else {
+                    addOn.init();
+                }
             } catch (Throwable t) {
                 Logger.logErrorMessage("Initialization failed for addOn " + addOn.getClass().getName(), t);
             }

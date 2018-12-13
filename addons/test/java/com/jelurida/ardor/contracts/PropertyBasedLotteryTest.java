@@ -1,6 +1,5 @@
 package com.jelurida.ardor.contracts;
 
-import nxt.Nxt;
 import nxt.addons.JA;
 import nxt.addons.JO;
 import nxt.http.APICall;
@@ -16,8 +15,7 @@ public class PropertyBasedLotteryTest extends AbstractContractTest {
 
     @Test
     public void lotteryTest() {
-        String contractName = PropertyBasedLottery.class.getSimpleName();
-        ContractTestHelper.deployContract(contractName);
+        String contractName = ContractTestHelper.deployContract(PropertyBasedLottery.class);
         String propertyKey = "lottery1";
         APICall apiCall = new APICall.Builder("setAccountProperty").
                 secretPhrase(ALICE.getSecretPhrase()).
@@ -69,7 +67,7 @@ public class PropertyBasedLotteryTest extends AbstractContractTest {
                 build();
         response = new JO(apiCall.invoke());
         List<JO> properties = new JA(response.get("properties")).objects();
-        int h1 = Nxt.getBlockchain().getHeight() - 1;
+        int h1 = getHeight() - 1;
         int winners = 0;
         int losers = 0;
         for (JO property : properties) {

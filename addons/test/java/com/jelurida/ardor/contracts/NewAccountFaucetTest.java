@@ -20,7 +20,7 @@ public class NewAccountFaucetTest extends AbstractContractTest {
         setupParams.put("thresholdBlocks", 10);
         setupParams.put("faucetAmountNQT", 500000000);
         String contractName = NewAccountFaucet.class.getSimpleName();
-        ContractTestHelper.deployContract(NewAccountFaucet.class.getSimpleName(), setupParams);
+        ContractTestHelper.deployContract(NewAccountFaucet.class, setupParams);
         generateBlock();
         Tester newGuy = new Tester("rule chase pound passion whistle odd tumble joy howl reason crack turn");
         // newGuy generates a voucher
@@ -60,7 +60,7 @@ public class NewAccountFaucetTest extends AbstractContractTest {
         setupParams.put("thresholdBlocks", 10);
         setupParams.put("faucetAmountNQT", 500000000);
         String contractName = NewAccountFaucet.class.getSimpleName();
-        ContractTestHelper.deployContract(NewAccountFaucet.class.getSimpleName(), setupParams);
+        ContractTestHelper.deployContract(NewAccountFaucet.class, setupParams);
 
         // BOB generates a voucher
         JO response = getVoucher(BOB);
@@ -85,7 +85,7 @@ public class NewAccountFaucetTest extends AbstractContractTest {
         setupParams.put("thresholdBlocks", 10);
         setupParams.put("faucetAmountNQT", 500000000);
         String contractName = NewAccountFaucet.class.getSimpleName();
-        ContractTestHelper.deployContract(NewAccountFaucet.class.getSimpleName(), setupParams);
+        ContractTestHelper.deployContract(NewAccountFaucet.class, setupParams);
         generateBlock();
 
         // contracts.json sets threshold of 11 IGNIS over 1440 blocks

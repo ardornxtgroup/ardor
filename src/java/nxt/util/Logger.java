@@ -54,6 +54,9 @@ public final class Logger {
     /** Enable log traceback */
     private static final boolean enableLogTraceback;
 
+    /** Enable logging thread name */
+    private static final boolean enableLogThreadName;
+
     /**
      * No constructor
      */
@@ -77,9 +80,10 @@ public final class Logger {
         }
         if (! Boolean.getBoolean("nxt.doNotConfigureLogging")) {
             try {
+                String filenamePrefix = Convert.nullToEmpty(System.getProperty("nxt.logging.properties.file.name.prefix"));
                 Properties loggingProperties = new Properties();
-                Nxt.loadProperties(loggingProperties, "logging-default.properties", true);
-                Nxt.loadProperties(loggingProperties, "logging.properties", false);
+                Nxt.loadProperties(loggingProperties, filenamePrefix + "logging-default.properties", true);
+                Nxt.loadProperties(loggingProperties, filenamePrefix + "logging.properties", false);
                 Nxt.updateLogFileHandler(loggingProperties);
                 if (loggingProperties.size() > 0) {
                     ByteArrayOutputStream outStream = new ByteArrayOutputStream();
@@ -97,6 +101,7 @@ public final class Logger {
         log = org.slf4j.LoggerFactory.getLogger(nxt.Nxt.class);
         enableStackTraces = Nxt.getBooleanProperty("nxt.enableStackTraces");
         enableLogTraceback = Nxt.getBooleanProperty("nxt.enableLogTraceback");
+        enableLogThreadName = Nxt.getBooleanProperty("nxt.enableLogThreadName");
         logInfoMessage("logging enabled");
     }
 
@@ -349,29 +354,32 @@ public final class Logger {
     private static void doLog(Level level, String message, Throwable exc) {
         String logMessage = message;
         Throwable e = exc;
-        //
+
         // Add caller class and method if enabled
-        //
         if (enableLogTraceback) {
             StackTraceElement caller = Thread.currentThread().getStackTrace()[3];
             String className = caller.getClassName();
             int index = className.lastIndexOf('.');
-            if (index != -1)
+            if (index != -1) {
                 className = className.substring(index+1);
+            }
             logMessage = className + "." + caller.getMethodName() + ": " + logMessage;
         }
-        //
+
         // Format the stack trace if enabled
-        //
         if (e != null) {
             if (!enableStackTraces) {
                 logMessage = logMessage + "\n" + exc.toString();
                 e = null;
             }
         }
-        //
+
+        // Log the current thread name (useful for debugging concurrency problems)
+        if (enableLogThreadName) {
+            logMessage = Thread.currentThread().getName() + " " + logMessage;
+        }
+
         // Log the event
-        //
         switch (level) {
             case DEBUG:
                 log.debug(logMessage, e);
@@ -386,12 +394,12 @@ public final class Logger {
                 log.error(logMessage, e);
                 break;
         }
-        //
+
         // Notify listeners
-        //
-        if (exc != null)
+        if (exc != null) {
             exceptionListeners.notify(exc, Event.EXCEPTION);
-        else
+        } else {
             messageListeners.notify(message, Event.MESSAGE);
+        }
     }
 }

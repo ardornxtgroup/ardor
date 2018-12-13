@@ -10,7 +10,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 /**
- * Encrypt a message locally, then send the encrypted data to a remote node
+ * Sample Java program to encrypt a message locally, then send the encrypted data to a remote node without exposing the passphrase
  */
 public class MessageEncryption {
 
@@ -18,9 +18,9 @@ public class MessageEncryption {
 
     public static void main(String[] args) throws MalformedURLException {
         URL url = new URL("https://testardor.jelurida.com/nxt");
-        Nxt.init(Setup.COMMAND_LINE_TOOL);
 
-        // start the node, so make sure it is not already running or you'll receive a BindException
+        // starts the local node, so make sure it is not already running or you'll receive a BindException
+        Nxt.init(Setup.COMMAND_LINE_TOOL);
         try {
             MessageEncryption messageEncryption = new MessageEncryption();
             JO encryptedData = messageEncryption.encrypt();

@@ -1185,7 +1185,6 @@ var NRS = (function(NRS, $, undefined) {
 			"includeLessors": true,
 			"includeEffectiveBalance": true
 		}, function(response) {
-			var previousAccountInfo = NRS.accountInfo;
 			NRS.accountInfo = response;
 			if (response.errorCode) {
 				NRS.logConsole("Get account info error (" + response.errorCode + ") " + response.errorDescription);
@@ -1468,11 +1467,7 @@ var NRS = (function(NRS, $, undefined) {
 					}
 				}
 
-				if (leasingChange ||
-					(response.currentLeasingHeightFrom != previousAccountInfo.currentLeasingHeightFrom) ||
-					(response.lessors && !previousAccountInfo.lessors) ||
-					(!response.lessors && previousAccountInfo.lessors) ||
-					(response.lessors && previousAccountInfo.lessors && response.lessors.sort().toString() != previousAccountInfo.lessors.sort().toString())) {
+				if (leasingChange || response.lessors) {
 					NRS.updateAccountLeasingStatus();
 				}
 

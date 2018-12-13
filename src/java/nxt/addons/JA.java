@@ -1,7 +1,11 @@
 package nxt.addons;
 
 import org.json.simple.JSONArray;
+import org.json.simple.JSONValue;
+import org.json.simple.parser.ParseException;
 
+import java.io.IOException;
+import java.io.Reader;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -23,11 +27,17 @@ public class JA extends AbstractList {
     }
 
     public JA(JSONArray ja) {
+        if (ja == null) {
+            throw new IllegalArgumentException("Attempt to initialize JA with null JSONArray");
+        }
         this.ja = ja;
     }
 
-    public JA(Object ja) {
-        this.ja = (JSONArray)ja;
+    public JA(Object obj) {
+        if (obj == null) {
+            throw new IllegalArgumentException("Attempt to initialize JA with null Object");
+        }
+        this.ja = (JSONArray)obj;
     }
 
     public JSONArray toJSONArray() {
@@ -74,4 +84,21 @@ public class JA extends AbstractList {
     public ListIterator listIterator() {
         return ja.listIterator();
     }
+
+    public static JA parse(String s) {
+        try {
+            return new JA(JSONValue.parseWithException(s));
+        } catch (ParseException e) {
+            throw new IllegalArgumentException(e);
+        }
+    }
+
+    public static JA parse(Reader r) {
+        try {
+            return new JA(JSONValue.parseWithException(r));
+        } catch (ParseException | IOException e) {
+            throw new IllegalArgumentException(e);
+        }
+    }
+
 }

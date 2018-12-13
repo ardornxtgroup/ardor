@@ -1,5 +1,6 @@
 package nxt.tools;
 
+import nxt.util.security.BlockchainPermission;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -97,6 +98,11 @@ public class JDKToolsWrapper {
     }
 
     public static void main(String[] args) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("tools"));
+        }
+
         Options options = new Options();
         Arrays.stream(OPTION.values()).forEach(o -> options.addOption(new Option(o.getOpt(), o.getLongOpt(), o.hasArgs(), o.getDescription())));
         CommandLineParser parser = new DefaultParser();
@@ -113,7 +119,9 @@ public class JDKToolsWrapper {
             formatter.printHelp(JDKToolsWrapper.class.getName(), options);
             return;
         }
-        Map<String, byte[]> compiledClasses = JDKToolsWrapper.compile(cmd.getOptionValue(OPTION.SOURCE.longOpt), cmd.getOptionValue(OPTION.JAVAC.longOpt));
+        String tmpDir = System.getProperty("java.io.tmpdir");
+        Path outputPath = Paths.get(tmpDir, "src");
+        Map<String, byte[]> compiledClasses = JDKToolsWrapper.compile(cmd.getOptionValue(OPTION.SOURCE.longOpt), cmd.getOptionValue(OPTION.JAVAC.longOpt), outputPath);
         if (compiledClasses == null) {
             System.out.println("No classes compiled");
             return;
@@ -121,15 +129,18 @@ public class JDKToolsWrapper {
         compiledClasses.keySet().forEach(c -> System.out.printf("Class %s bytes size %d", c, compiledClasses.getOrDefault(c, new byte[0]).length));
     }
 
-    public static Map<String, byte[]> compile(String source, String javacOptions) {
+    public static Map<String, byte[]> compile(String source, String javacOptions, Path outputPath) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("tools"));
+        }
+
         System.out.printf("Compiling source file %s with compiler options %s\n", source, javacOptions);
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         if (compiler == null) {
             System.out.println("Java compiler is not supported when running JRE use JDK instead");
             return null;
         }
-        String tmpDir = System.getProperty("java.io.tmpdir");
-        Path outputPath = Paths.get(tmpDir, "src");
         if (!Files.exists(outputPath)) {
             try {
                 Files.createDirectory(outputPath);
@@ -227,6 +238,11 @@ public class JDKToolsWrapper {
      * @return the javac -g command line options
      */
     public static String javap(byte[] classBytes) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("tools"));
+        }
+
         String tmpDir = System.getProperty("java.io.tmpdir");
         Path outputPath = Paths.get(tmpDir, "javapdata");
         Path classFile = outputPath.resolve("Temp.class");

@@ -1,16 +1,22 @@
 package nxt.http.responses;
 
-import nxt.account.Account;
+import nxt.NxtException;
+import nxt.addons.ContractRunnerConfig;
 import nxt.addons.JO;
 import nxt.blockchain.Chain;
 import nxt.blockchain.ChainTransactionId;
 import nxt.blockchain.FxtChain;
+import nxt.blockchain.Transaction;
 import nxt.blockchain.TransactionType;
+import nxt.http.ParameterException;
+import nxt.http.ParameterParser;
 import nxt.messaging.PrunableEncryptedMessageAppendix;
 import nxt.util.Convert;
 import nxt.util.Logger;
 import org.json.simple.JSONObject;
 
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -297,12 +303,12 @@ public class TransactionResponseImpl implements TransactionResponse {
     }
 
     @Override
-    public long getRandomSeed(String secretPhrase) {
+    public long getRandomSeed(ContractRunnerConfig config) {
         if (encryptedAppendix == null) {
             Logger.logWarningMessage("Transaction does not include encrypted message attachments, random values can be reproduced");
             return 0;
         }
-        String messageText = Convert.toString(Account.decryptFrom(senderPublicKey, encryptedAppendix.getEncryptedData(), secretPhrase, encryptedAppendix.isCompressed()), encryptedAppendix.isText());
+        String messageText = Convert.toString(config.decryptFrom(senderPublicKey, encryptedAppendix.getEncryptedData(), encryptedAppendix.isCompressed()), encryptedAppendix.isText());
         JO messageObject;
         try {
             messageObject = JO.parse(messageText);
@@ -329,9 +335,37 @@ public class TransactionResponseImpl implements TransactionResponse {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        TransactionResponseImpl that = (TransactionResponseImpl) o;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        return AccessController.doPrivileged((PrivilegedAction<Boolean>) () -> {
+            TransactionResponseImpl that = (TransactionResponseImpl)o;
+            byte[] thisBytes;
+            try {
+                Transaction.Builder builder = ParameterParser.parseTransaction(transactionJson.toJSONString(), null, null);
+                Transaction transaction = builder.build();
+                thisBytes = transaction.getBytes();
+            } catch (ParameterException | NxtException.NotValidException e) {
+                throw new IllegalStateException(e);
+            }
+            byte[] thatBytes;
+            try {
+                Transaction.Builder builder = ParameterParser.parseTransaction(that.getTransactionJson().toJSONString(), null, null);
+                Transaction transaction = builder.build();
+                thatBytes = transaction.getBytes();
+            } catch (ParameterException | NxtException.NotValidException e) {
+                throw new IllegalStateException(e);
+            }
+            return Arrays.equals(thisBytes, thatBytes);
+        });
+    }
+
+    @Override
+    public boolean similar(TransactionResponse transactionResponse) {
+        TransactionResponseImpl that = (TransactionResponseImpl)transactionResponse;
         if (chainId != that.chainId) {
             logDiffMessage("chainId", "" + chainId, "" + that.chainId);
             return false;
@@ -377,6 +411,10 @@ public class TransactionResponseImpl implements TransactionResponse {
             return false;
         }
         return true;
+    }
+
+    private JO getTransactionJson() {
+        return transactionJson;
     }
 
     private void logDiffMessage(String title, String myValue, String theirValue) {

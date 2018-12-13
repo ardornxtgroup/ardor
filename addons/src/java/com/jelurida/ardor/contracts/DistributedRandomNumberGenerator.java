@@ -8,7 +8,7 @@ import java.util.Map;
 
 /**
  * The DistributedRandomNumberGenerator is a utility contract which given a list of accounts and their weight, selects
- * randomly one the accounts. For example if there are 3 account with weights 5,3,2 the chance of the first account
+ * randomly one the accounts. For example, if there are 3 account with weights 5,3,2 the chance of the first account
  * being selected is 50% the 2nd 30% and the 3rd 20%.
  */
 public class DistributedRandomNumberGenerator extends AbstractContract<Map<String, Long>,String> {

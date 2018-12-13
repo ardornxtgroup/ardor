@@ -24,6 +24,7 @@ import nxt.http.API;
 import nxt.http.APIEnum;
 import nxt.util.Convert;
 import nxt.util.Logger;
+import nxt.util.security.BlockchainPermission;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -173,6 +174,10 @@ final class PeerImpl implements Peer {
      * @param   announcedAddress        Announced address or null
      */
     PeerImpl(InetAddress hostAddress, String announcedAddress) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("peers"));
+        }
         this.host = hostAddress.getHostAddress();
         setAnnouncedAddress(announcedAddress != null ? announcedAddress.toLowerCase().trim() : host);
         this.disabledAPIs = EnumSet.noneOf(APIEnum.class);

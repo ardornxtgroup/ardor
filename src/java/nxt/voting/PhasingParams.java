@@ -102,6 +102,14 @@ public class PhasingParams {
             this.algorithm = algorithm;
         }
 
+        public byte[] getHashedSecret() {
+            return hashedSecret;
+        }
+
+        public byte getAlgorithm() {
+            return algorithm;
+        }
+
         private int getMySize() {
             return 1 + hashedSecret.length + 1;
         }
@@ -181,25 +189,21 @@ public class PhasingParams {
         }
 
         private int getMySize() {
-            int result = 2 + Convert.toBytes(expressionStr).length;
+            int result = EXPRESSION_RW.getSize(expressionStr);
             result += 1;
             result += subPolls.entrySet().stream().mapToInt(
-                    entry -> 1 + Convert.toBytes(entry.getKey()).length + entry.getValue().getMySize()
+                    entry -> SUB_POLL_NAME_RW.getSize(entry.getKey()) + entry.getValue().getMySize()
             ).sum();
 
             return result;
         }
 
         private void putMyBytes(ByteBuffer buffer) {
-            byte[] expressionBytes = Convert.toBytes(expressionStr);
-            buffer.putShort((short) expressionBytes.length);
-            buffer.put(expressionBytes);
+            EXPRESSION_RW.writeToBuffer(expressionStr, buffer);
 
             buffer.put((byte) subPolls.size());
             subPolls.forEach((name, subPoll) -> {
-                byte[] pollName = Convert.toBytes(name);
-                buffer.put((byte) pollName.length);
-                buffer.put(pollName);
+                SUB_POLL_NAME_RW.writeToBuffer(name, buffer);
                 subPoll.putMyBytes(buffer);
             });
         }
@@ -263,19 +267,13 @@ public class PhasingParams {
         }
 
         private int getMySize() {
-            return 8 + 1 + Convert.toBytes(propertyName).length + 1 + Convert.toBytes(propertyValue).length;
+            return 8 + Account.PROPERTY_NAME_RW.getSize(propertyName) + Account.PROPERTY_VALUE_RW.getSize(propertyValue);
         }
 
         private void putMyBytes(ByteBuffer buffer) {
             buffer.putLong(propertySetterId);
-
-            byte[] nameBytes = Convert.toBytes(propertyName);
-            byte[] valueBytes = Convert.toBytes(propertyValue);
-            buffer.put((byte) nameBytes.length);
-            buffer.put(nameBytes);
-
-            buffer.put((byte) valueBytes.length);
-            buffer.put(valueBytes);
+            Account.PROPERTY_NAME_RW.writeToBuffer(propertyName, buffer);
+            Account.PROPERTY_VALUE_RW.writeToBuffer(propertyValue, buffer);
         }
 
         private void putMyJSON(JSONObject json) {

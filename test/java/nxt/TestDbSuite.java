@@ -16,6 +16,7 @@
 
 package nxt;
 
+import nxt.addons.AddonsSuite;
 import nxt.blockchain.GeneratorTest;
 import nxt.http.PaymentAndMessagesSuite;
 import nxt.http.accountControl.AccountControlSuite;
@@ -48,7 +49,8 @@ import org.junit.runners.Suite;
         AccountControlSuite.class,
         AccountPropertiesSuite.class,
         CreateAliasTest.class,
-        ContractReferenceTest.class
+        ContractReferenceTest.class,
+        AddonsSuite.class
 })
 public class TestDbSuite extends SafeShutdownSuite {
 }

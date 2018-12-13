@@ -1,5 +1,6 @@
 package nxt.http.responses;
 
+import nxt.addons.ContractRunnerConfig;
 import nxt.addons.JO;
 import nxt.blockchain.ChainTransactionId;
 import nxt.blockchain.TransactionType;
@@ -87,9 +88,11 @@ public interface TransactionResponse {
 
     boolean isBundled();
 
-    long getRandomSeed(String secretPhrase);
+    long getRandomSeed(ContractRunnerConfig config);
 
     JO getAttachmentJson();
 
     JO getJson();
+
+    boolean similar(TransactionResponse transactionResponse);
 }

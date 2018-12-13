@@ -16,21 +16,13 @@
 
 package nxt.util;
 
-import nxt.Nxt;
-import nxt.addons.JO;
 import org.json.simple.JSONAware;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -73,19 +65,23 @@ public final class JSON {
      * @return                                  Formatted string
      */
     public static String toJSONString(JSONAware json) {
-        if (json == null)
-            return "null";
-        if (json instanceof Map) {
-            StringBuilder sb = new StringBuilder(1024);
-            encodeObject((Map)json, sb);
-            return sb.toString();
+        try {
+            if (json == null)
+                return "null";
+            if (json instanceof Map) {
+                StringBuilder sb = new StringBuilder(1024);
+                encodeObject((Map)json, sb);
+                return sb.toString();
+            }
+            if (json instanceof List) {
+                StringBuilder sb = new StringBuilder(1024);
+                encodeArray((List)json, sb);
+                return sb.toString();
+            }
+            return json.toJSONString();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-        if (json instanceof List) {
-            StringBuilder sb = new StringBuilder(1024);
-            encodeArray((List)json, sb);
-            return sb.toString();
-        }
-        return json.toJSONString();
     }
 
     /**
@@ -121,7 +117,7 @@ public final class JSON {
      * @param   list                            List
      * @param   sb                              String builder
      */
-    private static void encodeArray(List<?> list, StringBuilder sb) {
+    private static void encodeArray(List<?> list, Appendable sb) throws IOException {
         if (list == null) {
             sb.append("null");
             return;
@@ -144,29 +140,33 @@ public final class JSON {
      * @param   map                             Map
      * @param   sb                              String builder
      */
-    public static void encodeObject(Map<?, ?> map, StringBuilder sb) {
-        if (map == null) {
-            sb.append("null");
-            return;
+    public static void encodeObject(Map<?, ?> map, Appendable sb) {
+        try {
+            if (map == null) {
+                sb.append("null");
+                return;
+            }
+            Set<Map.Entry<Object, Object>> entries = (Set)map.entrySet();
+            Iterator<Map.Entry<Object, Object>> it = entries.iterator();
+            boolean firstElement = true;
+            sb.append('{');
+            while (it.hasNext()) {
+                Map.Entry<Object, Object> entry = it.next();
+                Object key = entry.getKey();
+                Object value = entry.getValue();
+                if (key == null)
+                    continue;
+                if (firstElement)
+                    firstElement = false;
+                else
+                    sb.append(',');
+                sb.append('\"').append(key.toString()).append("\":");
+                encodeValue(value, sb);
+            }
+            sb.append('}');
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-        Set<Map.Entry<Object, Object>> entries = (Set)map.entrySet();
-        Iterator<Map.Entry<Object, Object>> it = entries.iterator();
-        boolean firstElement = true;
-        sb.append('{');
-        while (it.hasNext()) {
-            Map.Entry<Object, Object> entry = it.next();
-            Object key = entry.getKey();
-            Object value = entry.getValue();
-            if (key == null)
-                continue;
-            if (firstElement)
-                firstElement = false;
-            else
-                sb.append(',');
-            sb.append('\"').append(key.toString()).append("\":");
-            encodeValue(value, sb);
-        }
-        sb.append('}');
     }
 
     /**
@@ -174,8 +174,9 @@ public final class JSON {
      *
      * @param   value                           JSON value
      * @param   sb                              String builder
+     * @throws  IOException                     I/O error occurred
      */
-    public static void encodeValue(Object value, StringBuilder sb) {
+    public static void encodeValue(Object value, Appendable sb) throws IOException {
         if (value == null) {
             sb.append("null");
         } else if (value instanceof Double) {
@@ -209,7 +210,7 @@ public final class JSON {
      * @param   string                      String to be written
      * @param   sb                          String builder
      */
-    private static void escapeString(String string, StringBuilder sb) {
+    private static void escapeString(String string, Appendable sb) throws IOException {
         if (string.length() == 0)
             return;
         //

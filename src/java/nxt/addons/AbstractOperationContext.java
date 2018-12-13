@@ -43,6 +43,7 @@ public abstract class AbstractOperationContext extends AbstractContractContext {
      * Returns the parameters passed to this contract invocation
      * @return the parameters passed to this contract invocation
      */
+    @Override
     public JO getRuntimeParams() {
         return runtimeParams;
     }
@@ -93,6 +94,7 @@ public abstract class AbstractOperationContext extends AbstractContractContext {
      * in other words, returns true if the trigger transaction was sent to this contract runner
      * @return true if the same recipient, false otherwise
      */
+    @Deprecated
     public boolean isSameRecipient() {
         return validateSameAccount("recipient");
     }
@@ -103,7 +105,7 @@ public abstract class AbstractOperationContext extends AbstractContractContext {
      * @return true if not the same recipient, false otherwise
      */
     public boolean notSameRecipient() {
-        return !isSameRecipient();
+        return !validateSameAccount("recipient");
     }
 
     /**
@@ -130,11 +132,11 @@ public abstract class AbstractOperationContext extends AbstractContractContext {
      * @return true if the same account, false otherwise
      */
     public boolean validateSameAccount(String attribute) {
-        String transactionRecipient = getTransactionJson().getString(attribute);
-        if (transactionRecipient.equals(config.getAccount())) {
+        String account = getTransactionJson().getString(attribute);
+        if (account.equals(config.getAccount())) {
             return true;
         }
-        setInternalErrorResponse(VALIDATE_SAME_ACCOUNT_CODE, "Transaction %s %s differs from contract account %s", attribute, Convert.rsAccount(Long.parseUnsignedLong(transactionRecipient)), config.getAccountRs());
+        generateInternalErrorResponse(VALIDATE_SAME_ACCOUNT_CODE, "Transaction %s %s differs from contract account %s", attribute, Convert.rsAccount(Long.parseUnsignedLong(account)), config.getAccountRs());
         return false;
     }
 
@@ -145,7 +147,7 @@ public abstract class AbstractOperationContext extends AbstractContractContext {
                 return true;
             }
         }
-        setInternalErrorResponse(VALIDATE_SAME_TRANSACTION_TYPE, "Transaction type %s differs from expected type %s", transactionType, Arrays.toString(expectedTypes));
+        generateInternalErrorResponse(VALIDATE_SAME_TRANSACTION_TYPE, "Transaction type %s differs from expected type %s", transactionType, Arrays.toString(expectedTypes));
         return false;
     }
 
@@ -171,7 +173,7 @@ public abstract class AbstractOperationContext extends AbstractContractContext {
         if (transactionChainId == chainId) {
             return true;
         }
-        setInternalErrorResponse(VALIDATE_SAME_CHAIN, "Transaction chain %d differs from expected chain %d", transactionChainId, chainId);
+        generateInternalErrorResponse(VALIDATE_SAME_CHAIN, "Transaction chain %d differs from expected chain %d", transactionChainId, chainId);
         return false;
     }
 
@@ -196,4 +198,13 @@ public abstract class AbstractOperationContext extends AbstractContractContext {
         byte[] seedBytes = Convert.parseHexString(seed);
         return Convert.bytesToLong(seedBytes);
     }
+
+    @Override
+    protected JO getPhasingAttachment() {
+        if (!getTransaction().isPhased()) {
+            return null;
+        }
+        return getTransaction().getAttachmentJson();
+    }
+
 }

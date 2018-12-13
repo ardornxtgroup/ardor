@@ -18,7 +18,6 @@ package nxt.util;
 
 import nxt.Constants;
 import nxt.NxtException;
-import nxt.crypto.Crypto;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -118,7 +117,7 @@ public final class Convert {
         account = account.toUpperCase(Locale.ROOT);
         int prefixEnd = account.indexOf('-');
         if (prefixEnd > 0) {
-            return Crypto.rsDecode(account.substring(prefixEnd + 1));
+            return rsDecode(account.substring(prefixEnd + 1));
         } else if (prefixEnd == 0) {
             return Long.valueOf(account);
         } else {
@@ -127,7 +126,26 @@ public final class Convert {
     }
 
     public static String rsAccount(long accountId) {
-        return Constants.ACCOUNT_PREFIX + "-" + Crypto.rsEncode(accountId);
+        return Constants.ACCOUNT_PREFIX + "-" + rsEncode(accountId);
+    }
+
+    public static String rsEncode(long id) {
+        return ReedSolomon.encode(id);
+    }
+
+    public static long rsDecode(String rsString) {
+        rsString = rsString.toUpperCase(Locale.ROOT);
+        try {
+            long id = ReedSolomon.decode(rsString);
+            if (! rsString.equals(ReedSolomon.encode(id))) {
+                throw new RuntimeException("ERROR: Reed-Solomon decoding of " + rsString
+                        + " not reversible, decoded to " + id);
+            }
+            return id;
+        } catch (ReedSolomon.DecodeException e) {
+            Logger.logDebugMessage("Reed-Solomon decoding failed for " + rsString + ": " + e.toString());
+            throw new RuntimeException(e.toString(), e);
+        }
     }
 
     public static long fullHashToId(byte[] hash) {

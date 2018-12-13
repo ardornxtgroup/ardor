@@ -16,6 +16,8 @@
 
 package nxt.tools;
 
+import nxt.util.security.BlockchainPermission;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -23,6 +25,11 @@ import java.io.IOException;
 public final class CompareTraceFiles {
 
     public static void main(String[] args) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("tools"));
+        }
+
         String testFile = args.length > 0 ? args[0] : "nxt-trace.csv";
         String defaultFile = args.length > 1 ? args[1] : "nxt-trace-default.csv";
         try (BufferedReader defaultReader = new BufferedReader(new FileReader(defaultFile));

@@ -18,6 +18,7 @@ package nxt.tools;
 
 import nxt.Nxt;
 import nxt.env.service.ArdorService_ServiceManagement;
+import nxt.util.security.BlockchainPermission;
 
 import java.io.IOException;
 import java.nio.file.FileVisitOption;
@@ -35,6 +36,11 @@ import java.util.jar.Manifest;
 public class ManifestGenerator {
 
     public static void main(String[] args) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("tools"));
+        }
+
         ManifestGenerator manifestGenerator = new ManifestGenerator();
         manifestGenerator.generate("./resource/nxt.manifest.mf", Nxt.class.getCanonicalName(), "./lib");
         String serviceClassName = ArdorService_ServiceManagement.class.getCanonicalName();

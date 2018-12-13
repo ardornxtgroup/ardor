@@ -1,6 +1,5 @@
 package com.jelurida.ardor.contracts;
 
-import nxt.Nxt;
 import nxt.account.AccountPropertyAttachment;
 import nxt.account.AccountPropertyTransactionType;
 import nxt.addons.JO;
@@ -20,12 +19,11 @@ public class IgnisArdorRatesTest extends AbstractContractTest {
 
     @Test
     public void ignisArdorBittrexRate() {
-        String contractName = IgnisArdorRates.class.getSimpleName();
-        ContractTestHelper.deployContract(contractName);
+        String contractName = ContractTestHelper.deployContract(IgnisArdorRates.class);
         executeContract(contractName);
     }
 
-    public void executeContract(String contractName) {
+    void executeContract(String contractName) {
         // Pay the contract and attach a message to trigger the contract execution
         JO messageJson = new JO();
         messageJson.put("contract", contractName);
@@ -34,7 +32,7 @@ public class IgnisArdorRatesTest extends AbstractContractTest {
         // Contract should submit transaction now
         generateBlock();
         // Verify that the contract sent back a message
-        Block lastBlock = Nxt.getBlockchain().getLastBlock();
+        Block lastBlock = getLastBlock();
         boolean isMessageFound = false;
         boolean isPropertyFound = false;
         for (FxtTransaction transaction : lastBlock.getFxtTransactions()) {

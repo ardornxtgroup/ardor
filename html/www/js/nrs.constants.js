@@ -73,6 +73,8 @@ var NRS = (function (NRS, $) {
         'NOT_FORGING': 'not_forging',
         'UNKNOWN': 'unknown',
         'INITIAL_BASE_TARGET': 153722867,
+        'TESTNET_ACCELERATION': 6,
+        'TESTNET_ACCELRATION_BLOCK': 455000,
         'SIGNATURE_POSITION': 69, // bytes before signature from TransactionImpl newTransactionBuilder()
         'SIGNATURE_LENGTH': 64
     };
@@ -141,6 +143,7 @@ var NRS = (function (NRS, $) {
             NRS.constants.ACCOUNT_MASK_PREFIX = response.accountPrefix + "-";
             NRS.constants.ACCOUNT_MASK_LEN = NRS.constants.ACCOUNT_MASK_PREFIX.length;
             NRS.constants.INITIAL_BASE_TARGET = parseInt(response.initialBaseTarget);
+            NRS.constants.LEASING_DELAY = parseInt(response.leasingDelay);
             console.log("done loading server constants");
             if (resolve) {
                 resolve();
@@ -267,6 +270,16 @@ var NRS = (function (NRS, $) {
             requestType == "signTransaction";
     };
 
+    /**
+     * Special case for transaction types which set the recipient to account which is not part of the transaction data.
+     * For example to the asset issuer account in asset property transactions.
+     * @param requestType the request type
+     * @returns {boolean} is it a requestType which creates a transaction with special recipient
+     */
+    NRS.isSpecialRecipient = function (requestType) {
+        return requestType == "setAssetProperty" || requestType == "deleteAssetProperty";
+    };
+
     NRS.getFileUploadConfig = function (requestType, data) {
         var config = {};
         if (requestType == "uploadTaggedData") {
@@ -290,6 +303,10 @@ var NRS = (function (NRS, $) {
             }
             config.errorDescription = "error_message_too_big";
             config.maxSize = NRS.constants.MAX_PRUNABLE_MESSAGE_LENGTH;
+            return config;
+        } else if (requestType == "uploadContractRunnerConfiguration") {
+            config.selector = "#upload_contract_runner_config_file";
+            config.requestParam = "config";
             return config;
         }
         return null;

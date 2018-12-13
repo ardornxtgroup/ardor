@@ -89,7 +89,12 @@ final class Genesis {
     }
 
     private static void importBalances(MessageDigest digest) {
-        List<Chain> chains = new ArrayList<>(ChildChain.getAll());
+        List<Chain> chains = new ArrayList<>();
+        ChildChain.getAll().forEach(childChain -> {
+            if (childChain.isEnabled()) {
+                chains.add(childChain);
+            }
+        });
         chains.add(FxtChain.FXT);
         chains.sort(Comparator.comparingInt(Chain::getId));
         for (Chain chain : chains) {

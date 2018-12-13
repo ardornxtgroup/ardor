@@ -24,6 +24,8 @@ import nxt.db.DbIterator;
 import nxt.db.DbKey;
 import nxt.db.DbUtils;
 import nxt.db.VersionedEntityDbTable;
+import nxt.util.Listener;
+import nxt.util.Listeners;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -122,6 +124,7 @@ public final class AliasHome {
             offerTable.delete(offer);
         }
         aliasTable.delete(alias);
+        aliasListeners.notify(alias, Event.DELETE_ALIAS);
     }
 
     void addOrUpdateAlias(Transaction transaction, AliasAssignmentAttachment attachment) {
@@ -134,6 +137,7 @@ public final class AliasHome {
             alias.timestamp = Nxt.getBlockchain().getLastBlockTimestamp();
         }
         aliasTable.insert(alias);
+        aliasListeners.notify(alias, Event.SET_ALIAS);
     }
 
     public void importAlias(long id, long accountId, String aliasName, String aliasURI) {
@@ -307,4 +311,17 @@ public final class AliasHome {
 
     }
 
+    private static final Listeners<Alias, Event> aliasListeners = new Listeners<>();
+
+    public enum Event {
+        SET_ALIAS, DELETE_ALIAS
+    }
+
+    public static boolean addListener(Listener<Alias> listener, Event eventType) {
+        return aliasListeners.addListener(listener, eventType);
+    }
+
+    public static boolean removeListener(Listener<Alias> listener, Event eventType) {
+        return aliasListeners.removeListener(listener, eventType);
+    }
 }

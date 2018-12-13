@@ -31,6 +31,8 @@ import nxt.messaging.MessagingTransactionType;
 import nxt.ms.MonetarySystemTransactionType;
 import nxt.shuffling.ShufflingTransactionType;
 import nxt.taggeddata.TaggedDataTransactionType;
+import nxt.util.Convert;
+import nxt.util.Logger;
 import nxt.voting.AccountControlTransactionType;
 import nxt.voting.VotingTransactionType;
 
@@ -96,6 +98,7 @@ public abstract class ChildTransactionType extends TransactionType {
         long deposit = 0;
         if (((ChildTransactionImpl)transaction).getReferencedTransactionId() != null) {
             if (FxtChain.FXT.getBalanceHome().getBalance(senderAccount.getId()).getUnconfirmedBalance() < Constants.UNCONFIRMED_POOL_DEPOSIT_FQT) {
+                Logger.logInfoMessage("account %s must have enough %s to pay the unconfirmed pool deposit", Convert.rsAccount(senderAccount.getId()), FxtChain.FXT_NAME);
                 return false;
             }
             deposit = Constants.UNCONFIRMED_POOL_DEPOSIT_FQT;

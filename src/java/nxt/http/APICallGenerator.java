@@ -36,7 +36,7 @@ public class APICallGenerator {
             "height", "timestamp", "firstIndex", "lastIndex", "type", "subtype", "deadline", "ecBlockHeight"));
 
     private static Set<String> BOOLEAN_IDENTIFIERS = new HashSet<>(Arrays.asList(
-            "executedOnly", "phased", "broadcast", "voucher" ));
+            "executedOnly", "phased", "broadcast", "voucher", "retrieve" ));
 
     private static Set<String> REMOTE_ONLY_APIS = new HashSet<>(Arrays.asList(
             "eventRegister", "eventWait" ));

@@ -1,6 +1,5 @@
 package com.jelurida.ardor.contracts;
 
-import nxt.Nxt;
 import nxt.addons.JA;
 import nxt.addons.JO;
 import nxt.blockchain.Block;
@@ -18,8 +17,7 @@ public class SplitPaymentTest extends AbstractContractTest {
 
     @Test
     public void splitPayment() {
-        String contractName = SplitPayment.class.getSimpleName();
-        ContractTestHelper.deployContract(contractName);
+        String contractName = ContractTestHelper.deployContract(SplitPayment.class);
 
         // Pay the contract and attach a message to trigger the contract execution
         JO messageJson = new JO();
@@ -35,7 +33,7 @@ public class SplitPaymentTest extends AbstractContractTest {
         generateBlock();
 
         // Verify that the contract paid all recipients
-        Block lastBlock = Nxt.getBlockchain().getLastBlock();
+        Block lastBlock = getLastBlock();
         FxtTransaction parentTransaction = lastBlock.getFxtTransactions().get(0);
         List<? extends ChildTransaction> childTransactions = parentTransaction.getSortedChildTransactions();
         Assert.assertEquals(3, childTransactions.size());

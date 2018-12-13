@@ -649,7 +649,9 @@ var NRS = (function (NRS, $, undefined) {
 
             if (transaction.recipient !== data.recipient) {
                 if (!((data.recipient === undefined || data.recipient == "") && transaction.recipient == "0")) {
-                    return { fail: true, param: "recipient", actual: transaction.recipient, expected: data.recipient };
+                    if (!NRS.isSpecialRecipient(requestType)) {
+                        return { fail: true, param: "recipient", actual: transaction.recipient, expected: data.recipient };
+                    }
                 }
             }
 
@@ -840,22 +842,24 @@ var NRS = (function (NRS, $, undefined) {
                     return notOfTypeError;
                 }
                 var fullHashesLength = byteArray[pos];
-                if (fullHashesLength !== 1) {
+                pos++;
+                if (fullHashesLength > 1) {
                     return { fail: true, param: requestType + "fullHashesLength", actual: fullHashesLength, expected: 1 };
                 }
-                pos++;
-                var phasedTransaction = converters.byteArrayToSignedInt32(byteArray, pos);
-                pos += 4;
-                phasedTransaction += ":" + converters.byteArrayToHexString(byteArray.slice(pos, pos + 32));
-                pos += 32;
-                if (phasedTransaction !== data.phasedTransaction) {
-                    return { fail: true, param: requestType + "PhasedTransaction", actual: JSON.stringify(data), expected: JSON.stringify(transaction) };
+                if (fullHashesLength === 1) {
+                    var phasedTransaction = converters.byteArrayToSignedInt32(byteArray, pos);
+                    pos += 4;
+                    phasedTransaction += ":" + converters.byteArrayToHexString(byteArray.slice(pos, pos + 32));
+                    pos += 32;
+                    if (phasedTransaction !== data.phasedTransaction) {
+                        return { fail: true, param: requestType + "PhasedTransaction", actual: JSON.stringify(data), expected: JSON.stringify(transaction) };
+                    }
                 }
                 var numberOfSecrets = converters.byteArrayToSignedShort(byteArray, pos);
                 pos += 2;
                 if (numberOfSecrets < 0 || numberOfSecrets > 1
-                    || numberOfSecrets == 0 && data.revealedSecretText !== ""
-                    || numberOfSecrets == 1 && data.revealedSecretText === "") {
+                    || numberOfSecrets == 0 && (data.revealedSecretText !== "" || data.revealedSecret !== "")
+                        || numberOfSecrets == 1 && data.revealedSecretText === "" && data.revealedSecret === "") {
                     return { fail: true, param: requestType + "NumberOfSecrets", actual: JSON.stringify(data), expected: numberOfSecrets };
                 }
                 // We only support one secret per phasing model
@@ -1013,6 +1017,35 @@ var NRS = (function (NRS, $, undefined) {
                 } else {
                     pos = result.pos;
                 }
+                break;
+            case "setAssetProperty":
+                if (NRS.notOfType(transaction, "AssetProperty")) {
+                    return notOfTypeError;
+                }
+                if (data.asset !== String(converters.byteArrayToBigInteger(byteArray, pos))) {
+                    return { fail: true, param: requestType + "Asset", actual: JSON.stringify(data), expected: String(converters.byteArrayToBigInteger(byteArray, pos))};
+                }
+                pos += 8;
+                length = byteArray[pos];
+                pos++;
+                if (converters.byteArrayToString(byteArray, pos, length) !== data.property) {
+                    return { fail: true, param: requestType + "Key", actual: JSON.stringify(data), expected: JSON.stringify(transaction) };
+                }
+                pos += length;
+                length = byteArray[pos];
+                pos++;
+                if (converters.byteArrayToString(byteArray, pos, length) !== data.value) {
+                    return { fail: true, param: requestType + "Value", actual: JSON.stringify(data), expected: JSON.stringify(transaction) };
+                }
+                pos += length;
+                break;
+            case "deleteAssetProperty":
+                if (NRS.notOfType(transaction, "AssetPropertyDelete")) {
+                    return notOfTypeError;
+                }
+                // no way to validate the property id, just skip it
+                String(converters.byteArrayToBigInteger(byteArray, pos));
+                pos += 8;
                 break;
             case "dgsListing":
                 if (NRS.notOfType(transaction, "DigitalGoodsListing")) {
@@ -1519,7 +1552,7 @@ var NRS = (function (NRS, $, undefined) {
             pos++;
             transaction.messageToEncryptIsText = flags && 1;
             var messageToEncryptIsText = (transaction.messageToEncryptIsText ? "true" : "false");
-            if (messageToEncryptIsText != data.messageToEncryptIsText) {
+            if (messageToEncryptIsText != data.messageToEncryptIsText && transaction.messageToEncryptIsText != data.isText) {
                 return { fail: true, param: "EncryptedMessageAppendix", actual: messageToEncryptIsText, expected: data.messageToEncryptIsText };
             }
             var encryptedMessageLength = converters.byteArrayToSignedShort(byteArray, pos);
@@ -1531,7 +1564,7 @@ var NRS = (function (NRS, $, undefined) {
             pos += encryptedMessageLength;
             transaction.encryptedMessageNonce = converters.byteArrayToHexString(byteArray.slice(pos, pos + 32));
             pos += 32;
-            if (transaction.encryptedMessageData !== data.encryptedMessageData || transaction.encryptedMessageNonce !== data.encryptedMessageNonce) {
+            if (transaction.encryptedMessageData !== (data.encryptedMessageData || data.data) || transaction.encryptedMessageNonce !== (data.encryptedMessageNonce || data.nonce)) {
                 return { fail: true, param: "EncryptedMessageAppendix", actual: JSON.stringify(transaction), expected: JSON.stringify(data) };
             }
         } else if (data.encryptedMessageData && !(data.encryptedMessageIsPrunable === "true")) {
@@ -1619,7 +1652,7 @@ var NRS = (function (NRS, $, undefined) {
             serverHash = converters.byteArrayToHexString(byteArray.slice(pos, pos + 32));
             pos += 32;
             sha256 = CryptoJS.algo.SHA256.create();
-            if (data.messageToEncryptIsText == "true") {
+            if (data.isText == true || data.messageToEncryptIsText == "true") {
                 sha256.update(converters.byteArrayToWordArrayEx([1]));
             } else {
                 sha256.update(converters.byteArrayToWordArrayEx([0]));
@@ -1628,10 +1661,12 @@ var NRS = (function (NRS, $, undefined) {
             if (data.filebytes) {
                 utfBytes = new Int8Array(data.filebytes);
             } else {
-                utfBytes = converters.hexStringToByteArray(data.encryptedMessageData);
+                var encryptedMessageData = data.encryptedMessageData || data.data;
+                utfBytes = converters.hexStringToByteArray(encryptedMessageData);
             }
             sha256.update(converters.byteArrayToWordArrayEx(utfBytes));
-            sha256.update(converters.byteArrayToWordArrayEx(converters.hexStringToByteArray(data.encryptedMessageNonce)));
+            var messageNonce = data.encryptedMessageNonce || data.nonce;
+            sha256.update(converters.byteArrayToWordArrayEx(converters.hexStringToByteArray(messageNonce)));
             hashWords = sha256.finalize();
             calculatedHash = converters.wordArrayToByteArrayEx(hashWords);
             if (serverHash !== converters.byteArrayToHexString(calculatedHash)) {

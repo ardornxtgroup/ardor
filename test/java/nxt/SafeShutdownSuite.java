@@ -19,6 +19,9 @@ package nxt;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+
 /**
  * Suite that shuts down Nxt after the last test only. Can be
  */
@@ -33,7 +36,10 @@ public class SafeShutdownSuite {
     @AfterClass
     public static void safeSuiteShutdown() {
         if (--embeddingsCount == 0) {
-            Nxt.shutdown();
+            AccessController.doPrivileged((PrivilegedAction<Void>) () -> {
+                Nxt.shutdown();
+                return null;
+            });
         }
     }
 }

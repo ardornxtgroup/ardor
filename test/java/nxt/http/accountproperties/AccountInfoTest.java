@@ -17,7 +17,6 @@
 package nxt.http.accountproperties;
 
 import nxt.BlockchainTest;
-import nxt.Constants;
 import nxt.http.APICall;
 import org.json.simple.JSONObject;
 import org.junit.Assert;

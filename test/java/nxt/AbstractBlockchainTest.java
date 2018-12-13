@@ -28,6 +28,8 @@ import nxt.util.Listener;
 import nxt.util.Logger;
 import org.junit.Assert;
 
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.Properties;
 
 public abstract class AbstractBlockchainTest {
@@ -59,7 +61,10 @@ public abstract class AbstractBlockchainTest {
     }
 
     protected static void init(Properties testProperties) {
-        Nxt.init(Setup.UNIT_TEST, testProperties);
+        AccessController.doPrivileged((PrivilegedAction<Void>) () -> {
+            Nxt.init(Setup.UNIT_TEST, testProperties);
+            return null;
+        });
         blockchain = BlockchainImpl.getInstance();
         blockchainProcessor = BlockchainProcessorImpl.getInstance();
         blockchainProcessor.setGetMoreBlocks(false);

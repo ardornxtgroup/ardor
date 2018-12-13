@@ -7,12 +7,13 @@ import nxt.http.callers.GetBundlerRatesCall;
 import nxt.http.callers.SendMoneyCall;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 
 /**
- * Show how to calculate best bundling fee for child chain transactions
+ * Sample Java program which demonstrates how to calculate best bundling fee for child chain transactions
  */
 public class FeeCalculation {
 
@@ -25,7 +26,7 @@ public class FeeCalculation {
         JO transactionResponse = feeCalculation.prepare(remoteUrl, chain.getId());
         long minimumParentChainFeeFQT = transactionResponse.getLong("minimumFeeFQT");
         long feeRateNQTPerFXT = feeCalculation.getBestBundlingFee(remoteUrl, minimumParentChainFeeFQT, chain.getId());
-        long feeNQT = BigDecimal.valueOf(minimumParentChainFeeFQT).multiply(BigDecimal.valueOf(feeRateNQTPerFXT)).divide(BigDecimal.valueOf(chain.ONE_COIN), BigDecimal.ROUND_HALF_EVEN).longValue();
+        long feeNQT = BigDecimal.valueOf(minimumParentChainFeeFQT).multiply(BigDecimal.valueOf(feeRateNQTPerFXT)).divide(BigDecimal.valueOf(chain.ONE_COIN), RoundingMode.HALF_EVEN).longValue();
         System.out.printf("calculatedFee: %d\n", feeNQT);
         JO submittedTransaction = feeCalculation.submit(remoteUrl, chain.getId(), feeNQT);
         System.out.printf("submittedTransaction: %s\n", submittedTransaction);

@@ -17,6 +17,7 @@
 package nxt.util;
 
 import nxt.Nxt;
+import nxt.util.security.BlockchainPermission;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,6 +37,10 @@ public final class ThreadPool {
     private static List<Runnable> afterStartJobs = new ArrayList<>();
 
     public static synchronized void runBeforeStart(Runnable runnable, boolean runLast) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("threadPool"));
+        }
         if (scheduledThreadPool != null) {
             throw new IllegalStateException("Executor service already started");
         }
@@ -47,14 +52,25 @@ public final class ThreadPool {
     }
 
     public static synchronized void runAfterStart(Runnable runnable) {
-        afterStartJobs.add(runnable);
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("threadPool"));
+        }afterStartJobs.add(runnable);
     }
 
     public static synchronized void scheduleThread(String name, Runnable runnable, int delay) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("threadPool"));
+        }
         scheduleThread(name, runnable, delay, TimeUnit.SECONDS);
     }
 
     public static synchronized void scheduleThread(String name, Runnable runnable, int delay, TimeUnit timeUnit) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("threadPool"));
+        }
         if (scheduledThreadPool != null) {
             throw new IllegalStateException("Executor service already started, no new jobs accepted");
         }
@@ -66,7 +82,10 @@ public final class ThreadPool {
     }
 
     public static synchronized void start(int timeMultiplier) {
-        if (scheduledThreadPool != null) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("threadPool"));
+        }if (scheduledThreadPool != null) {
             throw new IllegalStateException("Executor service already started");
         }
 
@@ -95,6 +114,10 @@ public final class ThreadPool {
     }
 
     public static void shutdown() {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("threadPool"));
+        }
         if (scheduledThreadPool != null) {
 	        Logger.logShutdownMessage("Stopping background jobs...");
             shutdownExecutor("scheduledThreadPool", scheduledThreadPool, 10);
@@ -104,6 +127,10 @@ public final class ThreadPool {
     }
 
     public static void shutdownExecutor(String name, ExecutorService executor, int timeout) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("threadPool"));
+        }
         Logger.logShutdownMessage("shutting down " + name);
         executor.shutdown();
         try {

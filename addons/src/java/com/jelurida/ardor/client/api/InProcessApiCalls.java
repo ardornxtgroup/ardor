@@ -6,16 +6,15 @@ import nxt.configuration.Setup;
 import nxt.http.callers.SendMoneyCall;
 
 /**
- * Use APIs locally without relying on a remote node
+ * Sample Java program which demonstrates use of APIs locally without relying on a remote node
  */
 public class InProcessApiCalls {
 
     private static final String SECRET_PHRASE = "hope peace happen touch easy pretend worthless talk them indeed wheel state";
 
     public static void main(String[] args) {
+        // This code will start the node, so make sure it is not already running or you'll receive a BindException
         Nxt.init(Setup.COMMAND_LINE_TOOL);
-
-        // start the node, so make sure it is not already running or you'll receive a BindException
         try {
             InProcessApiCalls inProcessApiCalls = new InProcessApiCalls();
             inProcessApiCalls.submit();

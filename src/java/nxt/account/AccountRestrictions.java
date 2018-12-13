@@ -32,6 +32,7 @@ import nxt.db.VersionedEntityDbTable;
 import nxt.db.VersionedValuesDbTable;
 import nxt.util.Convert;
 import nxt.util.Logger;
+import nxt.util.security.BlockchainPermission;
 import nxt.voting.AccountControlTransactionType;
 import nxt.voting.PhasingAppendix;
 import nxt.voting.PhasingControl;
@@ -56,6 +57,10 @@ public final class AccountRestrictions {
         public static final String DEFAULT_ACCOUNT_CONTROL_VARIABLE = "ACC";
 
         public static PhasingOnly get(long accountId) {
+            SecurityManager sm = System.getSecurityManager();
+            if (sm != null) {
+                sm.checkPermission(new BlockchainPermission("phasing"));
+            }
             return phasingControlTable.getBy(new DbClause.LongClause("account_id", accountId).
                     and(new DbClause.ByteClause("voting_model", DbClause.Op.NE, VotingModel.NONE.getCode())));
         }
@@ -65,10 +70,18 @@ public final class AccountRestrictions {
         }
 
         public static DbIterator<PhasingOnly> getAll(int from, int to) {
+            SecurityManager sm = System.getSecurityManager();
+            if (sm != null) {
+                sm.checkPermission(new BlockchainPermission("phasing"));
+            }
             return phasingControlTable.getAll(from, to);
         }
 
         public static void set(Account senderAccount, SetPhasingOnlyAttachment attachment) {
+            SecurityManager sm = System.getSecurityManager();
+            if (sm != null) {
+                sm.checkPermission(new BlockchainPermission("phasing"));
+            }
             PhasingParams phasingParams = attachment.getPhasingParams();
             long accountId = senderAccount.getId();
             if (phasingParams.getVoteWeighting().getVotingModel() == VotingModel.NONE) {
@@ -103,6 +116,10 @@ public final class AccountRestrictions {
         }
 
         public static void importPhasingOnly(long accountId, long[] whitelist, int quorum, long maxFees, int minDuration, int maxDuration) {
+            SecurityManager sm = System.getSecurityManager();
+            if (sm != null) {
+                sm.checkPermission(new BlockchainPermission("phasing"));
+            }
             Account.getAccount(accountId).addControl(Account.ControlType.PHASING_ONLY);
             Map<Integer, Long> maxFeesMap = new HashMap<>();
             maxFeesMap.put(ChildChain.IGNIS.getId(), maxFees);
@@ -309,7 +326,7 @@ public final class AccountRestrictions {
     public static void checkTransaction(ChildTransaction transaction) throws NxtException.NotCurrentlyValidException {
         Account senderAccount = Account.getAccount(transaction.getSenderId());
         if (senderAccount == null) {
-            throw new NxtException.NotCurrentlyValidException("Account " + Long.toUnsignedString(transaction.getSenderId()) + " does not exist yet");
+            throw new NxtException.NotCurrentlyValidException("Account " + Convert.rsAccount(transaction.getSenderId()) + " does not exist yet");
         }
         if (senderAccount.getControls().contains(Account.ControlType.PHASING_ONLY)) {
             PhasingOnly phasingOnly = PhasingOnly.get(transaction.getSenderId());
@@ -320,7 +337,7 @@ public final class AccountRestrictions {
     public static void checkTransaction(FxtTransaction transaction) throws NxtException.NotCurrentlyValidException {
         Account senderAccount = Account.getAccount(transaction.getSenderId());
         if (senderAccount == null) {
-            throw new NxtException.NotCurrentlyValidException("Account " + Long.toUnsignedString(transaction.getSenderId()) + " does not exist yet");
+            throw new NxtException.NotCurrentlyValidException("Account " + Convert.rsAccount(transaction.getSenderId()) + " does not exist yet");
         }
         if (senderAccount.getControls().contains(Account.ControlType.PHASING_ONLY)) {
             throw new AccountControlException(String.format("Account %s is under account control and cannot submit forging chain transaction %d:%s", Convert.rsAccount(transaction.getSenderId()),

@@ -16,6 +16,8 @@
 
 package nxt.util;
 
+import nxt.util.security.BlockchainPermission;
+
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
@@ -57,10 +59,18 @@ public class TrustAllSSLProvider {
     }
 
     public static HostnameVerifier getHostNameVerifier() {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("ssl"));
+        }
         return hostNameVerifier;
     }
 
     public static SSLSocketFactory getSslSocketFactory() {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("ssl"));
+        }
         return sslSocketFactory;
     }
 }

@@ -1,0 +1,198 @@
+// In memory keystore which holds certificates for the account public keys
+keystore "NONE", "Blockchain", "Jelurida";
+
+// Basic permissions for untrusted contract
+grant codeBase "file://untrustedContractCode" {
+    permission java.io.FilePermission "${java.io.tmpdir}*", "read,write,delete";
+    permission java.util.PropertyPermission "java.io.tmpdir", "read";
+	permission java.net.URLPermission "http:*", "*:*";
+    permission java.net.URLPermission "https:*", "*:*";
+};
+
+/*
+// Grant more permissions for contracts submitted by an account whose public key is specified by the signedBy token
+grant codeBase "file://untrustedContractCode" signedBy "112e0c5748b5ea610a44a09b1ad0d2bddc945a6ef5edc7551b80576249ba585b" {
+    permission nxt.util.security.BlockchainPermission "db";
+    permission nxt.util.security.BlockchainPermission "getBlockchain";
+};
+*/
+
+/*
+// Grant more permissions for contracts with transaction full hash or tagged data hash or data hash specified as principal
+grant codeBase "file://untrustedContractCode" principal nxt.util.security.TransactionPrincipal "df15278b53c5c24ccb179302834608b50b94c3e91c97ffa0510357e35fec919b" {
+    permission nxt.util.security.BlockchainPermission "db";
+};
+*/
+
+// For contract runner 3rd party runtime libraries, set to the same permissions as untrusted code
+grant codeBase "file:addons/lib/*" {
+    permission java.io.FilePermission "${java.io.tmpdir}*", "read,write,delete";
+    permission java.util.PropertyPermission "java.io.tmpdir", "read";
+};
+
+// The rest of the permissions should be the same for all protection domains listed below.
+// When making a change to the permissions, make the same change for each protection domain
+
+// For Ardor code during development
+grant codeBase "file:classes/-" {
+    permission java.util.PropertyPermission "*", "read, write";
+    permission java.lang.management.ManagementPermission "monitor";
+    permission java.io.FilePermission "<<ALL FILES>>", "read, write, delete, execute";
+    permission java.util.logging.LoggingPermission "control";
+    permission java.lang.RuntimePermission "modifyThread";
+    permission java.security.SecurityPermission "getProperty.ssl.*";
+    permission java.net.SocketPermission "*", "accept, connect, listen, resolve";
+    permission java.lang.RuntimePermission "exitVM";
+    permission java.lang.RuntimePermission "modifyThread";
+    permission java.lang.RuntimePermission "setContextClassLoader";
+    permission java.lang.RuntimePermission "shutdownHooks";
+    permission java.lang.RuntimePermission "accessDeclaredMembers";
+    permission java.lang.RuntimePermission "setFactory";
+    permission javax.net.ssl.SSLPermission "setHostnameVerifier";
+    permission java.net.NetPermission "getCookieHandler";
+    permission java.awt.AWTPermission "*";
+    permission java.net.URLPermission "http:*", "*:*";
+    permission java.net.URLPermission "https:*", "*:*";
+    permission java.lang.RuntimePermission "getFileStoreAttributes";
+    permission java.lang.RuntimePermission "accessClassInPackage.sun.misc";
+    permission java.lang.RuntimePermission "getenv.TIKA_CONFIG";
+    permission java.net.NetPermission "getNetworkInformation";
+    permission java.lang.RuntimePermission "createClassLoader";
+    permission java.lang.RuntimePermission "getProtectionDomain";
+    permission java.lang.RuntimePermission "accessClassInPackage.sun.reflect";
+    permission java.lang.RuntimePermission "reflectionFactoryAccess";
+    permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
+    permission java.security.SecurityPermission "getPolicy";
+    permission java.security.SecurityPermission "insertProvider";
+    permission java.security.SecurityPermission "putProviderProperty.Jelurida";
+    permission nxt.util.security.BlockchainPermission "*";
+	permission nxt.addons.ContractRunnerPermission "*";
+};
+
+// For product 3rd party runtime libraries
+grant codeBase "file:lib/*" {
+    permission java.util.PropertyPermission "*", "read, write";
+    permission java.lang.management.ManagementPermission "monitor";
+    permission java.io.FilePermission "<<ALL FILES>>", "read, write, delete, execute";
+    permission java.util.logging.LoggingPermission "control";
+    permission java.lang.RuntimePermission "modifyThread";
+    permission java.security.SecurityPermission "getProperty.ssl.*";
+    permission java.net.SocketPermission "*", "accept, connect, listen, resolve";
+    permission java.lang.RuntimePermission "exitVM";
+    permission java.lang.RuntimePermission "modifyThread";
+    permission java.lang.RuntimePermission "setContextClassLoader";
+    permission java.lang.RuntimePermission "shutdownHooks";
+    permission java.lang.RuntimePermission "accessDeclaredMembers";
+    permission java.lang.RuntimePermission "setFactory";
+    permission javax.net.ssl.SSLPermission "setHostnameVerifier";
+    permission java.net.NetPermission "getCookieHandler";
+    permission java.awt.AWTPermission "*";
+    permission java.net.URLPermission "http:*", "*:*";
+    permission java.net.URLPermission "https:*", "*:*";
+    permission java.lang.RuntimePermission "getFileStoreAttributes";
+    permission java.lang.RuntimePermission "accessClassInPackage.sun.misc";
+    permission java.lang.RuntimePermission "getenv.TIKA_CONFIG";
+    permission java.net.NetPermission "getNetworkInformation";
+    permission java.lang.RuntimePermission "createClassLoader";
+    permission java.lang.RuntimePermission "getProtectionDomain";
+    permission java.lang.RuntimePermission "accessClassInPackage.sun.reflect";
+    permission java.lang.RuntimePermission "reflectionFactoryAccess";
+    permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
+    permission java.security.SecurityPermission "getPolicy";
+    permission java.security.SecurityPermission "insertProvider";
+    permission java.security.SecurityPermission "putProviderProperty.Jelurida";
+    permission nxt.util.security.BlockchainPermission "*";
+	permission nxt.addons.ContractRunnerPermission "*";
+};
+
+// For Ardor code in installation
+grant codeBase "file:ardor.jar" {
+    permission java.util.PropertyPermission "*", "read, write";
+    permission java.lang.management.ManagementPermission "monitor";
+    permission java.io.FilePermission "<<ALL FILES>>", "read, write, delete, execute";
+    permission java.util.logging.LoggingPermission "control";
+    permission java.lang.RuntimePermission "modifyThread";
+    permission java.security.SecurityPermission "getProperty.ssl.*";
+    permission java.net.SocketPermission "*", "accept, connect, listen, resolve";
+    permission java.lang.RuntimePermission "exitVM";
+    permission java.lang.RuntimePermission "modifyThread";
+    permission java.lang.RuntimePermission "setContextClassLoader";
+    permission java.lang.RuntimePermission "shutdownHooks";
+    permission java.lang.RuntimePermission "accessDeclaredMembers";
+    permission java.lang.RuntimePermission "setFactory";
+    permission javax.net.ssl.SSLPermission "setHostnameVerifier";
+    permission java.net.NetPermission "getCookieHandler";
+    permission java.awt.AWTPermission "*";
+    permission java.net.URLPermission "http:*", "*:*";
+    permission java.net.URLPermission "https:*", "*:*";
+    permission java.lang.RuntimePermission "getFileStoreAttributes";
+    permission java.lang.RuntimePermission "accessClassInPackage.sun.misc";
+    permission java.lang.RuntimePermission "getenv.TIKA_CONFIG";
+    permission java.net.NetPermission "getNetworkInformation";
+    permission java.lang.RuntimePermission "createClassLoader";
+    permission java.lang.RuntimePermission "getProtectionDomain";
+    permission java.lang.RuntimePermission "accessClassInPackage.sun.reflect";
+    permission java.lang.RuntimePermission "reflectionFactoryAccess";
+    permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
+    permission java.security.SecurityPermission "getPolicy";
+    permission java.security.SecurityPermission "insertProvider";
+    permission java.security.SecurityPermission "putProviderProperty.Jelurida";
+    permission nxt.util.security.BlockchainPermission "*";
+	permission nxt.addons.ContractRunnerPermission "*";
+};
+
+// For Ardor code in installation running as a Windows service
+grant codeBase "file:ardorservice.jar" {
+    permission java.util.PropertyPermission "*", "read, write";
+    permission java.lang.management.ManagementPermission "monitor";
+    permission java.io.FilePermission "<<ALL FILES>>", "read, write, delete, execute";
+    permission java.util.logging.LoggingPermission "control";
+    permission java.lang.RuntimePermission "modifyThread";
+    permission java.security.SecurityPermission "getProperty.ssl.*";
+    permission java.net.SocketPermission "*", "accept, connect, listen, resolve";
+    permission java.lang.RuntimePermission "exitVM";
+    permission java.lang.RuntimePermission "modifyThread";
+    permission java.lang.RuntimePermission "setContextClassLoader";
+    permission java.lang.RuntimePermission "shutdownHooks";
+    permission java.lang.RuntimePermission "accessDeclaredMembers";
+    permission java.lang.RuntimePermission "setFactory";
+    permission javax.net.ssl.SSLPermission "setHostnameVerifier";
+    permission java.net.NetPermission "getCookieHandler";
+    permission java.awt.AWTPermission "*";
+    permission java.net.URLPermission "http:*", "*:*";
+    permission java.net.URLPermission "https:*", "*:*";
+    permission java.lang.RuntimePermission "getFileStoreAttributes";
+    permission java.lang.RuntimePermission "accessClassInPackage.sun.misc";
+    permission java.lang.RuntimePermission "getenv.TIKA_CONFIG";
+    permission java.net.NetPermission "getNetworkInformation";
+    permission java.lang.RuntimePermission "createClassLoader";
+    permission java.lang.RuntimePermission "getProtectionDomain";
+    permission java.lang.RuntimePermission "accessClassInPackage.sun.reflect";
+    permission java.lang.RuntimePermission "reflectionFactoryAccess";
+    permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
+    permission java.security.SecurityPermission "getPolicy";
+    permission java.security.SecurityPermission "insertProvider";
+    permission java.security.SecurityPermission "putProviderProperty.Jelurida";
+    permission nxt.util.security.BlockchainPermission "*";
+	permission nxt.addons.ContractRunnerPermission "*";
+};
+
+// Test class during development
+grant codeBase "file:test/classes/-" {
+    permission java.security.AllPermission;
+};
+
+// Contract test class during development and installation
+grant codeBase "file:addons/test/classes/-" {
+    permission java.security.AllPermission;
+};
+
+// Test class in installation
+grant codeBase "file:ardor-tests.jar" {
+    permission java.security.AllPermission;
+};
+
+// Workaround for IntelliJ test runner property
+grant {
+    permission java.util.PropertyPermission "idea.test.cyclic.buffer.size", "read";
+};

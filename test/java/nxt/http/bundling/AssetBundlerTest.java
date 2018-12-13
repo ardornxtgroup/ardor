@@ -2,14 +2,14 @@ package nxt.http.bundling;
 
 import nxt.Tester;
 import nxt.blockchain.ChildChain;
-import nxt.blockchain.FxtChain;
 import nxt.http.APICall;
 import nxt.http.assetexchange.AssetExchangeTest;
+import nxt.http.client.PlaceAssetOrderBuilder;
+import nxt.http.client.PlaceAssetOrderBuilder.PlaceOrderResult;
 import nxt.util.JSONAssert;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Arrays;
 import java.util.Collections;
 
 public class AssetBundlerTest extends BundlerTest {
@@ -21,10 +21,10 @@ public class AssetBundlerTest extends BundlerTest {
 
         startAssetBundler(assetId);
 
-        String fullHash = new JSONAssert(AssetExchangeTest.transfer(assetId, ALICE, CHUCK, 10, 0)).str("fullHash");
+        String fullHash = AssetExchangeTest.transfer(assetId, ALICE, CHUCK, 10, 0).getFullHash();
         Assert.assertTrue(isBundled(fullHash));
 
-        fullHash = new JSONAssert(AssetExchangeTest.transfer(assetId1, ALICE, CHUCK, 10, 0)).str("fullHash");
+        fullHash = AssetExchangeTest.transfer(assetId1, ALICE, CHUCK, 10, 0).getFullHash();
         Assert.assertFalse(isBundled(fullHash));
     }
 
@@ -69,36 +69,31 @@ public class AssetBundlerTest extends BundlerTest {
                 build().invoke());
         result.str("totalFeesLimitFQT");
 
-        String fullHash = new JSONAssert(AssetExchangeTest.transfer(assetId, ALICE, BOB, 100, 0)).fullHash();
+        String fullHash = AssetExchangeTest.transfer(assetId, ALICE, BOB, 100, 0).getFullHash();
         Assert.assertTrue(isBundled(fullHash));
 
         for (int i = 0; i < quota; i++) {
-            fullHash = new JSONAssert(AssetExchangeTest.transfer(assetId, BOB, CHUCK, 10, 0)).fullHash();
+            fullHash = AssetExchangeTest.transfer(assetId, BOB, CHUCK, 10, 0).getFullHash();
             Assert.assertTrue(isBundled(fullHash));
         }
         //Bob's quota is over
-        fullHash = new JSONAssert(AssetExchangeTest.transfer(assetId, BOB, CHUCK, 10, 0)).fullHash();
+        fullHash = AssetExchangeTest.transfer(assetId, BOB, CHUCK, 10, 0).getFullHash();
         Assert.assertFalse(isBundled(fullHash));
 
         //Chuck still has quota
-        fullHash = new JSONAssert(AssetExchangeTest.transfer(assetId, CHUCK, BOB, 10, 0)).fullHash();
+        fullHash = AssetExchangeTest.transfer(assetId, CHUCK, BOB, 10, 0).getFullHash();
         Assert.assertTrue(isBundled(fullHash));
 
         //Transferring to unknown account is not allowed
-        fullHash = new JSONAssert(AssetExchangeTest.transfer(assetId, CHUCK, new Tester("Unknown account secret " + System.currentTimeMillis()), 10, 0)).fullHash();
+        fullHash = AssetExchangeTest.transfer(assetId, CHUCK, new Tester("Unknown account secret " + System.currentTimeMillis()), 10, 0).getFullHash();
         Assert.assertFalse(isBundled(fullHash));
     }
 
     private String placeAssetOrder(Tester sender, String assetId, long quantityQNT, long price, boolean isBid) {
-        String result = new JSONAssert(new APICall.Builder(isBid ? "placeBidOrder" : "placeAskOrder")
-                .param("secretPhrase", sender.getSecretPhrase())
-                .param("asset", assetId)
-                .param("quantityQNT", quantityQNT)
-                .param("priceNQTPerShare", price)
-                .param("feeNQT", 0)
-                .build().invoke()).str("fullHash");
+        PlaceAssetOrderBuilder builder = new PlaceAssetOrderBuilder(sender, assetId, quantityQNT, price);
+        PlaceOrderResult result = isBid ? builder.placeBidOrder() : builder.placeAskOrder();
         generateBlock();
-        return result;
+        return result.getFullHash();
     }
 
     private String cancelAssetOrder(Tester sender, String orderId, boolean isBid) {

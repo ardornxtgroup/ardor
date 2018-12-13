@@ -525,7 +525,6 @@ var NRS = (function(NRS, $) {
 					$(".sidebar .treeview").tree();
 					$('#dashboard_link').find('a').addClass("ignore").click();
 
-					var accounts;
 					if (rememberMe.is(":checked") || NRS.newlyCreatedAccount) {
 						rememberAccount(NRS.accountRS);
 					}
@@ -537,7 +536,7 @@ var NRS = (function(NRS, $) {
                     accountIdDropdown.find(".dropdown-menu .switchAccount").remove();
                     if (NRS.getStrItem("savedNxtAccounts") && NRS.getStrItem("savedNxtAccounts")!=""){
                         accountIdDropdown.show();
-                        accounts = NRS.getStrItem("savedNxtAccounts").split(";");
+                        var accounts = NRS.getStrItem("savedNxtAccounts").split(";");
                         $.each(accounts, function(index, account) {
                             if (account != '') {
                                 accountIdDropdown.find('.dropdown-menu')

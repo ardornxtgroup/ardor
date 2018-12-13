@@ -17,7 +17,7 @@
 /**
  * @depends {nrs.js}
  */
-var NRS = (function (NRS, $, undefined) {
+var NRS = (function (NRS, $) {
     var assets;
     var assetIds;
     var closedGroups;
@@ -60,11 +60,11 @@ var NRS = (function (NRS, $, undefined) {
             }
         }
         return false;
-    }
+    };
 
     NRS.getCurrentAssetControl = function() {
         return assetControlParams;
-    }
+    };
 
     function loadAssetFromURL() {
         var page = NRS.getUrlParameter("page");
@@ -78,7 +78,6 @@ var NRS = (function (NRS, $, undefined) {
             });
             return;
         }
-        page = page.escapeHTML();
         asset = asset.escapeHTML();
         NRS.sendRequest("getAsset", {
             "asset": asset
@@ -585,6 +584,7 @@ var NRS = (function (NRS, $, undefined) {
             $("#sell_asset_button").data("asset", assetId);
             $("#buy_asset_button").data("asset", assetId);
             $("#view_asset_distribution_link").data("asset", assetId);
+            $("#asset_properties_link").data("asset", assetId);
             $("#sell_asset_for_nxt").html($.t("sell_asset_for_coin", {
                 assetName: NRS.escapeRespStr(asset.name), coin: NRS.getActiveChainName()
             }));
@@ -1735,21 +1735,19 @@ var NRS = (function (NRS, $, undefined) {
         }
         $("#transfer_asset_available").html(availableAssetsMessage);
 
-        $modal = $(this);
+        var $modal = $(this);
 
         NRS.loadAssetControl(assetId, function() {
             if ($modal.hasClass('in')) {
                 //already shown
                 NRS.setupModalMandatoryApproval($modal);
             } else {
-                $modal.one('shown.bs.modal', function (e) {
+                $modal.one('shown.bs.modal', function() {
                     NRS.setupModalMandatoryApproval($modal);
                 });
             }
         });
     });
-
-    $("#transfer_asset_modal")
 
     NRS.forms.transferAsset = function ($modal) {
         return transferOrChangeShares($modal);

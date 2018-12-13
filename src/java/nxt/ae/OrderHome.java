@@ -184,6 +184,7 @@ public final class OrderHome {
             this.quantityQNT = quantityQNT;
         }
 
+        public abstract void cancelOrder(AccountLedger.LedgerEventId eventId);
     }
 
     public int getAskCount() {
@@ -284,6 +285,12 @@ public final class OrderHome {
             }
         }
 
+        @Override
+        public void cancelOrder(AccountLedger.LedgerEventId eventId) {
+            this.getChildChain().getOrderHome().removeAskOrder(getId());
+            Account.getAccount(getAccountId())
+                    .addToUnconfirmedAssetBalanceQNT(LedgerEvent.ASSET_ASK_ORDER_CANCELLATION, eventId, getAssetId(), getQuantityQNT());
+        }
     }
 
     public int getBidCount() {
@@ -399,6 +406,14 @@ public final class OrderHome {
                 throw new IllegalArgumentException("Negative quantity: " + quantityQNT
                         + " for order: " + Long.toUnsignedString(getId()));
             }
+        }
+
+        @Override
+        public void cancelOrder(AccountLedger.LedgerEventId eventId) {
+            ChildChain chain = getChildChain();
+            chain.getOrderHome().removeBidOrder(getId());
+            Account.getAccount(getAccountId())
+                    .addToUnconfirmedBalance(chain, LedgerEvent.ASSET_BID_ORDER_CANCELLATION, eventId, getAmountNQT());
         }
     }
 

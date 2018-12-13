@@ -1,6 +1,4 @@
 {
-  "secretPhrase": "hope peace happen touch easy pretend worthless talk them indeed wheel state",
-  "feeRateNQTPerFXT.IGNIS": 200000000,
   "params": {
     "LeaseRenewal": {
       "secretPhrases": [
@@ -8,6 +6,9 @@
         "eOdBVLMgySFvyiTy8xMuRXDTr45oTzB7L5J",
         "t9G2ymCmDsQij7VtYinqrbGCOAtDDA3WiNr"
       ]
+    },
+    "LiberlandCitizenRegistry": {
+      "xToken": "Register as Liberland user and follow the process to obtain an SSO token (or ask me for token)"
     }
   }
 }

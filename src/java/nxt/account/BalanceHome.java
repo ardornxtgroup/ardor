@@ -24,6 +24,7 @@ import nxt.db.DbKey;
 import nxt.db.VersionedEntityDbTable;
 import nxt.util.Listener;
 import nxt.util.Listeners;
+import nxt.util.security.BlockchainPermission;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -37,6 +38,10 @@ public final class BalanceHome {
     }
 
     public static BalanceHome forChain(Chain chain) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("balance"));
+        }
         if (chain.getBalanceHome() != null) {
             throw new IllegalStateException("already set");
         }

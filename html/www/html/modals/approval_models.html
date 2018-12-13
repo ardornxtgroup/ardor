@@ -292,9 +292,29 @@
                                 <div class="form-group">
                                     <span data-i18n="approve_modal_by_hash_tab_help"></span>
                                 </div>
+                                <div class="form-group secret_phrase">
+                                    <label for="approved_by_hashed_secret_password" data-i18n="passphrase">PASSPHRASE</label>
+                                    <div id="approved_by_hashed_secret_secret_phrase_reader" class="scan-qr-code-reader" style="display:none;margin:auto;width:384px;height:384px;"></div>
+                                    <button id="approved_by_hashed_secret_secret_phrase_scan" type="button" data-reader="approved_by_hashed_secret_secret_phrase_reader" data-result="approved_by_hashed_secret_password" class="scan-qr-code btn btn-default btn-xs ">
+                                        <i class="fa fa-qrcode"></i>
+                                    </button>
+                                    <input type="password" id="approved_by_hashed_secret_password" class="form-control" placeholder="Secret Phrase" data-i18n="[placeholder]secret_phrase">
+                                </div>
+                                <div class="form-group">
+                                    <label for="approved_by_hashed_secret_nonce" data-i18n="nonce">Nonce</label>
+                                    <input type="text" class="form-control" name="secretNonce" id="approved_by_hashed_secret_nonce" readonly/>
+                                </div>
+                                <div class="form-group">
+                                    <label for="approved_by_hashed_secret_block_id" data-i18n="block_id">Block ID</label>
+                                    <input type="text" class="form-control" name="secretBlockId" id="approved_by_hashed_secret_block_id" readonly/>
+                                </div>
+                                <div class="form-group">
+                                    <label for="approved_by_hashed_secret_generated_secret" data-i18n="generated_secret">Generated Secret</label>
+                                    <input type="text" class="form-control" id="approved_by_hashed_secret_generated_secret" readonly/>
+                                </div>
                                 <div class="form-group">
                                     <label for="approved_by_hashed_secret" data-i18n="approved_by_hashed_secret">APPROVED BY HASHED SECRET</label>
-                                    <input type="text" class="form-control" name="phasingHashedSecret" id="approved_by_hashed_secret" placeholder="Hashed Secret" data-i18n="[placeholder]approved_by_hashed_secret_placeholder" spellcheck="false" />
+                                    <input type="text" class="form-control" name="phasingHashedSecret" id="approved_by_hashed_secret" placeholder="Hashed Secret" data-i18n="[placeholder]approved_by_hashed_secret_placeholder" spellcheck="false" readonly/>
                                 </div>
                                 <div class="row">
                                     <div class="col-xs-6">
@@ -331,7 +351,7 @@
             </div>
             <div class="modal-footer" style="margin-top:0;">
                 <button type="button" class="btn btn-default" data-dismiss="modal" data-i18n="cancel">Cancel</button>
-                <button type="button" class="btn btn-primary" data-loading-text="Submitting..." data-i18n="submit;[placeholder]submitting">Submit</button>
+                <button type="button" class="btn btn-primary" data-loading-text="Submitting..." data-i18n="add;[placeholder]submitting">Add</button>
             </div>
         </div>
     </div>
@@ -437,6 +457,66 @@
             <div class="modal-footer" style="margin-top:0;">
                 <button type="button" class="btn btn-default" data-dismiss="modal" data-i18n="cancel">Cancel</button>
                 <button type="button" class="btn btn-primary" data-loading-text="Submitting..." data-i18n="import;[data-loading-text]submitting">Import</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="reproduce_secret_modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">
+                    <span data-i18n="reproduce_secret">Reproduce Secret</span>
+                </h4>
+            </div>
+            <div class="modal-body">
+                <form role="form" autocomplete="off">
+                    <div class="callout callout-danger error_message" style="display:none"></div>
+                    <div class="callout callout-info info_message" style="display:none"></div>
+                    <div class="form-group">
+                        <label for="reproduce_secret_name" data-i18n="name"></label>
+                        <input type="text" class="form-control" id="reproduce_secret_name" readonly/>
+                    </div>
+                    <div class="form-group">
+                        <label for="reproduce_secret_password" data-i18n="passphrase">PASSPHRASE</label>
+                        <div id="reproduce_secret_password_secret_phrase_reader" class="scan-qr-code-reader" style="display:none;margin:auto;width:384px;height:384px;"></div>
+                        <button id="reproduce_secret_password_secret_phrase_scan" type="button" data-reader="reproduce_secret_password_secret_phrase_reader" data-result="reproduce_secret_password" class="scan-qr-code btn btn-default btn-xs ">
+                            <i class="fa fa-qrcode"></i>
+                        </button>
+                        <input type="password" id="reproduce_secret_password" class="form-control" placeholder="Secret Phrase" data-i18n="[placeholder]secret_phrase">
+                    </div>
+                    <div class="form-group">
+                        <label for="reproduce_secret_nonce" data-i18n="nonce">Nonce</label>
+                        <input type="text" class="form-control" name="secretNonce" id="reproduce_secret_nonce" readonly/>
+                    </div>
+                    <div class="form-group">
+                        <label for="reproduce_secret_block_id" data-i18n="block_id">Block ID</label>
+                        <input type="text" class="form-control" name="secretBlockId" id="reproduce_secret_block_id" readonly/>
+                    </div>
+                    <div class="form-group">
+                        <label for="reproduce_secret_generated_secret" data-i18n="generated_secret">Generated Secret</label>
+                        <input type="text" class="form-control" id="reproduce_secret_generated_secret" readonly/>
+                    </div>
+                    <div class="form-group">
+                        <label for="reproduce_secret_hashed_secret" data-i18n="hashed_secret">HASHED SECRET</label>
+                        <input type="text" class="form-control" id="reproduce_secret_hashed_secret" placeholder="Hashed Secret" readonly/>
+                    </div>
+                    <div class="form-group">
+                        <label for="reproduce_secret_hash_algorithm" data-i18n="hash_algorithm">Hash Algorithm</label>
+                        <input type="text" class="form-control" id="reproduce_secret_hash_algorithm" readonly/>
+                    </div>
+                    <div class="form-group">
+                        <label for="reproduce_secret_transactions" data-i18n="transactions">Transactions</label>
+                        <br>
+                        <span id="reproduce_secret_transactions"></span>
+                    </div>
+                    <input type="hidden" name="request_type" value="reproduceSecret"/>
+                </form>
+            </div>
+            <div class="modal-footer" style="margin-top:0;">
+                <button type="button" class="btn btn-default" data-dismiss="modal" data-i18n="close">Close</button>
             </div>
         </div>
     </div>

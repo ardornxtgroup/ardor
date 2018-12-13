@@ -23,45 +23,34 @@ import nxt.account.HoldingType;
 import nxt.blockchain.Chain;
 import nxt.blockchain.ChildChain;
 import nxt.http.APICall;
+import nxt.http.client.IssueAssetBuilder;
+import nxt.http.client.IssueAssetBuilder.IssueAssetResult;
+import nxt.http.client.TransferAssetBuilder;
+import nxt.http.client.TransferAssetBuilder.TransferResult;
 import nxt.http.monetarysystem.TestCurrencyIssuance;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
 
 public class AssetExchangeTest extends BlockchainTest {
-    public static final int ASSET_QNT = 10000000;
-    public static final int ASSET_DECIMALS = 4;
 
-    static JSONObject issueAsset(Tester creator, String name) {
-        APICall apiCall = new APICall.Builder("issueAsset")
-                .param("secretPhrase", creator.getSecretPhrase())
-                .param("name", name)
-                .param("description", "asset testing")
-                .param("quantityQNT", ASSET_QNT)
-                .param("decimals", ASSET_DECIMALS)
-                .param("feeNQT", 1000 * ChildChain.IGNIS.ONE_COIN)
-                .param("deadline", 1440)
-                .build();
-        JSONObject response = apiCall.invoke();
+    public static IssueAssetResult issueAsset(Tester creator, String name) {
+        IssueAssetResult result = new IssueAssetBuilder(creator, name).issueAsset();
         BlockchainTest.generateBlock();
-        return response;
+        return result;
     }
 
-    static JSONObject transfer(String assetId, Tester from, Tester to, long quantityQNT) {
+    static TransferResult transfer(String assetId, Tester from, Tester to, long quantityQNT) {
         return transfer(assetId, from, to, quantityQNT, ChildChain.IGNIS.ONE_COIN);
     }
 
-    public static JSONObject transfer(String assetId, Tester from, Tester to, long quantityQNT, long fee) {
-        APICall apiCall = new APICall.Builder("transferAsset")
-                .param("secretPhrase", from.getSecretPhrase())
-                .param("recipient", to.getRsAccount())
-                .param("asset", assetId)
-                .param("quantityQNT", quantityQNT)
-                .param("feeNQT", fee)
-                .build();
-        JSONObject response = apiCall.invoke();
+    public static TransferResult transfer(String assetId, Tester from, Tester to, long quantityQNT, long fee) {
+        TransferResult result = new TransferAssetBuilder(assetId, from, to)
+                .setQuantityQNT(quantityQNT)
+                .setFee(fee)
+                .transfer();
         BlockchainTest.generateBlock();
-        return response;
+        return result;
     }
 
     static JSONObject payDividend(String assetId, Tester assetIssuer, int height, long amountNQTPerShare, Chain chain, byte holdingType, String holding) {
@@ -82,8 +71,7 @@ public class AssetExchangeTest extends BlockchainTest {
 
     @Test
     public void ignisDividend() {
-        JSONObject response = issueAsset(ALICE, "divSender");
-        String assetId = Tester.responseToStringId(response);
+        String assetId = issueAsset(ALICE, "divSender").getAssetIdString();
         transfer(assetId, ALICE, BOB, 300 * 10000);
         transfer(assetId, ALICE, CHUCK, 200 * 10000);
         transfer(assetId, ALICE, DAVE, 100 * 10000);
@@ -100,8 +88,7 @@ public class AssetExchangeTest extends BlockchainTest {
 
     @Test
     public void AEURDividend() {
-        JSONObject response = issueAsset(RIKER, "divSender");
-        String assetId = Tester.responseToStringId(response);
+        String assetId = issueAsset(RIKER, "divSender").getAssetIdString();
         transfer(assetId, RIKER, BOB, 5555555);
         transfer(assetId, RIKER, CHUCK, 2222222);
         transfer(assetId, RIKER, DAVE, 1111111);
@@ -118,27 +105,24 @@ public class AssetExchangeTest extends BlockchainTest {
 
     @Test
     public void assetDividend() {
-        JSONObject senderAsset = issueAsset(RIKER, "divSender");
-        String assetId = Tester.responseToStringId(senderAsset);
+        String assetId = issueAsset(RIKER, "divSender").getAssetIdString();
         transfer(assetId, RIKER, BOB, 5555555);
         transfer(assetId, RIKER, CHUCK, 2222222);
         transfer(assetId, RIKER, DAVE, 1111111);
-        JSONObject receiverAsset = issueAsset(RIKER, "divRecv");
-        String receiverId = (Tester.responseToStringId(receiverAsset));
+        IssueAssetResult receiverId = issueAsset(RIKER, "divRecv");
         generateBlock();
 
-        payDividend(assetId, RIKER, Nxt.getBlockchain().getHeight(), 1L, ChildChain.AEUR, HoldingType.ASSET.getCode(), receiverId);
+        payDividend(assetId, RIKER, Nxt.getBlockchain().getHeight(), 1L, ChildChain.AEUR, HoldingType.ASSET.getCode(), receiverId.getAssetIdString());
         generateBlock();
-        Assert.assertEquals(10000000-555-222-111, RIKER.getAssetQuantityDiff(Long.parseUnsignedLong(receiverId)));
-        Assert.assertEquals(555, BOB.getAssetQuantityDiff(Long.parseUnsignedLong(receiverId)));
-        Assert.assertEquals(222, CHUCK.getAssetQuantityDiff(Long.parseUnsignedLong(receiverId)));
-        Assert.assertEquals(111, DAVE.getAssetQuantityDiff(Long.parseUnsignedLong(receiverId)));
+        Assert.assertEquals(10000000-555-222-111, RIKER.getAssetQuantityDiff(receiverId.getAssetId()));
+        Assert.assertEquals(555, BOB.getAssetQuantityDiff(receiverId.getAssetId()));
+        Assert.assertEquals(222, CHUCK.getAssetQuantityDiff(receiverId.getAssetId()));
+        Assert.assertEquals(111, DAVE.getAssetQuantityDiff(receiverId.getAssetId()));
     }
 
     @Test
     public void currencyDividend() {
-        JSONObject senderAsset = issueAsset(ALICE, "divSender");
-        String assetId = Tester.responseToStringId(senderAsset);
+        String assetId = issueAsset(ALICE, "divSender").getAssetIdString();
         transfer(assetId, ALICE, BOB, 5555555);
         transfer(assetId, ALICE, CHUCK, 2222222);
         transfer(assetId, ALICE, DAVE, 1111111);
@@ -152,6 +136,4 @@ public class AssetExchangeTest extends BlockchainTest {
         Assert.assertEquals(222, CHUCK.getCurrencyUnitsDiff(Long.parseUnsignedLong(currencyId)));
         Assert.assertEquals(111, DAVE.getCurrencyUnitsDiff(Long.parseUnsignedLong(currencyId)));
     }
-
-
 }

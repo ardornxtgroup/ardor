@@ -33,6 +33,7 @@ import nxt.util.Listener;
 import nxt.util.Listeners;
 import nxt.util.Logger;
 import nxt.util.ThreadPool;
+import nxt.util.security.BlockchainPermission;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -65,8 +66,13 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
     }
 
     private static final TransactionProcessorImpl instance = new TransactionProcessorImpl();
+    private static final BlockchainPermission blockchainPermission = new BlockchainPermission("getTransactionProcessor");
 
     public static TransactionProcessorImpl getInstance() {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(blockchainPermission);
+        }
         return instance;
     }
 

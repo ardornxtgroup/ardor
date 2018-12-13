@@ -1,0 +1,80 @@
+// In memory keystore which holds certificates for the account public keys
+keystore "NONE", "Blockchain", "Jelurida";
+
+// Basic permissions for untrusted contract
+grant codeBase "file://untrustedContractCode" {
+    permission java.io.FilePermission "${java.io.tmpdir}*", "read,write,delete";
+    permission java.util.PropertyPermission "java.io.tmpdir", "read";
+};
+
+/*
+// Grant more permissions for contracts submitted by an account whose public key is specified as signedBy
+grant codeBase "file://untrustedContractCode" signedBy "112e0c5748b5ea610a44a09b1ad0d2bddc945a6ef5edc7551b80576249ba585b" {
+    permission java.io.FilePermission "${java.io.tmpdir}*", "read,write,delete";
+    permission java.util.PropertyPermission "java.io.tmpdir", "read";
+    permission java.net.NetPermission "getCookieHandler";
+};
+*/
+
+/*
+// Grant more permissions for contracts with transaction full hash or tagged data hash or data hash specified as principal
+grant codeBase "file://untrustedContractCode" principal nxt.util.security.TransactionPrincipal "df15278b53c5c24ccb179302834608b50b94c3e91c97ffa0510357e35fec919b" {
+    permission java.io.FilePermission "${java.io.tmpdir}*", "read,write,delete";
+    permission java.util.PropertyPermission "java.io.tmpdir", "read";
+    permission java.net.NetPermission "getCookieHandler";
+};
+*/
+
+// For contract runner 3rd party runtime libraries
+grant codeBase "file:addons/lib/*" {
+    permission java.io.FilePermission "${java.io.tmpdir}*", "read,write,delete";
+    permission java.util.PropertyPermission "java.io.tmpdir", "read";
+};
+
+// The rest of the permissions should be the same for all protection domains listed below.
+// When making a change to the permissions, make the same change for each protection domain
+
+// For Ardor code during development
+grant codeBase "file:classes/-" {
+    permission java.security.AllPermission;
+};
+
+// For product 3rd party runtime libraries
+grant codeBase "file:lib/*" {
+    permission java.security.AllPermission;
+};
+
+// For Ardor code in installation
+grant codeBase "file:ardor.jar" {
+    permission java.security.AllPermission;
+};
+
+// For Ardor code in installation running as a Windows service
+grant codeBase "file:ardorservice.jar" {
+    permission java.security.AllPermission;
+};
+
+// Test class during development
+grant codeBase "file:test/classes/-" {
+    permission java.security.AllPermission;
+};
+
+// Contract test class during development and installation
+grant codeBase "file:addons/test/classes/-" {
+    permission java.security.AllPermission;
+};
+
+// Test class in installation
+grant codeBase "file:ardor-tests.jar" {
+    permission java.security.AllPermission;
+};
+
+// Test class in installation
+grant codeBase "file:javafxlib/*" {
+    permission java.security.AllPermission;
+};
+
+// Workaround for IntelliJ test runner property
+grant {
+    permission java.util.PropertyPermission "idea.test.cyclic.buffer.size", "read";
+};

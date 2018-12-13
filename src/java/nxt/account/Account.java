@@ -43,6 +43,7 @@ import nxt.util.Listener;
 import nxt.util.Listeners;
 import nxt.util.Logger;
 import nxt.util.bbh.StringRw;
+import nxt.util.security.BlockchainPermission;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -574,6 +575,13 @@ public final class Account {
             publicKey.save(con);
         }
 
+        @Override
+        public void checkAvailable(int height) {
+            if (height > Nxt.getBlockchain().getHeight()) {
+                throw new IllegalArgumentException("Height " + height + " exceeds blockchain height " + Nxt.getBlockchain().getHeight());
+            }
+        }
+
     };
 
     private static final DbKey.LongLongKeyFactory<AccountAsset> accountAssetDbKeyFactory = new DbKey.LongLongKeyFactory<AccountAsset>("account_id", "asset_id") {
@@ -778,10 +786,18 @@ public final class Account {
     }
 
     public static AccountProperty getProperty(long propertyId) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("account.property"));
+        }
         return accountPropertyTable.get(accountPropertyDbKeyFactory.newKey(propertyId));
     }
 
     public static DbIterator<AccountProperty> getProperties(long recipientId, long setterId, String property, int from, int to) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("account.property"));
+        }
         if (recipientId == 0 && setterId == 0) {
             throw new IllegalArgumentException("At least one of recipientId and setterId must be specified");
         }
@@ -809,6 +825,10 @@ public final class Account {
     }
 
     public static AccountProperty getProperty(long recipientId, String property, long setterId) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("account.property"));
+        }
         if (recipientId == 0 || setterId == 0) {
             throw new IllegalArgumentException("Both recipientId and setterId must be specified");
         }
@@ -823,6 +843,10 @@ public final class Account {
     }
 
     public static Account getAccount(long id) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("account"));
+        }
         DbKey dbKey = accountDbKeyFactory.newKey(id);
         Account account = accountTable.get(dbKey);
         if (account == null) {
@@ -836,6 +860,10 @@ public final class Account {
     }
 
     public static Account getAccount(long id, int height) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("account"));
+        }
         DbKey dbKey = accountDbKeyFactory.newKey(id);
         Account account = accountTable.get(dbKey, height);
         if (account == null) {
@@ -849,6 +877,10 @@ public final class Account {
     }
 
     public static boolean hasAccount(long id, int height) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("account"));
+        }
         DbKey dbKey = accountDbKeyFactory.newKey(id);
         if (publicKeyCache != null && Nxt.getBlockchain().getHeight() == height
                 && !Nxt.getBlockchainProcessor().isScanning() && publicKeyCache.containsKey(dbKey)) {
@@ -858,6 +890,10 @@ public final class Account {
     }
 
     public static Account getAccount(byte[] publicKey) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("account"));
+        }
         long accountId = getId(publicKey);
         Account account = getAccount(accountId);
         if (account == null) {
@@ -897,6 +933,10 @@ public final class Account {
     }
 
     public static Account addOrGetAccount(long id) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("account"));
+        }
         if (id == 0) {
             throw new IllegalArgumentException("Invalid accountId 0");
         }
@@ -933,84 +973,160 @@ public final class Account {
     }
 
     public static DbIterator<AccountAsset> getAccountAssets(long accountId, int from, int to) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("account.asset"));
+        }
         return accountAssetTable.getManyBy(new DbClause.LongClause("account_id", accountId), from, to);
     }
 
     public static DbIterator<AccountAsset> getAccountAssets(long accountId, int height, int from, int to) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("account.asset"));
+        }
         return accountAssetTable.getManyBy(new DbClause.LongClause("account_id", accountId), height, from, to);
     }
 
     public static AccountAsset getAccountAsset(long accountId, long assetId) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("account.asset"));
+        }
         return accountAssetTable.get(accountAssetDbKeyFactory.newKey(accountId, assetId));
     }
 
     public static AccountAsset getAccountAsset(long accountId, long assetId, int height) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("account.asset"));
+        }
         return accountAssetTable.get(accountAssetDbKeyFactory.newKey(accountId, assetId), height);
     }
 
     public static DbIterator<AccountAsset> getAssetAccounts(long assetId, int from, int to) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("account.asset"));
+        }
         return accountAssetTable.getManyBy(new DbClause.LongClause("asset_id", assetId), from, to, " ORDER BY quantity DESC, account_id ");
     }
 
     public static DbIterator<AccountAsset> getAssetAccounts(long assetId, int height, int from, int to) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("account.asset"));
+        }
         return accountAssetTable.getManyBy(new DbClause.LongClause("asset_id", assetId), height, from, to, " ORDER BY quantity DESC, account_id ");
     }
 
     public static AccountCurrency getAccountCurrency(long accountId, long currencyId) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("account.currency"));
+        }
         return accountCurrencyTable.get(accountCurrencyDbKeyFactory.newKey(accountId, currencyId));
     }
 
     public static AccountCurrency getAccountCurrency(long accountId, long currencyId, int height) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("account.currency"));
+        }
         return accountCurrencyTable.get(accountCurrencyDbKeyFactory.newKey(accountId, currencyId), height);
     }
 
     public static DbIterator<AccountCurrency> getAccountCurrencies(long accountId, int from, int to) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("account.currency"));
+        }
         return accountCurrencyTable.getManyBy(new DbClause.LongClause("account_id", accountId), from, to);
     }
 
     public static DbIterator<AccountCurrency> getAccountCurrencies(long accountId, int height, int from, int to) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("account.currency"));
+        }
         return accountCurrencyTable.getManyBy(new DbClause.LongClause("account_id", accountId), height, from, to);
     }
 
     public static DbIterator<AccountCurrency> getCurrencyAccounts(long currencyId, int from, int to) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("account.currency"));
+        }
         return accountCurrencyTable.getManyBy(new DbClause.LongClause("currency_id", currencyId), from, to);
     }
 
     public static DbIterator<AccountCurrency> getCurrencyAccounts(long currencyId, int height, int from, int to) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("account.currency"));
+        }
         return accountCurrencyTable.getManyBy(new DbClause.LongClause("currency_id", currencyId), height, from, to);
     }
 
     public static long getAssetBalanceQNT(long accountId, long assetId, int height) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("account.asset"));
+        }
         AccountAsset accountAsset = accountAssetTable.get(accountAssetDbKeyFactory.newKey(accountId, assetId), height);
         return accountAsset == null ? 0 : accountAsset.quantityQNT;
     }
 
     public static long getAssetBalanceQNT(long accountId, long assetId) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("account.asset"));
+        }
         AccountAsset accountAsset = accountAssetTable.get(accountAssetDbKeyFactory.newKey(accountId, assetId));
         return accountAsset == null ? 0 : accountAsset.quantityQNT;
     }
 
     public static long getUnconfirmedAssetBalanceQNT(long accountId, long assetId) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("account.asset"));
+        }
         AccountAsset accountAsset = accountAssetTable.get(accountAssetDbKeyFactory.newKey(accountId, assetId));
         return accountAsset == null ? 0 : accountAsset.unconfirmedQuantityQNT;
     }
 
     public static long getCurrencyUnits(long accountId, long currencyId, int height) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("account.currency"));
+        }
         AccountCurrency accountCurrency = accountCurrencyTable.get(accountCurrencyDbKeyFactory.newKey(accountId, currencyId), height);
         return accountCurrency == null ? 0 : accountCurrency.units;
     }
 
     public static long getCurrencyUnits(long accountId, long currencyId) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("account.currency"));
+        }
         AccountCurrency accountCurrency = accountCurrencyTable.get(accountCurrencyDbKeyFactory.newKey(accountId, currencyId));
         return accountCurrency == null ? 0 : accountCurrency.units;
     }
 
     public static long getUnconfirmedCurrencyUnits(long accountId, long currencyId) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("account.currency"));
+        }
         AccountCurrency accountCurrency = accountCurrencyTable.get(accountCurrencyDbKeyFactory.newKey(accountId, currencyId));
         return accountCurrency == null ? 0 : accountCurrency.unconfirmedUnits;
     }
 
     public static DbIterator<AccountInfo> searchAccounts(String query, int from, int to) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("account"));
+        }
         return accountInfoTable.search(query, DbClause.EMPTY_CLAUSE, from, to);
     }
 
@@ -1093,7 +1209,7 @@ public final class Account {
     private Set<ControlType> controls;
 
     private Account(long id) {
-        if (id != Crypto.rsDecode(Crypto.rsEncode(id))) {
+        if (id != Convert.rsDecode(Convert.rsEncode(id))) {
             Logger.logMessage("CRITICAL ERROR: Reed-Solomon encoding fails for " + id);
         }
         this.id = id;
@@ -1445,12 +1561,20 @@ public final class Account {
     }
 
     public static void importProperty(long propertyId, long recipientId, long setterId, String property, String value) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("account.property"));
+        }
         value = Convert.emptyToNull(value);
         AccountProperty accountProperty = new AccountProperty(propertyId, recipientId, setterId, property, value);
         accountPropertyTable.insert(accountProperty);
     }
 
     public void deleteProperty(long propertyId) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("account.property"));
+        }
         AccountProperty accountProperty = accountPropertyTable.get(accountPropertyDbKeyFactory.newKey(propertyId));
         if (accountProperty == null) {
             return;
@@ -1463,6 +1587,10 @@ public final class Account {
     }
 
     public static boolean setOrVerify(long accountId, byte[] key) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("account"));
+        }
         DbKey dbKey = publicKeyDbKeyFactory.newKey(accountId);
         PublicKey publicKey = publicKeyTable.get(dbKey);
         if (publicKey == null) {

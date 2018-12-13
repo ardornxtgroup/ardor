@@ -25,7 +25,8 @@ import org.junit.runners.Suite;
         BooleanExpressionTest.class,
         CountingStreamsTest.class,
         EpochTimeTest.class,
-        JsonMessageTest.class
+        JsonMessageTest.class,
+        ReedSolomonTest.class
 })
 public class UtilSuite {
 }

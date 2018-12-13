@@ -31,7 +31,7 @@ public class ReadMessageCall extends APICall.Builder<ReadMessageCall> {
         return param("chain", chain);
     }
 
-    public ReadMessageCall retrieve(String retrieve) {
+    public ReadMessageCall retrieve(boolean retrieve) {
         return param("retrieve", retrieve);
     }
 

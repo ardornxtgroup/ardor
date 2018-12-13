@@ -25,6 +25,7 @@ import nxt.util.Listener;
 import nxt.util.Listeners;
 import nxt.util.Logger;
 import nxt.util.ThreadPool;
+import nxt.util.security.BlockchainPermission;
 
 import java.math.BigInteger;
 import java.security.MessageDigest;
@@ -157,6 +158,10 @@ public final class Generator implements Comparable<Generator> {
     }
 
     public static Generator startForging(String secretPhrase) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("forging"));
+        }
         if (generators.size() >= MAX_FORGERS) {
             throw new RuntimeException("Cannot forge with more than " + MAX_FORGERS + " accounts on the same node");
         }
@@ -172,6 +177,10 @@ public final class Generator implements Comparable<Generator> {
     }
 
     public static Generator stopForging(String secretPhrase) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("forging"));
+        }
         Generator generator = generators.remove(secretPhrase);
         if (generator != null) {
             Nxt.getBlockchain().updateLock();
@@ -187,6 +196,10 @@ public final class Generator implements Comparable<Generator> {
     }
 
     public static int stopForging() {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("forging"));
+        }
         int count = generators.size();
         Iterator<Generator> iter = generators.values().iterator();
         while (iter.hasNext()) {
@@ -205,23 +218,43 @@ public final class Generator implements Comparable<Generator> {
     }
 
     public static Generator getGenerator(String secretPhrase) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("forging"));
+        }
         return generators.get(secretPhrase);
     }
 
     public static int getGeneratorCount() {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("forging"));
+        }
         return generators.size();
     }
 
     public static Collection<Generator> getAllGenerators() {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("forging"));
+        }
         return allGenerators;
     }
 
     public static List<Generator> getSortedForgers() {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("forging"));
+        }
         List<Generator> forgers = sortedForgers;
         return forgers == null ? Collections.emptyList() : forgers;
     }
 
     public static long getNextHitTime(long lastBlockId, int curTime) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("forging"));
+        }
         BlockchainImpl.getInstance().readLock();
         try {
             if (lastBlockId == Generator.lastBlockId && sortedForgers != null) {
@@ -238,10 +271,18 @@ public final class Generator implements Comparable<Generator> {
     }
 
     public static void setDelay(int delay) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("forging"));
+        }
         Generator.delayTime = delay;
     }
 
     public static boolean verifyHit(BigInteger hit, BigInteger effectiveBalance, Block previousBlock, int timestamp) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("forging"));
+        }
         int elapsedTime = timestamp - previousBlock.getTimestamp();
         if (elapsedTime <= 0) {
             return false;
@@ -256,6 +297,10 @@ public final class Generator implements Comparable<Generator> {
     }
 
     public static boolean allowsFakeForging(byte[] publicKey) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("forging"));
+        }
         return Constants.isTestnet && publicKey != null && fakeForgingPublicKeys.stream().anyMatch(pk -> Arrays.equals(pk, publicKey));
     }
 
@@ -391,6 +436,10 @@ public final class Generator implements Comparable<Generator> {
      * @return                      List of generator account identifiers
      */
     public static List<ActiveGenerator> getNextGenerators() {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("forging"));
+        }
         List<ActiveGenerator> generatorList;
         Blockchain blockchain = Nxt.getBlockchain();
         synchronized(activeGenerators) {

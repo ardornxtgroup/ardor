@@ -13,11 +13,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
- 
- package nxt.util;
+
+package nxt.util;
 
 import nxt.Tester;
-import nxt.http.accountControl.ACTestUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
@@ -30,6 +29,7 @@ public class JSONAssert {
     public JSONAssert(JSONObject obj) {
         this.obj = obj;
     }
+
     public JSONAssert subObj(String key) {
         Object o = obj.get(key);
         Assert.assertNotNull("Missing " + key, o);
@@ -38,13 +38,14 @@ public class JSONAssert {
         }
         throw new AssertionError("Type of " + key + " is not object");
     }
+
     public String str(String key) {
         Object o = obj.get(key);
-        Assert.assertNotNull(o);
+        Assert.assertNotNull(String.format("No key '%s' in object '%s'", key, obj), o);
         if (o instanceof String) {
             return (String) o;
         }
-        throw new AssertionError("Type of " + key + " is not String");
+        throw new AssertionError(String.format("Type of '%s' is not String, but '%s' and value is '%s'", key, o.getClass(), o));
     }
 
     public String fullHash() {
@@ -68,7 +69,7 @@ public class JSONAssert {
         Object o = obj.get(key);
         Assert.assertNotNull(o);
         if (o instanceof JSONArray) {
-            return (List<T>)o;
+            return (List<T>) o;
         }
         throw new AssertionError("Type of " + key + " is not array");
     }

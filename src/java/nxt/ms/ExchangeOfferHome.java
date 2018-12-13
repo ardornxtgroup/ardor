@@ -303,7 +303,7 @@ public final class ExchangeOfferHome {
                 reserveAmount - totalAmountNQT);
     }
 
-    private void removeOffer(LedgerEvent event, BuyOffer buyOffer) {
+    public void removeOffer(LedgerEvent event, BuyOffer buyOffer) {
         SellOffer sellOffer = buyOffer.getCounterOffer();
 
         removeBuyOffer(buyOffer);

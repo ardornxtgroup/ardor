@@ -23,7 +23,8 @@ import org.junit.runners.Suite;
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
         AssetExchangeTest.class,
-        AssetControlTest.class
+        AssetControlTest.class,
+        AssetPropertiesTest.class
 })
 
 public class AssetExchangeSuite extends AbstractHttpApiSuite { }

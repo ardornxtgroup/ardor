@@ -25,6 +25,8 @@ import nxt.db.DbIterator;
 import nxt.util.Convert;
 import org.json.simple.JSONObject;
 
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -55,7 +57,8 @@ public class Tester {
         this.id = Account.getId(publicKey);
         this.strId = Long.toUnsignedString(id);
         this.rsAccount = Convert.rsAccount(id);
-        Account account = Account.getAccount(publicKey);
+        Account account = AccessController.doPrivileged((PrivilegedAction<Account>) () ->
+                Account.getAccount(publicKey));
         if (account != null) {
             this.initialFxtBalance = FxtChain.FXT.getBalanceHome().getBalance(account.getId()).getBalance();
             this.initialFxtUnconfirmedBalance = FxtChain.FXT.getBalanceHome().getBalance(account.getId()).getUnconfirmedBalance();
@@ -114,7 +117,8 @@ public class Tester {
     }
 
     public Account getAccount() {
-        return Account.getAccount(publicKey);
+        return AccessController.doPrivileged((PrivilegedAction<Account>) () ->
+                Account.getAccount(publicKey));
     }
 
     public long getId() {
@@ -130,11 +134,11 @@ public class Tester {
     }
 
     public long getFxtBalanceDiff() {
-        return FxtChain.FXT.getBalanceHome().getBalance(id).getBalance() - initialFxtBalance;
+        return AccessController.doPrivileged((PrivilegedAction<Long>) () -> FxtChain.FXT.getBalanceHome().getBalance(id).getBalance() - initialFxtBalance);
     }
 
     public long getFxtUnconfirmedBalanceDiff() {
-        return FxtChain.FXT.getBalanceHome().getBalance(id).getUnconfirmedBalance() - initialFxtUnconfirmedBalance;
+        return AccessController.doPrivileged((PrivilegedAction<Long>) () -> FxtChain.FXT.getBalanceHome().getBalance(id).getUnconfirmedBalance() - initialFxtUnconfirmedBalance);
     }
 
     public long getInitialFxtBalance() {
@@ -142,15 +146,15 @@ public class Tester {
     }
 
     public long getFxtBalance() {
-        return FxtChain.FXT.getBalanceHome().getBalance(id).getBalance();
+        return AccessController.doPrivileged((PrivilegedAction<Long>) () -> FxtChain.FXT.getBalanceHome().getBalance(id).getBalance());
     }
 
     public long getChainBalanceDiff(int chain) {
-        return Chain.getChain(chain).getBalanceHome().getBalance(id).getBalance() - initialChainBalance.get(chain);
+        return AccessController.doPrivileged((PrivilegedAction<Long>) () -> Chain.getChain(chain).getBalanceHome().getBalance(id).getBalance() - initialChainBalance.get(chain));
     }
 
     public long getChainUnconfirmedBalanceDiff(int chain) {
-        return Chain.getChain(chain).getBalanceHome().getBalance(id).getUnconfirmedBalance() - initialChainUnconfirmedBalance.get(chain);
+        return AccessController.doPrivileged((PrivilegedAction<Long>) () -> Chain.getChain(chain).getBalanceHome().getBalance(id).getUnconfirmedBalance() - initialChainUnconfirmedBalance.get(chain));
     }
 
     public long getInitialChainBalance(int chain) {
@@ -158,23 +162,23 @@ public class Tester {
     }
 
     public long getChainBalance(int chain) {
-        return Chain.getChain(chain).getBalanceHome().getBalance(id).getBalance();
+        return AccessController.doPrivileged((PrivilegedAction<Long>) () -> Chain.getChain(chain).getBalanceHome().getBalance(id).getBalance());
     }
 
     public long getAssetQuantityDiff(long assetId) {
-        return Account.getAccount(id).getAssetBalanceQNT(assetId) - getInitialAssetQuantity(assetId);
+        return AccessController.doPrivileged((PrivilegedAction<Long>) () -> Account.getAccount(id).getAssetBalanceQNT(assetId) - getInitialAssetQuantity(assetId));
     }
 
     public long getUnconfirmedAssetQuantityDiff(long assetId) {
-        return Account.getAccount(id).getUnconfirmedAssetBalanceQNT(assetId) - getInitialAssetQuantity(assetId);
+        return AccessController.doPrivileged((PrivilegedAction<Long>) () -> Account.getAccount(id).getUnconfirmedAssetBalanceQNT(assetId) - getInitialAssetQuantity(assetId));
     }
 
     public long getCurrencyUnitsDiff(long currencyId) {
-        return Account.getAccount(id).getCurrencyUnits(currencyId) - getInitialCurrencyUnits(currencyId);
+        return AccessController.doPrivileged((PrivilegedAction<Long>) () -> Account.getAccount(id).getCurrencyUnits(currencyId) - getInitialCurrencyUnits(currencyId));
     }
 
     public long getUnconfirmedCurrencyUnitsDiff(long currencyId) {
-        return Account.getAccount(id).getUnconfirmedCurrencyUnits(currencyId) - getInitialUnconfirmedCurrencyUnits(currencyId);
+        return AccessController.doPrivileged((PrivilegedAction<Long>) () -> Account.getAccount(id).getUnconfirmedCurrencyUnits(currencyId) - getInitialUnconfirmedCurrencyUnits(currencyId));
     }
 
     public long getInitialFxtUnconfirmedBalance() {
@@ -198,7 +202,7 @@ public class Tester {
     }
 
     public long getCurrencyUnits(long currencyId) {
-        return getAccount().getCurrencyUnits(currencyId);
+        return AccessController.doPrivileged((PrivilegedAction<Long>) () -> getAccount().getCurrencyUnits(currencyId));
     }
 
     public long getInitialUnconfirmedCurrencyUnits(long currencyId) {

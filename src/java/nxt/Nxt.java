@@ -37,6 +37,7 @@ import nxt.http.API;
 import nxt.util.Convert;
 import nxt.util.Logger;
 import nxt.util.Time;
+import nxt.util.security.BlockchainPermission;
 import org.json.simple.JSONObject;
 
 import java.io.File;
@@ -60,7 +61,7 @@ import java.util.Properties;
 
 public final class Nxt {
 
-    public static final String VERSION = "2.1.2";
+    public static final String VERSION = "2.2.1";
     public static final String APPLICATION = "Ardor";
 
     private static volatile Time time = new Time.EpochTime();
@@ -150,6 +151,10 @@ public final class Nxt {
     }
 
     public static void loadProperties(Properties properties, String propertiesFile, boolean isDefault) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("properties"));
+        }
         try {
             // Load properties from location specified as command line parameter
             String configFile = System.getProperty(propertiesFile);
@@ -232,6 +237,10 @@ public final class Nxt {
     }
 
     public static int getIntProperty(String name, int defaultValue) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("properties"));
+        }
         try {
             int result = Integer.parseInt(properties.getProperty(name));
             Logger.logMessage(name + " = \"" + result + "\"");
@@ -255,6 +264,10 @@ public final class Nxt {
     }
 
     public static String getStringProperty(String name, String defaultValue, boolean doNotLog, String encoding) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("properties"));
+        }
         String value = properties.getProperty(name);
         if (value != null && ! "".equals(value)) {
             Logger.logMessage(name + " = \"" + (doNotLog ? "{not logged}" : value) + "\"");
@@ -292,6 +305,10 @@ public final class Nxt {
     }
 
     public static boolean getBooleanProperty(String name, boolean defaultValue) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("properties"));
+        }
         String value = properties.getProperty(name);
         if (Boolean.TRUE.toString().equals(value)) {
             Logger.logMessage(name + " = \"true\"");
@@ -345,6 +362,10 @@ public final class Nxt {
     }
 
     public static void main(String[] args) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("lifecycle"));
+        }
         try {
             Runtime.getRuntime().addShutdownHook(new Thread(Nxt::shutdown));
             init();
@@ -364,6 +385,10 @@ public final class Nxt {
     }
 
     public static void init(Setup setup) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("lifecycle"));
+        }
         Nxt.setup = setup;
         Init.init(setup);
     }
@@ -372,6 +397,10 @@ public final class Nxt {
      * Shutdown the application.
      */
     public static void shutdown() {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("lifecycle"));
+        }
         Logger.logShutdownMessage("Shutting down...");
         setup.shutdownSequence().forEach(SubSystem::shutdown);
     }
@@ -418,6 +447,10 @@ public final class Nxt {
     }
 
     public static String getProcessId() {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("sensitiveInfo"));
+        }
         String runtimeName = ManagementFactory.getRuntimeMXBean().getName();
         if (runtimeName == null) {
             return "";
@@ -430,35 +463,67 @@ public final class Nxt {
     }
 
     public static String getDbDir(String dbDir) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("dirProvider"));
+        }
         return dirProvider.getDbDir(dbDir);
     }
 
     public static void updateLogFileHandler(Properties loggingProperties) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("dirProvider"));
+        }
         dirProvider.updateLogFileHandler(loggingProperties);
     }
 
     public static String getUserHomeDir() {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("dirProvider"));
+        }
         return dirProvider.getUserHomeDir();
     }
 
     public static File getConfDir() {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("dirProvider"));
+        }
         return dirProvider.getConfDir();
     }
 
     public static void setServerStatus(ServerStatus status, URI wallet) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("lifecycle"));
+        }
         serverStatus = status;
         runtimeMode.setServerStatus(status, wallet, dirProvider.getLogFileDir());
     }
 
     public static ServerStatus getServerStatus() {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("sensitiveInfo"));
+        }
         return serverStatus;
     }
 
     public static RuntimeMode getRuntimeMode() {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("sensitiveInfo"));
+        }
         return runtimeMode;
     }
 
     public static boolean isEnabled(SubSystem subSystem) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("sensitiveInfo"));
+        }
         return setup.initSequence().contains(subSystem);
     }
 

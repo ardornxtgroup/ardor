@@ -18,6 +18,7 @@ package nxt.http;
 
 
 import nxt.Constants;
+import nxt.Nxt;
 import nxt.NxtException;
 import nxt.account.Account;
 import nxt.blockchain.Attachment;
@@ -44,7 +45,7 @@ public class ApproveTransaction extends CreateTransaction {
     @Override
     protected JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
         List<ChainTransactionId> phasedTransactionIds = ParameterParser.getChainTransactionIds(req, "phasedTransaction");
-        if (phasedTransactionIds.isEmpty()) {
+        if (phasedTransactionIds.isEmpty() && Nxt.getBlockchain().getHeight() < Constants.LIGHT_CONTRACTS_BLOCK) {
             return MISSING_PHASED_TRANSACTION;
         }
         if (phasedTransactionIds.size() > Constants.MAX_PHASING_VOTE_TRANSACTIONS) {

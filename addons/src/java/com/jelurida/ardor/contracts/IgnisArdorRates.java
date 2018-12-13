@@ -5,19 +5,25 @@ import nxt.addons.AbstractContract;
 import nxt.addons.AbstractContractContext;
 import nxt.addons.BlockContext;
 import nxt.addons.ChainWrapper;
+import nxt.addons.ContractParametersProvider;
+import nxt.addons.ContractSetupParameter;
 import nxt.addons.JA;
 import nxt.addons.JO;
 import nxt.addons.RequestContext;
 import nxt.addons.TransactionContext;
+import nxt.addons.ValidateChain;
+import nxt.addons.ValidateContractRunnerIsRecipient;
 import nxt.crypto.EncryptedData;
 import nxt.http.callers.GetBlockchainStatusCall;
 import nxt.http.callers.GetCoinExchangeTradesCall;
 import nxt.http.callers.SendMessageCall;
 import nxt.http.callers.SetAccountPropertyCall;
+import nxt.http.responses.TransactionResponse;
 import nxt.util.Convert;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.List;
 
 /**
  * This sample Oracle contract loads the Ignis per Ardor exchange rate from Bittrex and from the internal coin exchange.
@@ -27,7 +33,18 @@ import java.math.RoundingMode;
  * Since the contract interfaces with an external class which loads the exchange rates, it has to be bundled and
  * deployed as a Jar file together with its dependencies to the blockchain.
  */
-public class IgnisArdorRates extends AbstractContract {
+public class IgnisArdorRates<InvocationData, ReturnedData> extends AbstractContract<InvocationData, ReturnedData> {
+    @ContractParametersProvider
+    public interface Params {
+        @ContractSetupParameter
+        default int frequency() {
+            JO blockchainStatus = GetBlockchainStatusCall.create().call();
+            if (blockchainStatus.getBoolean("isTestnet")) {
+                return 3;
+            }
+            return 60;
+        }
+    }
 
     /**
      * Write the Ignis per Ardor exchange rate to an account property every pre-defined number of blocks defined by the
@@ -35,25 +52,16 @@ public class IgnisArdorRates extends AbstractContract {
      * @param context the block context
      */
     @Override
-    public void processBlock(BlockContext context) {
+    public JO processBlock(BlockContext context) {
         // Read contract configuration
-        int frequency;
-        if (getContractParams().isExist("frequency")) {
-            frequency = getContractParams().getInt("frequency");
-            if (frequency == 0) {
-                return;
-            }
-        } else {
-            JO blockchainStatus = GetBlockchainStatusCall.create().call();
-            if (blockchainStatus.getBoolean("isTestnet")) {
-                frequency = 3;
-            } else {
-                frequency = 60;
-            }
+
+        int frequency = context.getParams(Params.class).frequency();
+        if (frequency == 0) {
+            return context.generateInfoResponse("frequency cannot be 0");
         }
         // Only execute the contract on certain blocks
         if (context.getHeight() % frequency != 0) {
-            return;
+            return context.generateInfoResponse("height is not divisible by frequency");
         }
 
         // Get the data
@@ -61,8 +69,8 @@ public class IgnisArdorRates extends AbstractContract {
 
         // Set account property with the data to be used by other contracts
         SetAccountPropertyCall setAccountPropertyCall = SetAccountPropertyCall.create(context.getChain("IGNIS").getId()).
-                recipient(context.getConfig().getAccount()).property("IgnisPerArdorRates").value(response.toJSONString());
-        context.createTransaction(setAccountPropertyCall);
+                recipient(context.getAccount()).property("IgnisPerArdorRates").value(response.toJSONString());
+        return context.createTransaction(setAccountPropertyCall);
     }
 
     /**
@@ -71,29 +79,27 @@ public class IgnisArdorRates extends AbstractContract {
      * @param context the transaction context
      */
     @Override
-    public void processTransaction(TransactionContext context) {
+    @ValidateContractRunnerIsRecipient
+    @ValidateChain(accept = 2)
+    public JO processTransaction(TransactionContext context) {
         // Make sure the user paid 1 IGNIS or more for getting the data
         ChainWrapper ignisChain = context.getChain("IGNIS");
-        if (context.notSameRecipient() || context.notSameChain(ignisChain.getId())) {
-            return;
-        }
         if (context.getAmountNQT() < ignisChain.getOneCoin()) {
-            context.setErrorResponse(10001, "Oracle requires a payment of 1 IGNIS to operate");
-            return;
+            return context.generateErrorResponse(10001, "Oracle requires a payment of 1 IGNIS to operate");
         }
 
         // Get the data
         JO response = getTradeData(context);
 
         // Encrypt the message
-        EncryptedData encryptedData = context.encryptTo(Account.getPublicKey(context.getSenderId()), Convert.toBytes(response.toJSONString(), true), context.getConfig().getSecretPhrase(), true);
+        EncryptedData encryptedData = context.getConfig().encryptTo(Account.getPublicKey(context.getSenderId()), Convert.toBytes(response.toJSONString(), true), true);
 
         // Send a message back to the user who requested the information
         SendMessageCall sendMessageCall = SendMessageCall.create(context.getChainOfTransaction().getId()).recipient(context.getSenderId()).
                 encryptedMessageData(encryptedData.getData()).
                 encryptedMessageNonce(encryptedData.getNonce()).
                 encryptedMessageIsPrunable(true);
-        context.createTransaction(sendMessageCall);
+        return context.createTransaction(sendMessageCall);
     }
 
     /**
@@ -101,11 +107,11 @@ public class IgnisArdorRates extends AbstractContract {
      * @param context the api request context
      */
     @Override
-    public void processRequest(RequestContext context) {
+    public JO processRequest(RequestContext context) {
         // Get the data and send it back to the invoking user
         // Requires admin password
         JO response = getTradeData(context);
-        context.setResponse(response);
+        return context.generateResponse(response);
     }
 
     /**
@@ -149,4 +155,43 @@ public class IgnisArdorRates extends AbstractContract {
         return response;
     }
 
+    @Override
+    public <T extends TransactionResponse> boolean isDuplicate(T myTransaction, List<T> existingUnconfirmedTransactions) {
+        if (super.isDuplicate(myTransaction, existingUnconfirmedTransactions)) {
+            return true;
+        }
+
+        /*
+        Since contracts can be triggered more than once based on the same trigger transaction or block height, the
+        contract should check that the transactions it submitted are not duplicates of other transactions it
+        submitted in a previous invocation.
+        In our case the contract can submit two type of transactions, send message which includes an encrypted rate
+        in the message, this message has to be decrypted and compared with encrypted messages in other transactions.
+        Set account property transaction, needs to be compared with other Set account property transactions and
+        discarded if a transaction submitted by a previous invocation of the same block height exists.
+        */
+
+        for (TransactionResponse transactionResponse : existingUnconfirmedTransactions) {
+            // Quickly eliminate all the obvious differences
+            if (transactionResponse.getChainId() != myTransaction.getChainId()) {
+                continue;
+            }
+            if (transactionResponse.getType() != myTransaction.getType()) {
+                continue;
+            }
+            if (transactionResponse.getSubType() != myTransaction.getSubType()) {
+                continue;
+            }
+            if (transactionResponse.getSenderId() != myTransaction.getSenderId()) {
+                continue;
+            }
+            if (transactionResponse.getRecipientId() != myTransaction.getRecipientId()) {
+                continue;
+            }
+
+            // TODO the transactions could be identical, check if they both set the same property with different values or
+            // both send the same message with different rate value
+        }
+        return false;
+    }
 }

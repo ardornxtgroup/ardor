@@ -21,7 +21,6 @@ import nxt.NxtException;
 import nxt.blockchain.Attachment;
 import nxt.blockchain.TransactionType;
 import nxt.util.Convert;
-import nxt.util.bbh.LengthRwPrimitiveType;
 import nxt.util.bbh.StringRw;
 import org.json.simple.JSONObject;
 
@@ -57,17 +56,13 @@ public final class AliasAssignmentAttachment extends Attachment.AbstractAttachme
 
     @Override
     protected int getMySize() {
-        return 1 + Convert.toBytes(aliasName).length + 2 + Convert.toBytes(aliasURI).length;
+        return ALIAS_NAME_RW.getSize(aliasName) + ALIAS_URI_RW.getSize(aliasURI);
     }
 
     @Override
     protected void putMyBytes(ByteBuffer buffer) {
-        byte[] alias = Convert.toBytes(this.aliasName);
-        byte[] uri = Convert.toBytes(this.aliasURI);
-        buffer.put((byte)alias.length);
-        buffer.put(alias);
-        buffer.putShort((short) uri.length);
-        buffer.put(uri);
+        ALIAS_NAME_RW.writeToBuffer(aliasName, buffer);
+        ALIAS_URI_RW.writeToBuffer(aliasURI, buffer);
     }
 
     @Override

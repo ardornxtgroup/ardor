@@ -2,43 +2,40 @@ package nxt.addons;
 
 import nxt.ae.Asset;
 import nxt.ae.AssetExchangeTransactionType;
-import nxt.ae.OrderCancellationAttachment;
-import nxt.ae.OrderHome;
 import nxt.blockchain.Bundler;
 import nxt.blockchain.ChildTransaction;
+import nxt.blockchain.TransactionType;
 import nxt.util.Convert;
+
+import java.util.Arrays;
+import java.util.Collection;
+
+import static java.util.Collections.unmodifiableList;
 
 /**
  * Bundles only transactions for asset ID provided as parameter
  */
 public class AssetBundler implements Bundler.Filter {
+    private static final Collection<TransactionType> OK_TYPES = unmodifiableList(Arrays.asList(
+            AssetExchangeTransactionType.ASSET_TRANSFER,
+            AssetExchangeTransactionType.ASK_ORDER_PLACEMENT,
+            AssetExchangeTransactionType.BID_ORDER_PLACEMENT,
+            AssetExchangeTransactionType.ASK_ORDER_CANCELLATION,
+            AssetExchangeTransactionType.BID_ORDER_CANCELLATION
+    ));
 
     private long assetId;
 
     @Override
     public boolean ok(Bundler bundler, ChildTransaction childTransaction) {
-        if (childTransaction.getType() instanceof AssetExchangeTransactionType) {
-            AssetExchangeTransactionType transactionType = (AssetExchangeTransactionType) childTransaction.getType();
-            long transactionAssetId;
-            if (transactionType == AssetExchangeTransactionType.ASSET_TRANSFER
-                    || transactionType == AssetExchangeTransactionType.ASK_ORDER_PLACEMENT
-                    || transactionType == AssetExchangeTransactionType.BID_ORDER_PLACEMENT) {
-                transactionAssetId = transactionType.getAssetId(childTransaction);
-            } else if (transactionType == AssetExchangeTransactionType.ASK_ORDER_CANCELLATION
-                    || transactionType == AssetExchangeTransactionType.BID_ORDER_CANCELLATION) {
-                OrderCancellationAttachment attachment = (OrderCancellationAttachment) childTransaction.getAttachment();
-                OrderHome orderHome = childTransaction.getChain().getOrderHome();
-                if (transactionType == AssetExchangeTransactionType.ASK_ORDER_CANCELLATION) {
-                    transactionAssetId = orderHome.getAskOrder(attachment.getOrderId()).getAssetId();
-                } else {
-                    transactionAssetId = orderHome.getBidOrder(attachment.getOrderId()).getAssetId();
-                }
-            } else {
-                return false;
-            }
-            return transactionAssetId == assetId;
+        TransactionType type = childTransaction.getType();
+        if (!(type instanceof AssetExchangeTransactionType)) {
+            return false;
         }
-        return false;
+        if (!OK_TYPES.contains(type)) {
+            return false;
+        }
+        return assetId == ((AssetExchangeTransactionType) type).getAssetId(childTransaction);
     }
 
     @Override

@@ -34,6 +34,7 @@ import nxt.util.Convert;
 import nxt.util.Filter;
 import nxt.util.Listener;
 import nxt.util.Logger;
+import nxt.util.security.BlockchainPermission;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.json.simple.parser.ParseException;
@@ -139,6 +140,10 @@ public final class FundingMonitor {
     private FundingMonitor(Chain chain, HoldingType holdingType, long holdingId, String property,
                                     long amount, long threshold, int interval,
                                     long accountId, String secretPhrase, long feeRateNQTPerFXT) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("fundingMonitor"));
+        }
         this.holdingType = holdingType;
         this.holdingId = holdingId;
         this.chain = chain;
@@ -563,7 +568,7 @@ public final class FundingMonitor {
     @Override
     public boolean equals(Object obj) {
         boolean isEqual = false;
-        if (obj != null && (obj instanceof FundingMonitor)) {
+        if (obj instanceof FundingMonitor) {
             FundingMonitor monitor = (FundingMonitor)obj;
             if (holdingType == monitor.holdingType && holdingId == monitor.holdingId && chain == monitor.chain &&
                     property.equals(monitor.property) && accountId == monitor.accountId) {

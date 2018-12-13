@@ -22,6 +22,7 @@ import nxt.util.Convert;
 import nxt.util.Logger;
 import nxt.util.ThreadPool;
 import nxt.util.UPnP;
+import nxt.util.security.BlockchainPermission;
 import org.eclipse.jetty.security.ConstraintMapping;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
 import org.eclipse.jetty.security.SecurityHandler;
@@ -79,22 +80,22 @@ import static nxt.http.JSONResponses.NO_PASSWORD_IN_CONFIG;
 
 public final class API {
 
-    public static final int TESTNET_API_PORT = 26876;
+    public static final int TESTNET_API_PORT = Constants.isAutomatedTest ? 26875 : 26876;
     public static final int TESTNET_API_SSLPORT = 26877;
     public static final int MIN_COMPRESS_SIZE = 256;
     private static final String[] DISABLED_HTTP_METHODS = {"TRACE", "HEAD"};
 
-    public static final int openAPIPort;
-    public static final int openAPISSLPort;
-    public static final boolean isOpenAPI;
+    static final int openAPIPort;
+    static final int openAPISSLPort;
+    static final boolean isOpenAPI;
 
-    public static final List<String> disabledAPIs;
-    public static final List<APITag> disabledAPITags;
+    static final List<String> disabledAPIs;
+    static final List<APITag> disabledAPITags;
 
     private static final Set<String> allowedBotHosts;
     private static final List<NetworkAddress> allowedBotNets;
     private static final Map<String, PasswordCount> incorrectPasswords = new HashMap<>();
-    public static final String adminPassword = Nxt.getStringProperty("nxt.adminPassword", "", true);
+    static final String adminPassword = Nxt.getStringProperty("nxt.adminPassword", "", true);
     static final boolean disableAdminPassword;
     static final int maxRecords = Nxt.getIntProperty("nxt.maxAPIRecords");
     static final boolean enableAPIUPnP = Nxt.getBooleanProperty("nxt.enableAPIUPnP");
@@ -103,6 +104,7 @@ public final class API {
     private static final String forwardedForHeader = Nxt.getStringProperty("nxt.forwardedForHeader");
 
     private static final Server apiServer;
+    private static final BlockchainPermission API_PERMISSION = new BlockchainPermission("api");
     private static URI welcomePageUri;
     private static URI serverRootUri;
 
@@ -187,7 +189,7 @@ public final class API {
                 sslContextFactory.setKeyStoreType(Nxt.getStringProperty("nxt.keyStoreType"));
                 List<String> ciphers = Nxt.getStringListProperty("nxt.apiSSLCiphers");
                 if (!ciphers.isEmpty()) {
-                    sslContextFactory.setIncludeCipherSuites(ciphers.toArray(new String[ciphers.size()]));
+                    sslContextFactory.setIncludeCipherSuites(ciphers.toArray(new String[0]));
                 }
                 connector = new ServerConnector(apiServer, new SslConnectionFactory(sslContextFactory, "http/1.1"),
                         new HttpConnectionFactory(https_config));
@@ -344,7 +346,7 @@ public final class API {
         checkOrLockPassword(req);
     }
 
-    public static boolean checkPassword(HttpServletRequest req) {
+    static boolean checkPassword(HttpServletRequest req) {
         if (API.disableAdminPassword) {
             return true;
         }
@@ -362,6 +364,53 @@ public final class API {
         }
     }
 
+    public static int getOpenAPIPort() {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(API_PERMISSION);
+        }
+        return openAPIPort;
+    }
+
+    public static int getOpenAPISSLPort() {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(API_PERMISSION);
+        }
+        return openAPISSLPort;
+    }
+
+    public static boolean isIsOpenAPI() {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(API_PERMISSION);
+        }
+        return isOpenAPI;
+    }
+
+    public static String getAdminPassword() {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(API_PERMISSION);
+        }
+        return adminPassword;
+    }
+
+    public static List<String> getDisabledApis() {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(API_PERMISSION);
+        }
+        return disabledAPIs;
+    }
+
+    public static List<APITag> getDisabledApiTags() {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(API_PERMISSION);
+        }
+        return disabledAPITags;
+    }
 
     private static class PasswordCount {
         private int count;
@@ -410,22 +459,22 @@ public final class API {
         }
     }
 
-    static boolean isAllowed(String remoteHost) {
+    static boolean isForbiddenHost(String remoteHost) {
         if (API.allowedBotHosts == null || API.allowedBotHosts.contains(remoteHost)) {
-            return true;
+            return false;
         }
         try {
             BigInteger hostAddressToCheck = new BigInteger(InetAddress.getByName(remoteHost).getAddress());
             for (NetworkAddress network : API.allowedBotNets) {
                 if (network.contains(hostAddressToCheck)) {
-                    return true;
+                    return false;
                 }
             }
         } catch (UnknownHostException e) {
             // can't resolve, disallow
             Logger.logMessage("Unknown remote host " + remoteHost);
         }
-        return false;
+        return true;
 
     }
 

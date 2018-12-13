@@ -301,6 +301,9 @@ public final class ChildTransactionImpl extends TransactionImpl implements Child
     public void validate() throws NxtException.ValidationException {
         try {
             super.validate();
+            if (!childChain.isEnabled()) {
+                throw new NxtException.NotYetEnabledException("Child chain " + childChain.getName() + " not yet enabled for accepting transactions");
+            }
             if (ChildTransactionType.findTransactionType(getType().getType(), getType().getSubtype()) == null) {
                 throw new NxtException.NotValidException("Invalid transaction type " + getType().getName() + " for ChildTransaction");
             }

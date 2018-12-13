@@ -107,21 +107,15 @@ public final class CurrencyIssuanceAttachment extends Attachment.AbstractAttachm
 
     @Override
     protected int getMySize() {
-        return 1 + Convert.toBytes(name).length + 1 + Convert.toBytes(code).length + 2 +
-                Convert.toBytes(description).length + 1 + 8 + 8 + 8 + 4 + 8 + 1 + 1 + 1 + 1 + 1;
+        return NAME_RW.getSize(name) + CODE_RW.getSize(code) + DESCRIPTION_RW.getSize(description) +
+                1 + 8 + 8 + 8 + 4 + 8 + 1 + 1 + 1 + 1 + 1;
     }
 
     @Override
     protected void putMyBytes(ByteBuffer buffer) {
-        byte[] name = Convert.toBytes(this.name);
-        byte[] code = Convert.toBytes(this.code);
-        byte[] description = Convert.toBytes(this.description);
-        buffer.put((byte)name.length);
-        buffer.put(name);
-        buffer.put((byte)code.length);
-        buffer.put(code);
-        buffer.putShort((short) description.length);
-        buffer.put(description);
+        NAME_RW.writeToBuffer(name, buffer);
+        CODE_RW.writeToBuffer(code, buffer);
+        DESCRIPTION_RW.writeToBuffer(description, buffer);
         buffer.put(type);
         buffer.putLong(initialSupplyQNT);
         buffer.putLong(reserveSupplyQNT);

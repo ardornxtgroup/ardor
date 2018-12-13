@@ -17,11 +17,13 @@
 package nxt.blockchain;
 
 import nxt.Constants;
+import nxt.Nxt;
 import nxt.NxtException;
 import nxt.ae.AssetDividendHome;
 import nxt.ae.OrderHome;
 import nxt.ae.TradeHome;
 import nxt.aliases.AliasHome;
+import nxt.aliases.AliasTransactionType;
 import nxt.dgs.DigitalGoodsHome;
 import nxt.dgs.DigitalGoodsTransactionType;
 import nxt.http.APIEnum;
@@ -30,10 +32,12 @@ import nxt.ms.CurrencyFounderHome;
 import nxt.ms.ExchangeHome;
 import nxt.ms.ExchangeOfferHome;
 import nxt.ms.ExchangeRequestHome;
+import nxt.ms.MonetarySystemTransactionType;
 import nxt.shuffling.ShufflingHome;
 import nxt.shuffling.ShufflingParticipantHome;
 import nxt.shuffling.ShufflingTransactionType;
 import nxt.taggeddata.TaggedDataHome;
+import nxt.taggeddata.TaggedDataTransactionType;
 import nxt.voting.PhasingPollHome;
 import nxt.voting.PhasingVoteHome;
 import nxt.voting.PollHome;
@@ -43,6 +47,7 @@ import org.json.simple.JSONObject;
 import java.nio.ByteBuffer;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -52,7 +57,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public final class ChildChain extends Chain {
+public class ChildChain extends Chain {
 
     private static final Map<String, ChildChain> childChains = new HashMap<>();
     private static final Map<Integer, ChildChain> childChainsById = new HashMap<>();
@@ -65,6 +70,18 @@ public final class ChildChain extends Chain {
                     EnumSet.noneOf(APIEnum.class), EnumSet.of(APITag.SHUFFLING));
     public static final ChildChain BITSWIFT = new ChildChain(4, "BITSWIFT", 8, Constants.isTestnet ? 388463474549710L : 388463474539339L, 10 * 100000000L,
             new LinkedHashSet<>(Collections.singletonList(DigitalGoodsTransactionType.LISTING)), EnumSet.noneOf(APIEnum.class), EnumSet.of(APITag.DGS));
+    public static final ChildChain MPG = new ChildChain(5, "MPG", 8, 100000000000000000L, 0, new LinkedHashSet<>(Arrays.asList(
+            ShufflingTransactionType.SHUFFLING_CREATION, DigitalGoodsTransactionType.LISTING, MonetarySystemTransactionType.CURRENCY_ISSUANCE,
+            MonetarySystemTransactionType.CURRENCY_DELETION, MonetarySystemTransactionType.CURRENCY_MINTING, MonetarySystemTransactionType.CURRENCY_TRANSFER,
+            MonetarySystemTransactionType.PUBLISH_EXCHANGE_OFFER, MonetarySystemTransactionType.EXCHANGE_BUY, MonetarySystemTransactionType.EXCHANGE_SELL,
+            MonetarySystemTransactionType.RESERVE_INCREASE, MonetarySystemTransactionType.RESERVE_CLAIM,
+            TaggedDataTransactionType.TAGGED_DATA_UPLOAD, AliasTransactionType.ALIAS_ASSIGNMENT)),
+            EnumSet.noneOf(APIEnum.class), EnumSet.of(APITag.SHUFFLING, APITag.DGS, APITag.MS, APITag.DATA, APITag.ALIASES)) {
+        @Override
+        public boolean isEnabled() {
+            return Nxt.getBlockchain().getHeight() >= Constants.MPG_BLOCK;
+        }
+    };
 
     public static ChildChain getChildChain(String name) {
         return childChains.get(name);
@@ -78,7 +95,9 @@ public final class ChildChain extends Chain {
         return allChildChains;
     }
 
-    public static void init() {}
+    public static void init() {
+        ChildChainLoader.init();
+    }
 
     public final long SHUFFLING_DEPOSIT_NQT;
 
@@ -197,6 +216,10 @@ public final class ChildChain extends Chain {
     @Override
     public Set<TransactionType> getDisabledTransactionTypes() {
         return disabledTransactionTypes;
+    }
+
+    public boolean isEnabled() {
+        return true;
     }
 
     @Override

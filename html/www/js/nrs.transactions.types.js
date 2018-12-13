@@ -174,6 +174,18 @@ var NRS = (function(NRS, $) {
                     'i18nKeyTitle': 'asset_control',
                     'iconHTML': '<i class="fa fa-lock"></i>',
                     'receiverPage': "transactions"
+                },
+                10: {
+                    'title': "Set Asset Property",
+                    'i18nKeyTitle': 'set_asset_property',
+                    'iconHTML': '<i class="fa fa-pencil"></i>',
+                    'receiverPage': "transactions"
+                },
+                11: {
+                    'title': "Delete Asset Property",
+                    'i18nKeyTitle': 'delete_asset_property',
+                    'iconHTML': '<i class="fa fa-eraser"></i>',
+                    'receiverPage': "transactions"
                 }
             }
         },

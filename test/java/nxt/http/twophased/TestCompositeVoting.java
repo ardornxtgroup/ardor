@@ -17,7 +17,6 @@
  package nxt.http.twophased;
 
 import nxt.BlockchainTest;
-import nxt.Constants;
 import nxt.Nxt;
 import nxt.Tester;
 import nxt.blockchain.ChildChain;
@@ -30,7 +29,6 @@ import nxt.util.Logger;
 import nxt.voting.VoteWeighting;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.List;
@@ -434,7 +432,9 @@ public class TestCompositeVoting extends BlockchainTest {
         APICall.Builder approveBuilder = ACTestUtils.approveBuilder(fullHash, CHUCK, "some secret");
 
         JSONAssert jsonAssert = new JSONAssert(approveBuilder.build().invoke());
-        Assert.assertTrue(jsonAssert.str("errorDescription").matches("Phased transaction [0-9]+ does not accept by-hash voting"));
+        Assert.assertEquals(
+                String.format("Phased transaction %s:%s does not accept by-hash voting", ChildChain.IGNIS.getId(), fullHash),
+                jsonAssert.str("errorDescription"));
     }
 
     @Test

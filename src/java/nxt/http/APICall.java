@@ -41,6 +41,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -80,7 +82,9 @@ public class APICall {
         public Builder(String requestType) {
             this.requestType = requestType;
             params.put("requestType", Collections.singletonList(requestType));
-            APIServlet.APIRequestHandler apiRequestHandler = APIServlet.getAPIRequestHandler(requestType);
+            APIServlet.APIRequestHandler apiRequestHandler =
+                    AccessController.doPrivileged((PrivilegedAction<APIServlet.APIRequestHandler>) () ->
+                            APIServlet.getAPIRequestHandler(requestType));
             if (apiRequestHandler == null) {
                 throw new IllegalArgumentException("Invalid API " + requestType);
             }
@@ -349,8 +353,36 @@ public class APICall {
         if (isRemote) {
             return invokeRemote();
         } else {
-            return invokeLocal();
+            return AccessController.doPrivileged((PrivilegedAction<JSONObject>)this::invokeLocal);
         }
+    }
+
+    public InvocationError invokeWithError() {
+        JSONObject actual = invoke();
+        return new InvocationError(actual);
+    }
+
+
+    public JSONObject invokeNoError() {
+        JSONObject actual = invoke();
+
+        assertNull(actual.get("errorDescription"));
+        assertNull(actual.get("errorCode"));
+
+        return actual;
+    }
+
+    private static void assertNull(Object o) {
+        if (o != null) {
+            throw new AssertionError("Expected null, got: " + o);
+        }
+    }
+
+    private static <T> T assertNotNull(T o) {
+        if (o == null) {
+            throw new AssertionError("Expected not null");
+        }
+        return o;
     }
 
     private InputStream getRemoteInputStream() {
@@ -475,6 +507,26 @@ public class APICall {
         @Override
         public Collection<String> getHeaderNames() {
             return null;
+        }
+    }
+
+    public static class InvocationError {
+        private JSONObject jsonObject;
+
+        public InvocationError(JSONObject jsonObject) {
+            this.jsonObject = jsonObject;
+        }
+
+        public String getErrorCode() {
+            return str("errorCode");
+        }
+
+        public String getErrorDescription() {
+            return str("errorDescription");
+        }
+
+        private String str(String errorCode) {
+            return (String) assertNotNull(jsonObject.get(errorCode));
         }
     }
 }

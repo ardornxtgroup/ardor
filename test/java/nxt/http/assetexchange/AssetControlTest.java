@@ -18,26 +18,24 @@ package nxt.http.assetexchange;
 
 import nxt.BlockchainTest;
 import nxt.Nxt;
-import nxt.Tester;
 import nxt.account.HoldingType;
 import nxt.blockchain.ChildChain;
 import nxt.http.APICall;
 import nxt.http.accountControl.ACTestUtils;
+import nxt.http.client.IssueAssetBuilder;
+import nxt.http.client.TransferAssetBuilder;
 import nxt.http.twophased.TestPropertyVoting;
 import nxt.util.JSONAssert;
-import nxt.voting.VoteWeighting;
-import org.json.simple.JSONObject;
+import nxt.voting.VoteWeighting.VotingModel;
 import org.junit.Assert;
 import org.junit.Test;
-import nxt.voting.VoteWeighting.VotingModel;
 
 import java.math.BigDecimal;
 
 public class AssetControlTest extends BlockchainTest {
     @Test
     public void testSetAndGet() {
-        JSONObject controlledAsset = AssetExchangeTest.issueAsset(ALICE, "AssetC");
-        String assetId = Tester.responseToStringId(controlledAsset);
+        String assetId = AssetExchangeTest.issueAsset(ALICE, "AssetC").getAssetIdString();
 
         ACTestUtils.PhasingBuilder builder = new ACTestUtils.PhasingBuilder("setPhasingAssetControl", BOB);
         builder.votingModel(VotingModel.ACCOUNT).whitelist(CHUCK).quorum(1);
@@ -61,8 +59,7 @@ public class AssetControlTest extends BlockchainTest {
 
     @Test
     public void testSimpleTransfer() {
-        JSONObject controlledAsset = AssetExchangeTest.issueAsset(ALICE, "AssetC");
-        String assetId = Tester.responseToStringId(controlledAsset);
+        String assetId = AssetExchangeTest.issueAsset(ALICE, "AssetC").getAssetIdString();
 
         ACTestUtils.PhasingBuilder builder = new ACTestUtils.PhasingBuilder("setPhasingAssetControl", ALICE);
         builder.votingModel(VotingModel.ACCOUNT).whitelist(CHUCK).quorum(1);
@@ -73,8 +70,11 @@ public class AssetControlTest extends BlockchainTest {
         generateBlock();
 
         int amount = 100 * 10000;
-        JSONAssert transfer = new JSONAssert(AssetExchangeTest.transfer(assetId, ALICE, BOB, amount));
-        Assert.assertEquals("Non-phased transaction when phasing asset control is enabled", transfer.str("errorDescription"));
+        String errorDescription = new TransferAssetBuilder(assetId, ALICE, BOB)
+                .setQuantityQNT(amount)
+                .transferWithError()
+                .getErrorDescription();
+        Assert.assertEquals("Non-phased transaction when phasing asset control is enabled", errorDescription);
 
         APICall apiCall = new ACTestUtils.PhasingBuilder("transferAsset", ALICE)
                 .votingModel(VotingModel.ACCOUNT).whitelist(CHUCK).quorum(1)
@@ -95,8 +95,7 @@ public class AssetControlTest extends BlockchainTest {
 
     @Test
     public void testSimpleAssetAndAccountControl() {
-        JSONObject controlledAsset = AssetExchangeTest.issueAsset(ALICE, "AssetC");
-        String assetId = Tester.responseToStringId(controlledAsset);
+        String assetId = AssetExchangeTest.issueAsset(ALICE, "AssetC").getAssetIdString();
 
         ACTestUtils.PhasingBuilder builder = new ACTestUtils.PhasingBuilder("setPhasingAssetControl", ALICE);
         builder.votingModel(VotingModel.ACCOUNT).whitelist(CHUCK).quorum(1);
@@ -143,8 +142,7 @@ public class AssetControlTest extends BlockchainTest {
         String propertyName = "propac2";
         String propertyValue = "valX";
 
-        JSONObject controlledAsset = AssetExchangeTest.issueAsset(ALICE, "AssetC");
-        String assetId = Tester.responseToStringId(controlledAsset);
+        String assetId = AssetExchangeTest.issueAsset(ALICE, "AssetC").getAssetIdString();
 
         ACTestUtils.PhasingBuilder control = createByPropertyPhasingBuilder(propertyName, propertyValue, assetId);
 
@@ -152,11 +150,9 @@ public class AssetControlTest extends BlockchainTest {
 
         generateBlock();
 
-        APICall.Builder builder1 = TestPropertyVoting.createSetPropertyBuilder(CHUCK, ALICE, propertyName, propertyValue);
-        builder1.build().invoke();
+        TestPropertyVoting.createSetPropertyBuilder(CHUCK, ALICE, propertyName, propertyValue).build().invokeNoError();
 
-        builder1 = TestPropertyVoting.createSetPropertyBuilder(CHUCK, BOB, propertyName, propertyValue);
-        builder1.build().invoke();
+        TestPropertyVoting.createSetPropertyBuilder(CHUCK, BOB, propertyName, propertyValue).build().invokeNoError();
 
         generateBlock();
 
@@ -191,8 +187,7 @@ public class AssetControlTest extends BlockchainTest {
         String propertyValue = "valX";
         String propertyValue2 = "valY";
 
-        JSONObject controlledAssetResp = AssetExchangeTest.issueAsset(ALICE, "AssetC");
-        String controlledAssetId = Tester.responseToStringId(controlledAssetResp);
+        String controlledAssetId = AssetExchangeTest.issueAsset(ALICE, "AssetC").getAssetIdString();
 
         ACTestUtils.PhasingBuilder control = createByPropertyPhasingBuilder(propertyName, propertyValue, controlledAssetId);
 
@@ -200,8 +195,7 @@ public class AssetControlTest extends BlockchainTest {
 
         generateBlock();
 
-        JSONObject dividendAsset = AssetExchangeTest.issueAsset(ALICE, "AssetD");
-        String dividendAssetId = Tester.responseToStringId(dividendAsset);
+        String dividendAssetId = AssetExchangeTest.issueAsset(ALICE, "AssetD").getAssetIdString();
 
         APICall.Builder propBuilder = TestPropertyVoting.createSetPropertyBuilder(CHUCK, ALICE, propertyName, propertyValue);
         propBuilder.build().invoke();
@@ -236,10 +230,9 @@ public class AssetControlTest extends BlockchainTest {
                 ChildChain.IGNIS, HoldingType.ASSET.getCode(), dividendAssetId)).str("fullHash");
 
         //BOB owns all the distributed control assets, which is (amount / 10 ^ AssetExchangeTest.ASSET_DECIMALS)
-        Assert.assertEquals(BigDecimal.valueOf(amount, AssetExchangeTest.ASSET_DECIMALS).longValue(), BOB.getAssetQuantityDiff(Long.parseUnsignedLong(dividendAssetId)));
+        Assert.assertEquals(BigDecimal.valueOf(amount, IssueAssetBuilder.ASSET_DECIMALS).longValue(), BOB.getAssetQuantityDiff(Long.parseUnsignedLong(dividendAssetId)));
 
-        dividendAsset = AssetExchangeTest.issueAsset(ALICE, "AssetE");
-        dividendAssetId = Tester.responseToStringId(dividendAsset);
+        dividendAssetId = AssetExchangeTest.issueAsset(ALICE, "AssetE").getAssetIdString();
 
         control = createByPropertyPhasingBuilder(propertyName, propertyValue, dividendAssetId);
 
@@ -272,8 +265,7 @@ public class AssetControlTest extends BlockchainTest {
         String propertyName = "propac2";
         String propertyValue = "valX";
 
-        JSONObject controlledAssetResp = AssetExchangeTest.issueAsset(ALICE, "AssetC");
-        String controlledAssetId = Tester.responseToStringId(controlledAssetResp);
+        String controlledAssetId = AssetExchangeTest.issueAsset(ALICE, "AssetC").getAssetIdString();
 
         ACTestUtils.PhasingBuilder control = createByPropertyPhasingBuilder(propertyName, propertyValue, controlledAssetId);
 
@@ -307,8 +299,8 @@ public class AssetControlTest extends BlockchainTest {
         String propertyName = "propac2";
         String propertyValue = "valX";
 
-        String controlledAssetId = Tester.responseToStringId(AssetExchangeTest.issueAsset(ALICE, "AssetC"));
-        new JSONAssert(AssetExchangeTest.transfer(controlledAssetId, ALICE, BOB, 10*10000)).str("fullHash");
+        String controlledAssetId = AssetExchangeTest.issueAsset(ALICE, "AssetC").getAssetIdString();
+        AssetExchangeTest.transfer(controlledAssetId, ALICE, BOB, 10*10000).getFullHash();
 
         ACTestUtils.PhasingBuilder control = createByPropertyPhasingBuilder(propertyName, propertyValue, controlledAssetId);
 
@@ -322,7 +314,7 @@ public class AssetControlTest extends BlockchainTest {
         String propertyValue = "valX";
         ACTestUtils.PhasingBuilder control;
 
-        String controlledAssetId = Tester.responseToStringId(AssetExchangeTest.issueAsset(ALICE, "AssetC"));
+        String controlledAssetId = AssetExchangeTest.issueAsset(ALICE, "AssetC").getAssetIdString();
         control = new ACTestUtils.PhasingBuilder("setPhasingAssetControl", ALICE).votingModel(VotingModel.NONE);
         control.param("asset", controlledAssetId);
 
@@ -339,7 +331,7 @@ public class AssetControlTest extends BlockchainTest {
         new JSONAssert(control.build().invoke()).str("fullHash");
         generateBlock();
 
-        new JSONAssert(AssetExchangeTest.transfer(controlledAssetId, ALICE, BOB, 10*10000)).str("fullHash");
+        AssetExchangeTest.transfer(controlledAssetId, ALICE, BOB, 10*10000).getFullHash();
 
     }
 

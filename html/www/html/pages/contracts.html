@@ -1,0 +1,92 @@
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ~ Copyright © 2013-2016 The Nxt Core Developers.                            ~
+  ~ Copyright © 2016-2018 Jelurida IP B.V.                                    ~
+  ~                                                                           ~
+  ~ See the LICENSE.txt file at the top-level directory of this distribution  ~
+  ~ for licensing information.                                                ~
+  ~                                                                           ~
+  ~ Unless otherwise agreed in a custom licensing agreement with Jelurida B.V.,
+  ~ no part of this software, including this file, may be copied, modified,   ~
+  ~ propagated, or distributed except according to the terms contained in the ~
+  ~ LICENSE.txt file.                                                         ~
+  ~                                                                           ~
+  ~ Removal or modification of this copyright notice is prohibited.           ~
+  ~                                                                           ~
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+
+<div id="contracts_page" class="paginated page">
+    <script type="text/x-handlebars-template">
+        <section class="content-header">
+            <h1>{{i18n "contract_runner"}}</h1>
+            <div style="position:absolute;top:9px;right:9px;">
+                <button type="button" class="btn btn-sm btn-default" data-toggle="modal" data-target="#config_contract_runner_modal">{{i18n "config_contract_runner"}}</button>
+            </div>
+        </section>
+
+        <section class="content">
+            {{#if errorMessage}}
+            <div class="alert alert-danger" role="alert">{{{ errorMessage }}}</div>
+            {{/if}}
+            {{#if infoMessage}}
+            <div class="alert alert-info" role="alert">{{ infoMessage }}</div>
+            {{/if}}
+            <div class="data-container {{when isLoading 'data-loading' isEmpty 'data-empty'}}">
+                <div  style="display:{{contracts_header_visibility}}">
+                    <h2>{{i18n "runner_status"}}</h2>
+                    <table class="table">
+                        <tbody>
+                        <tr>
+                            <td style="font-weight: bold"><span>{{i18n "status"}}</span>:</td><td><span>{{ status }}</span></td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: bold"><span>{{i18n "account"}}</span>:</td><td><span>{{{ contractRunnerAccountFormatted }}}</span></td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: bold"><span>{{i18n "has_secret_phrase"}}</span>:</td><td><span>{{ hasSecretPhrase }}</span></td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: bold"><span>{{i18n "is_validator"}}</span>:</td><td><span>{{ isValidator }}</span></td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: bold"><span>{{i18n "has_validator_secret_phrase"}}</span>:</td><td><span>{{ hasValidatorSecretPhrase }}</span></td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: bold"><span>{{i18n "has_random_seed"}}</span>:</td><td><span>{{ hasRandomSeed }}</span></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div style="display:{{contracts_table_visibility}}">
+                    <h2>{{i18n "contracts"}}</h2>
+                    <table class="table table-striped">
+                        <thead>
+                        <tr>
+                            <th>{{i18n "contract"}}</th>
+                            <th>{{i18n "developer"}}</th>
+                            <th>{{i18n "trigger"}}</th>
+                            <th>{{i18n "validity_checks"}}</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {{#each contracts}}
+                        <tr>
+                            <td>{{{nameFormatted}}}</td>
+                            <td>{{{accountFormatted}}}</td>
+                            <td>{{{paramsLink}}}</td>
+                            <td>{{{validatyChecksLink}}}</td>
+                        </tr>
+                        {{/each}}
+                        </tbody>
+                    </table>
+                    <div class="data-loading-container"><img src="img/loading_indicator.gif" alt="Loading..." width="32" height="32" /></div>
+                    <div class="data-empty-container">
+                        <p>
+                            <span data-i18n="no_contracts">No Contracts</span>.
+                        </p>
+                    </div>
+                    <div class="data-pagination"></div>
+                </div>
+            </div>
+        </section>
+    </script>
+</div>

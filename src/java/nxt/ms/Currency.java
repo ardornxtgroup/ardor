@@ -45,6 +45,8 @@ import java.util.Locale;
 
 @SuppressWarnings("UnusedDeclaration")
 public final class Currency {
+    public static final String CURRENCY_FREEZE_HEIGHT_PROPERTY_PREFIX = "Freeze";
+    public static final String CURRENCY_MIGRATE_HEIGHT_PROPERTY_PREFIX = "Migrate";
 
     public enum Event {
         BEFORE_DISTRIBUTE_CROWDFUNDING, BEFORE_UNDO_CROWDFUNDING, BEFORE_DELETE
@@ -220,7 +222,10 @@ public final class Currency {
         Nxt.getBlockchainProcessor().addListener(new CrowdFundingListener(), BlockchainProcessor.Event.AFTER_BLOCK_APPLY);
     }
 
-    public static void init() {}
+    public static void init() {
+        CurrencyFreezeMonitor.init();
+        CurrencyMigrateMonitor.init();
+    }
 
     private final long currencyId;
 

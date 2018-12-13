@@ -22,6 +22,7 @@ import nxt.crypto.Crypto;
 import nxt.dbschema.Db;
 import nxt.util.Convert;
 import nxt.util.Logger;
+import nxt.util.security.BlockchainPermission;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -45,6 +46,11 @@ public final class PassphraseRecovery {
     final static Solution NO_SOLUTION = new Solution();
 
     public static void main(String[] args) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("tools"));
+        }
+
         new PassphraseRecovery().recover();
     }
 

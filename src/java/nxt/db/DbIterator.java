@@ -22,6 +22,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 public final class DbIterator<T> implements Iterator<T>, Iterable<T>, AutoCloseable {
 
@@ -91,5 +93,9 @@ public final class DbIterator<T> implements Iterator<T>, Iterable<T>, AutoClosea
         }
         iterated = true;
         return this;
+    }
+
+    public Stream<T> stream() {
+        return StreamSupport.stream(spliterator(), false);
     }
 }

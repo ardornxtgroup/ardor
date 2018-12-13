@@ -16,9 +16,15 @@
 
 package nxt.env.service;
 
+import nxt.util.security.BlockchainPermission;
+
 public class ArdorService {
 
     public static void main(String[] args) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("windowsService"));
+        }
         ArdorService_ServiceManagement.serviceInit();
     }
 }

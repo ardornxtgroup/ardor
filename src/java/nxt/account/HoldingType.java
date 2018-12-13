@@ -19,6 +19,7 @@ package nxt.account;
 import nxt.ae.Asset;
 import nxt.blockchain.Chain;
 import nxt.ms.Currency;
+import nxt.util.security.BlockchainPermission;
 
 public enum HoldingType {
 
@@ -125,6 +126,10 @@ public enum HoldingType {
     };
 
     public static HoldingType get(byte code) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("holding"));
+        }
         for (HoldingType holdingType : values()) {
             if (holdingType.getCode() == code) {
                 return holdingType;

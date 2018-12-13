@@ -16,7 +16,6 @@
 
 package nxt.aliases;
 
-import nxt.Constants;
 import nxt.NxtException;
 import nxt.blockchain.Attachment;
 import nxt.blockchain.TransactionType;
@@ -50,14 +49,12 @@ public final class AliasBuyAttachment extends Attachment.AbstractAttachment {
 
     @Override
     protected int getMySize() {
-        return 1 + Convert.toBytes(aliasName).length;
+        return AliasAssignmentAttachment.ALIAS_NAME_RW.getSize(aliasName);
     }
 
     @Override
     protected void putMyBytes(ByteBuffer buffer) {
-        byte[] aliasBytes = Convert.toBytes(aliasName);
-        buffer.put((byte) aliasBytes.length);
-        buffer.put(aliasBytes);
+        AliasAssignmentAttachment.ALIAS_NAME_RW.writeToBuffer(aliasName, buffer);
     }
 
     @Override

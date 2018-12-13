@@ -23,6 +23,7 @@ import nxt.Nxt;
 import nxt.addons.JO;
 import nxt.http.API;
 import nxt.util.Logger;
+import nxt.util.security.BlockchainPermission;
 
 import java.awt.*;
 import java.io.IOException;
@@ -41,6 +42,10 @@ public class JavaScriptBridge {
     private Clipboard clipboard;
 
     public JavaScriptBridge(DesktopApplication application) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("desktop"));
+        }
         this.application = application;
     }
 
@@ -89,7 +94,7 @@ public class JavaScriptBridge {
     }
 
     public String getAdminPassword() {
-        return API.adminPassword;
+        return API.getAdminPassword();
     }
 
     @SuppressWarnings("unused")

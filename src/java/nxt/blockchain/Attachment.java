@@ -19,6 +19,7 @@ package nxt.blockchain;
 import nxt.Nxt;
 import nxt.NxtException;
 import nxt.account.Account;
+import nxt.util.Convert;
 import org.json.simple.JSONObject;
 
 import java.nio.ByteBuffer;
@@ -130,4 +131,41 @@ public interface Attachment extends Appendix {
 
     }
 
+    abstract class PropertyDeleteAttachment extends AbstractAttachment {
+
+        private final long propertyId;
+
+        protected PropertyDeleteAttachment(ByteBuffer buffer) {
+            super(buffer);
+            this.propertyId = buffer.getLong();
+        }
+
+        protected PropertyDeleteAttachment(JSONObject attachmentData) {
+            super(attachmentData);
+            this.propertyId = Convert.parseUnsignedLong((String)attachmentData.get("property"));
+        }
+
+        public PropertyDeleteAttachment(long propertyId) {
+            this.propertyId = propertyId;
+        }
+
+        @Override
+        protected int getMySize() {
+            return 8;
+        }
+
+        @Override
+        protected void putMyBytes(ByteBuffer buffer) {
+            buffer.putLong(propertyId);
+        }
+
+        @Override
+        protected void putMyJSON(JSONObject attachment) {
+            attachment.put("property", Long.toUnsignedString(propertyId));
+        }
+
+        public long getPropertyId() {
+            return propertyId;
+        }
+    }
 }

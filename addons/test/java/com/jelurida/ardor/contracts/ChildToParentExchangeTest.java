@@ -1,6 +1,6 @@
 package com.jelurida.ardor.contracts;
 
-import nxt.Nxt;
+import nxt.addons.JO;
 import nxt.blockchain.Block;
 import nxt.blockchain.ChildTransaction;
 import nxt.blockchain.FxtTransaction;
@@ -13,7 +13,9 @@ public class ChildToParentExchangeTest extends AbstractContractTest {
 
     @Test
     public void childToParentExchange() {
-        ContractTestHelper.deployContract(ChildToParentExchange.class.getSimpleName());
+        JO setupParams = new JO();
+        setupParams.put("maxAmountNXT", 20);
+        ContractTestHelper.deployContract(ChildToParentExchange.class, setupParams);
 
         // Pay the contract account without message
         ContractTestHelper.bobPaysContract(null, IGNIS);
@@ -30,7 +32,7 @@ public class ChildToParentExchangeTest extends AbstractContractTest {
         generateBlock();
 
         // Since there are no coin orders the amount of IGNIS is returned
-        Block lastBlock = Nxt.getBlockchain().getLastBlock();
+        Block lastBlock = getLastBlock();
         boolean isFound = false;
         for (FxtTransaction transaction : lastBlock.getFxtTransactions()) {
             for (ChildTransaction childTransaction : transaction.getSortedChildTransactions()) {

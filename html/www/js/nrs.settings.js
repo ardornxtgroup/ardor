@@ -47,7 +47,8 @@ var NRS = (function(NRS, $) {
         "changelly_coin2": "ETH",
 		"max_nxt_decimals": "4",
         "fake_entity_warning": "1",
-		"transact_during_download": "0"
+		"transact_during_download": "0",
+		"secretNonce": Math.round(10000 * Math.random())
 	};
 
 	NRS.defaultColors = {

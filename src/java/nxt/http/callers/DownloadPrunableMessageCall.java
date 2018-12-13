@@ -35,7 +35,7 @@ public class DownloadPrunableMessageCall extends APICall.Builder<DownloadPrunabl
         return param("save", save);
     }
 
-    public DownloadPrunableMessageCall retrieve(String retrieve) {
+    public DownloadPrunableMessageCall retrieve(boolean retrieve) {
         return param("retrieve", retrieve);
     }
 

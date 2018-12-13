@@ -1,11 +1,19 @@
 package com.jelurida.ardor.contracts;
 
 import nxt.addons.AbstractContract;
+import nxt.addons.JO;
 import nxt.addons.RandomnessSource;
 import nxt.addons.TransactionContext;
+import nxt.addons.ValidateChain;
+import nxt.addons.ValidateContractRunnerIsRecipient;
+import nxt.addons.ValidateTransactionType;
 import nxt.http.callers.SendMoneyCall;
+import nxt.http.responses.TransactionResponse;
 
 import java.math.BigInteger;
+
+import static nxt.blockchain.TransactionTypeEnum.PARENT_PAYMENT;
+import static nxt.blockchain.TransactionTypeEnum.CHILD_PAYMENT;
 
 public class RandomPayment extends AbstractContract {
 
@@ -14,10 +22,19 @@ public class RandomPayment extends AbstractContract {
      * @param context contract context
      */
     @Override
-    public void processTransaction(TransactionContext context) {
-        // Make sure this is a payment transaction to the contract account
-        if (context.notSameRecipient() || context.notPaymentTransaction()) {
-            return;
+    @ValidateTransactionType(accept = { PARENT_PAYMENT, CHILD_PAYMENT }) // These are the transaction types accepted by the contract
+    @ValidateContractRunnerIsRecipient() // Validate that the payment was made to the contract runner account
+    @ValidateChain(reject = 3) // Do not process payments made on the AEUR chain (just example)
+    public JO processTransaction(TransactionContext context) {
+        TransactionResponse transaction = context.getTransaction();
+        if (transaction.isPhased()) {
+            // We cannot allow phased transaction in a contract based on randomness since the user can always choose not
+            // to approve the trigger and contract transactions in case of unfavorable results.
+            // Therefore in this case we just refund the same amount.
+            SendMoneyCall sendMoneyCall = SendMoneyCall.create(transaction.getChainId()).
+                    recipient(transaction.getSender()).
+                    amountNQT(transaction.getAmount());
+            return context.createTransaction(sendMoneyCall);
         }
 
         // Calculate the amount to send back
@@ -35,6 +52,6 @@ public class RandomPayment extends AbstractContract {
         SendMoneyCall sendMoneyCall = SendMoneyCall.create(context.getChainOfTransaction().getId()).
                 recipient(recipient).
                 amountNQT(returnAmount);
-        context.createTransaction(sendMoneyCall);
+        return context.createTransaction(sendMoneyCall);
     }
 }

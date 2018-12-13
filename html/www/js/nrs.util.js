@@ -151,7 +151,12 @@ var NRS = (function (NRS, $, undefined) {
 
     NRS.baseTargetPercent = function(block) {
         if (block) {
-            return Math.round(block.baseTarget / NRS.constants.INITIAL_BASE_TARGET * 100)
+            var percent = Math.round(block.baseTarget / NRS.constants.INITIAL_BASE_TARGET * 100);
+            if (NRS.isTestNet && block.height > NRS.constants.TESTNET_ACCELRATION_BLOCK) {
+                return Math.round(percent / NRS.constants.TESTNET_ACCELERATION); // Reflect change of block time to 10 seconds on testnet
+            } else {
+                return percent;
+            }
         } else {
             return 0;
         }
@@ -318,6 +323,24 @@ var NRS = (function (NRS, $, undefined) {
         return NRS.getEntityLink({ request: request, id: holding, key: key, text: text })
     };
 
+    NRS.getVotingModelHoldingLink = function(holding, votingModel, text) {
+        var request;
+        var key;
+        if (votingModel == 2) {
+            request = "getAsset";
+            key = "asset";
+        } else if (votingModel == 3) {
+            request = "getCurrency";
+            key = "currency";
+        } else {
+            return "";
+        }
+        if (!text) {
+            text = holding;
+        }
+        return NRS.getEntityLink({ request: request, id: holding, key: key, text: text })
+    };
+
     NRS.getLedgerHoldingLink = function(holding, ledgerHoldingType, text) {
         var request;
         var key;
@@ -344,8 +367,11 @@ var NRS = (function (NRS, $, undefined) {
         return "<a href='#' class='show_entity_modal_action' " +
             "data-chain='" + options.chain + "' " +
             "data-id='" + options.id + "' " +
+            "data-id2='" + options.id2 + "' " +
             "data-request='" + options.request + "' " +
-            "data-key='" + options.key + "'>" + String(options.text).escapeHTML() + "</a>";
+            "data-key='" + options.key + "' " +
+            "data-key2='" + options.key2 + "' " +
+            "data-response-array='" + options.responseArray + "'>" + String(options.text).escapeHTML() + "</a>";
     };
 
     NRS.getBlockLink = function(height, text, isEscapedText) {
@@ -1175,7 +1201,8 @@ var NRS = (function (NRS, $, undefined) {
 
     /**
      * Escapes all strings in a response object
-     * @param obj
+     * @param obj the object to escape
+     * @param exclusions keys to exclude
      */
     NRS.escapeResponseObjStrings = function(obj, exclusions) {
         for (var key in obj) {
@@ -1318,6 +1345,30 @@ var NRS = (function (NRS, $, undefined) {
                     $(".printFrame").remove();
                 }, 1000);
             });
+        });
+    };
+
+    NRS.calculateSecret = function(secretPhrase, nonce, blockId) {
+        var secretStr = secretPhrase + nonce + blockId;
+        sha256 = CryptoJS.algo.SHA256.create();
+        sha256.update(converters.byteArrayToWordArrayEx(converters.stringToByteArray(secretStr)));
+        return converters.byteArrayToHexString(converters.wordArrayToByteArrayEx(sha256.finalize()));
+    };
+
+    NRS.generateSecret = function(secretPhrase, callback) {
+        var nonce = NRS.settings.secretNonce;
+        NRS.sendRequest("getBlock", {
+            "height": NRS.lastBlockHeight - nonce
+        }, function(response) {
+            if (response.errorCode) {
+                callback( { error: response.errorDescription });
+            } else {
+                var secret = NRS.calculateSecret(secretPhrase, nonce, response.block);
+                var result = { secret: secret, blockId: response.block, nonce: nonce };
+                ++nonce == 10000 ? nonce = 1 : nonce;
+                NRS.settings.secretNonce = nonce;
+                callback(result);
+            }
         });
     };
 

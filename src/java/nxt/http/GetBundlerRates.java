@@ -41,7 +41,7 @@ public final class GetBundlerRates extends APIServlet.APIRequestHandler {
                 0, Constants.MAX_BALANCE_FXT, false);
         JSONObject response = new JSONObject();
         JSONArray ratesJSON = new JSONArray();
-        List<BundlerRate> rates = Peers.getBestBundlerRates(minBalance, Peers.bestBundlerRateWhitelist);
+        List<BundlerRate> rates = Peers.getBestBundlerRates(minBalance, Peers.getBestBundlerRateWhitelist());
         rates.forEach(rate -> {
             JSONObject rateJSON = new JSONObject();
             rateJSON.put("chain", rate.getChain().getId());

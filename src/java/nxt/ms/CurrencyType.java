@@ -19,7 +19,6 @@ package nxt.ms;
 import nxt.Constants;
 import nxt.NxtException;
 import nxt.ae.AssetExchangeTransactionType;
-import nxt.blockchain.Attachment;
 import nxt.blockchain.ChildChain;
 import nxt.blockchain.ChildTransaction;
 import nxt.blockchain.Transaction;

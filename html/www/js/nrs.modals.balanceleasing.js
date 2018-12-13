@@ -33,7 +33,7 @@ var NRS = (function(NRS, $, undefined) {
 
 	$("#lease_balance_modal").on("show.bs.modal", function() {
         var leaseBalancePeriod = $("#lease_balance_period");
-        leaseBalancePeriod.attr('min', 1440);
+        leaseBalancePeriod.attr('min', NRS.constants.LEASING_DELAY);
         leaseBalancePeriod.attr('max', NRS.constants.MAX_UNSIGNED_SHORT_JAVA);
 		setLeaseBalanceHelp(NRS.constants.MAX_UNSIGNED_SHORT_JAVA);
 	});

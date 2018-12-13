@@ -25,6 +25,7 @@ import nxt.blockchain.ChildChain;
 import nxt.dbschema.Db;
 import nxt.util.JSON;
 import nxt.util.Logger;
+import nxt.util.security.BlockchainPermission;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
@@ -208,10 +209,18 @@ public final class APIServlet extends HttpServlet {
     }
 
     public static APIRequestHandler getAPIRequestHandler(String requestType) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("api"));
+        }
         return apiRequestHandlers.get(requestType);
     }
 
     public static Map<String, APIRequestHandler> getAPIRequestHandlers() {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("api"));
+        }
         return apiRequestHandlers;
     }
 
@@ -243,7 +252,7 @@ public final class APIServlet extends HttpServlet {
 
         try {
 
-            if (!API.isAllowed(req.getRemoteHost())) {
+            if (API.isForbiddenHost(req.getRemoteHost())) {
                 response = ERROR_NOT_ALLOWED;
                 return;
             }

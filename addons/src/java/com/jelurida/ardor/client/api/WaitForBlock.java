@@ -10,7 +10,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 /**
- * Register a listener and wait for the next block
+ * Sample Java program which registers a listener and waits for the next block
  */
 public class WaitForBlock {
 

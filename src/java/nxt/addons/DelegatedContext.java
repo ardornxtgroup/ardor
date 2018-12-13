@@ -8,8 +8,9 @@ public class DelegatedContext extends AbstractContractContext {
 
     private final AbstractContractContext context;
 
-    public DelegatedContext(AbstractContractContext context, String contractName) {
+    public DelegatedContext(AbstractContractContext context, String contractName, JO setupParameters) {
         super(context.getConfig(), contractName);
+        setContractSetupParameters(setupParameters);
         this.context = context;
     }
 

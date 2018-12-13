@@ -21,6 +21,7 @@ import nxt.configuration.Setup;
 import nxt.http.GetConstants;
 import nxt.util.JSON;
 import nxt.util.ThreadPool;
+import nxt.util.security.BlockchainPermission;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -32,6 +33,11 @@ public class ConstantsExporter {
     private static final Object sync = new Object();
 
     public static void main(String[] args) throws InterruptedException {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("tools"));
+        }
+
         if (args.length != 1) {
             System.out.println("Usage: ConstantsExporter <destination constants.js file>");
             System.exit(1);

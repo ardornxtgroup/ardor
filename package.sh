@@ -14,7 +14,7 @@ FILES="${FILES} 3RD-PARTY-LICENSES.txt LICENSE.txt JPL-Ardor.pdf"
 FILES="${FILES} DEVELOPERS-GUIDE.md OPERATORS-GUIDE.md README.md README.txt USERS-GUIDE.md"
 FILES="${FILES} mint.bat mint.sh run.bat run.sh run-desktop.sh start.sh stop.sh compact.sh compact.bat sign.sh sign.bat passphraseRecovery.sh passphraseRecovery.bat"
 FILES="${FILES} contractManager.sh contractManager.bat generateAPICalls.sh"
-FILES="${FILES} nxt.policy nxtdesktop.policy contractManager.policy Ardor_Wallet.url"
+FILES="${FILES} ardor.policy ardordesktop.policy contractManager.policy Ardor_Wallet.url"
 FILES="${FILES} compile.sh javadoc.sh jar.sh package.sh"
 
 echo compile

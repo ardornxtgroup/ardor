@@ -27,6 +27,8 @@ import nxt.db.DerivedDbTable;
 import nxt.db.FilteringIterator;
 import nxt.db.FullTextTrigger;
 import nxt.dbschema.Db;
+import nxt.freeze.FreezeMonitor;
+import nxt.migration.MigrationMonitor;
 import nxt.peer.NetworkHandler;
 import nxt.peer.NetworkMessage;
 import nxt.peer.Peer;
@@ -36,9 +38,9 @@ import nxt.util.Listener;
 import nxt.util.Listeners;
 import nxt.util.Logger;
 import nxt.util.ThreadPool;
+import nxt.util.security.BlockchainPermission;
 import nxt.voting.PhasingAppendix;
 import nxt.voting.PhasingPollHome;
-import nxt.voting.PhasingVoteCastingAttachment;
 import nxt.voting.VotingTransactionType;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -102,8 +104,13 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     }
 
     private static final BlockchainProcessorImpl instance = new BlockchainProcessorImpl();
+    private static final BlockchainPermission blockchainPermission = new BlockchainPermission("getBlockchainProcessor");
 
     public static BlockchainProcessorImpl getInstance() {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(blockchainPermission);
+        }
         return instance;
     }
 
@@ -1327,6 +1334,12 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         if (lastBlock != null) {
             Logger.logMessage("Genesis block already in database");
             blockchain.setLastBlock(lastBlock);
+            //TODO: remove when/if block commit is implemented
+            if (lastBlock.getHeight() > 0 && (FreezeMonitor.hasFreezesAt(lastBlock.getHeight())
+                    || MigrationMonitor.hasMigrationsAt(lastBlock.getHeight()))) {
+                Logger.logDebugMessage("Block " + lastBlock.getStringId() + " has freezes or migrations of holdings, will pop-off");
+                lastBlock = BlockDb.findBlock(lastBlock.getPreviousBlockId());
+            }
             popOffTo(lastBlock);
             genesisBlockId = BlockDb.findBlockIdAtHeight(0);
             Logger.logMessage("Last block height: " + lastBlock.getHeight());
@@ -1652,10 +1665,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         }
     }
 
-    private void addVotedTransactions(Transaction votingTransaction, Set<ChildTransactionImpl> possiblyApprovedTransactions, int blockchainHeight) {
-        PhasingVoteCastingAttachment voteCasting = (PhasingVoteCastingAttachment) votingTransaction.getAttachment();
-        List<ChainTransactionId> phasedTransactionIds = voteCasting.getPhasedTransactionsIds();
-        for (ChainTransactionId phasedTransactionId : phasedTransactionIds) {
+    private void addVotedTransactions(ChildTransaction votingTransaction, Set<ChildTransactionImpl> possiblyApprovedTransactions, int blockchainHeight) {
+        for (ChainTransactionId phasedTransactionId : PhasingPollHome.getVotedTransactionIds(votingTransaction)) {
             ChildChain childChain = phasedTransactionId.getChildChain();
             PhasingPollHome.PhasingPoll phasingPoll = childChain.getPhasingPollHome().getPoll(phasedTransactionId.getFullHash());
             if (phasingPoll.allowEarlyFinish() && phasingPoll.getFinishHeight() > blockchainHeight) {
@@ -1934,6 +1945,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 if (height == 0) {
                     Logger.logDebugMessage("Dropping all full text search indexes");
                     FullTextTrigger.dropAll(con);
+                    lastTrimHeight = 0;
                 }
                 for (DerivedDbTable table : derivedTables) {
                     if (height == 0) {

@@ -1,0 +1,90 @@
+<div class="modal fade" id="config_contract_runner_modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" data-i18n="config_contract_runner">Configure Contract Runner</h4>
+            </div>
+            <div class="modal-body">
+                <form role="form" enctype="multipart/form-data" method="post" autocomplete="off">
+                    <div class="callout callout-danger remote_warning" style="display:none">
+                        <strong><span data-i18n="warning">Warning</span>:</strong>
+                        <span data-i18n="passphrase_remote_warning">Your passphrase will be sent to the server!</span>
+                    </div>
+                    <div class="callout callout-danger error_message" style="display:none"></div>
+                    <div class="form-group">
+                        <label for="upload_contract_runner_config_file" data-i18n="contract_runner_config_file">Contract Runner Configuration File</label>
+                        <input type="file" id="upload_contract_runner_config_file" class="form-control" name="config" tabindex="1">
+                    </div>
+                    <input type="hidden" name="adminPassword">
+                    <input type="hidden" name="request_type" value="uploadContractRunnerConfiguration">
+                </form>
+            </div>
+            <div class="modal-footer" style="margin-top:0;">
+                <button type="button" class="btn btn-default" data-dismiss="modal" data-i18n="cancel">Cancel</button>
+                <button type="button" class="btn btn-primary" data-loading-text="Submitting..." data-i18n="upload_file_button;[data-loading-text]submitting">Upload File</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="view_contract_params_modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">
+                    <span data-i18n="view_contract_params">View Contract Parameters</span>
+                </h4>
+            </div>
+            <div class="modal-body">
+                <form role="form" autocomplete="off">
+                    <div class="form-group">
+                        <label for="view_contract_params_name" data-i18n="name"></label>
+                        <input type="text" class="form-control" id="view_contract_params_name" readonly/>
+                    </div>
+                    <div class="form-group">
+                        <label for="view_contract_params_content" data-i18n="contract_invocation_parameters"></label>
+                        <textarea class="form-control" id="view_contract_params_content" rows="12" readonly></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="view_contract_params_template" data-i18n="trigger_message_template"></label>
+                        <textarea class="form-control" id="view_contract_params_template" rows="12"></textarea>
+                        <span><a class='btn btn-default btn-xs copy_link' href="#" data-clipboard-target="#view_contract_params_template"><span class="fa fa-copy"></span></a></span>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer" style="margin-top:0;">
+                <button type="button" class="btn btn-default" data-dismiss="modal" data-i18n="close">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="view_contract_validity_checks_modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">
+                    <span data-i18n="view_contract_validity_checks">View Contract Validity Checks</span>
+                </h4>
+            </div>
+            <div class="modal-body">
+                <form role="form" autocomplete="off">
+                    <div class="form-group">
+                        <label for="view_contract_validity_checks_name" data-i18n="name"></label>
+                        <input type="text" class="form-control" id="view_contract_validity_checks_name" readonly/>
+                    </div>
+                    <div class="form-group">
+                        <label for="view_contract_validity_checks_content" data-i18n="content"></label>
+                        <textarea class="form-control" id="view_contract_validity_checks_content" rows="12" readonly></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer" style="margin-top:0;">
+                <button type="button" class="btn btn-default" data-dismiss="modal" data-i18n="close">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

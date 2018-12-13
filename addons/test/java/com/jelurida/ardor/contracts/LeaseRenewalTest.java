@@ -13,7 +13,7 @@ public class LeaseRenewalTest extends AbstractContractTest {
         JO setupParams = new JO();
         setupParams.put("leasePeriod", 4);
         setupParams.put("leaseRenewalWarningPeriod", 2);
-        ContractTestHelper.deployContract(LeaseRenewal.class.getSimpleName(), setupParams);
+        ContractTestHelper.deployContract(LeaseRenewal.class, setupParams);
 
         // Contract should submit lease transactions now
         generateBlock();

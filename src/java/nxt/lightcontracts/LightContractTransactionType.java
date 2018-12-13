@@ -30,8 +30,6 @@ import nxt.blockchain.Transaction;
 import nxt.blockchain.TransactionImpl;
 import nxt.blockchain.TransactionType;
 import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
-import org.json.simple.parser.ParseException;
 
 import java.nio.ByteBuffer;
 
@@ -79,7 +77,7 @@ public abstract class LightContractTransactionType extends ChildTransactionType 
         private final Fee CONTRACT_REFERENCE_ANNOUNCE_FEE = new Fee.SizeBasedFee(Constants.ONE_FXT / 10, Constants.ONE_FXT / 10, 32) {
             @Override
             public int getSize(TransactionImpl transaction, Appendix appendage) {
-                ContractReferenceAttachment attachment = (ContractReferenceAttachment)transaction.getAttachment();
+                ContractReferenceAttachment attachment = (ContractReferenceAttachment) transaction.getAttachment();
                 return attachment.getSize();
             }
         };

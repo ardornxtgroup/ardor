@@ -24,6 +24,7 @@ import nxt.util.Convert;
 import nxt.util.Logger;
 import nxt.util.ThreadPool;
 import nxt.util.UPnP;
+import nxt.util.security.BlockchainPermission;
 
 import java.io.IOException;
 import java.net.BindException;
@@ -82,7 +83,7 @@ public final class NetworkHandler implements Runnable {
     static final int DEFAULT_PEER_PORT = (Constants.isPermissioned ? 27873 : 27874);
 
     /** Testnet peer port */
-    static final int TESTNET_PEER_PORT = (Constants.isPermissioned ? 26873 : 26874);
+    static final int TESTNET_PEER_PORT = (Constants.isPermissioned ? 26873 : Constants.isAutomatedTest ? 26872 : 26874);
 
     /** Maximum number of pending messages for a single peer */
     static final int MAX_PENDING_MESSAGES = 25;
@@ -265,16 +266,16 @@ public final class NetworkHandler implements Runnable {
                 services |= service.getCode();
             }
             String disabledAPIs = null;
-            if ((API.isOpenAPI) && !Constants.isLightClient) {
+            if ((API.isIsOpenAPI()) && !Constants.isLightClient) {
                 EnumSet<APIEnum> disabledAPISet = EnumSet.noneOf(APIEnum.class);
 
-                API.disabledAPIs.forEach(apiName -> {
+                API.getDisabledApis().forEach(apiName -> {
                     APIEnum api = APIEnum.fromName(apiName);
                     if (api != null) {
                         disabledAPISet.add(api);
                     }
                 });
-                API.disabledAPITags.forEach(apiTag -> {
+                API.getDisabledApiTags().forEach(apiTag -> {
                     for (APIEnum api : APIEnum.values()) {
                         if (api.getHandler() != null && api.getHandler().getAPITags().contains(apiTag)) {
                             disabledAPISet.add(api);
@@ -288,7 +289,7 @@ public final class NetworkHandler implements Runnable {
                 throw new RuntimeException("Peer credentials not specified for permissioned blockchain");
             }
             getInfoMessage = new NetworkMessage.GetInfoMessage(Nxt.APPLICATION, Nxt.VERSION, platform,
-                    shareAddress, announcedAddress, API.openAPIPort, API.openAPISSLPort, services,
+                    shareAddress, announcedAddress, API.getOpenAPIPort(), API.getOpenAPISSLPort(), services,
                     disabledAPIs, API.apiServerIdleTimeout,
                     (Constants.isPermissioned ? Crypto.getPublicKey(Peers.peerSecretPhrase) : null));
             try {
@@ -341,6 +342,10 @@ public final class NetworkHandler implements Runnable {
      * Shutdown the network handler
      */
     public static void shutdown() {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("peers"));
+        }
         if (!networkShutdown) {
             networkShutdown = true;
             MessageHandler.shutdown();

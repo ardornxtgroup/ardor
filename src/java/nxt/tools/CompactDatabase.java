@@ -19,6 +19,7 @@ package nxt.tools;
 import nxt.Constants;
 import nxt.Nxt;
 import nxt.util.Logger;
+import nxt.util.security.BlockchainPermission;
 
 import java.io.File;
 import java.io.IOException;
@@ -46,6 +47,11 @@ public class CompactDatabase {
      * @param   args                Command line arguments
      */
     public static void main(String[] args) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("tools"));
+        }
+
         //
         // Initialize Nxt properties and logging
         //

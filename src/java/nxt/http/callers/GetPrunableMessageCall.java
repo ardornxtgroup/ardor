@@ -31,7 +31,7 @@ public class GetPrunableMessageCall extends APICall.Builder<GetPrunableMessageCa
         return param("chain", chain);
     }
 
-    public GetPrunableMessageCall retrieve(String retrieve) {
+    public GetPrunableMessageCall retrieve(boolean retrieve) {
         return param("retrieve", retrieve);
     }
 

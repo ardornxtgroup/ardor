@@ -41,9 +41,7 @@ var NRS = (function(NRS, $) {
 
 		$recipientFields.on("oldRecipientPaste", function() {
 			var modal = $(this).closest(".modal");
-
 			var callout = modal.find(".account_info").first();
-
 			callout.removeClass("callout-info callout-danger callout-warning").addClass("callout-danger").html($.t("error_numeric_ids_not_allowed")).show();
 		});
 	};
@@ -66,22 +64,27 @@ var NRS = (function(NRS, $) {
 	//todo later: http://twitter.github.io/typeahead.js/
 	var modal = $(".modal");
     modal.on("click", "span.recipient_selector button, span.plain_address_selector button", function(e) {
-		if (!Object.keys(NRS.contacts).length) {
+		if (!Object.keys(NRS.contacts).length && !NRS.getStrItem("savedNxtAccounts")) {
 			e.preventDefault();
 			e.stopPropagation();
 			return;
 		}
-
 		var $list = $(this).parent().find("ul");
-
 		$list.empty();
-
 		for (var accountId in NRS.contacts) {
 			if (!NRS.contacts.hasOwnProperty(accountId)) {
 				continue;
 			}
 			$list.append("<li><a href='#' data-contact-id='" + accountId + "' data-contact='" + String(NRS.contacts[accountId].name).escapeHTML() + "'>" + String(NRS.contacts[accountId].name).escapeHTML() + "</a></li>");
 		}
+        var accounts = NRS.getStrItem("savedNxtAccounts").split(";");
+        for (var index in accounts) {
+        	var account = accounts[index];
+        	if (account === "" || NRS.contacts[account]) {
+        		continue;
+			}
+            $list.append("<li><a href='#' data-contact-id='" + account + "' data-contact='" + account + "'>" + account + "</a></li>");
+        }
 	});
 
 	modal.on("click", "span.recipient_selector ul li a", function(e) {
@@ -295,8 +298,9 @@ var NRS = (function(NRS, $) {
 		accountInputField.val("");
 
 		NRS.sendRequest("getAlias", {
-			"aliasName": account
-		}, function(response) {
+			"aliasName": account,
+            "chain": 2 // always use Ignis
+        }, function(response) {
 			if (response.errorCode) {
 				callout.removeClass(classes).addClass("callout-danger").html($.t("error_invalid_account_id")).show();
 			} else {
@@ -367,12 +371,12 @@ var NRS = (function(NRS, $) {
                 checkForMerchant(accountResponse.account.description, modal);
             }
             var params = {
-                        "setter": accountResponse.account.account,
-                        "recipient": accountResponse.account.account,
-                        "property": "nrs_recipient_ui_options"
-                    };
+				"setter": accountResponse.account.account,
+				"recipient": accountResponse.account.account,
+				"property": "nrs_recipient_ui_options"
+			};
             NRS.sendRequest("getAccountProperties", params,
-                function (response) {
+		function (response) {
                     var options = {};
                     if ($.isArray(response.properties) && response.properties.length > 0) {
                         try {
@@ -392,8 +396,9 @@ var NRS = (function(NRS, $) {
                     if (options.encrypt_message_disabled === true) {
                         encryptMessageCheckbox.attr('disabled', true);
                     }
-                });
-        }
+                }
+			);
+		}
     }
 
 	function checkForMerchant(accountInfo, modal) {

@@ -313,7 +313,7 @@ public class PhasingOnlyTest extends BlockchainTest {
         Assert.assertEquals(maxDuration, response.integer("maxDuration"));
     }
 
-    private void setPhasingOnlyControl(VotingModel votingModel, String holdingId, Long quorum,
+    public static void setPhasingOnlyControl(VotingModel votingModel, String holdingId, Long quorum,
                                        Long minBalance, MinBalanceModel minBalanceModel, long[] whitelist,
                                        long maxFees, int minDuration, int maxDuration) {
 

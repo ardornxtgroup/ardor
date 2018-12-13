@@ -27,7 +27,7 @@ public class DownloadTaggedDataCall extends APICall.Builder<DownloadTaggedDataCa
         return param("chain", chain);
     }
 
-    public DownloadTaggedDataCall retrieve(String retrieve) {
+    public DownloadTaggedDataCall retrieve(boolean retrieve) {
         return param("retrieve", retrieve);
     }
 

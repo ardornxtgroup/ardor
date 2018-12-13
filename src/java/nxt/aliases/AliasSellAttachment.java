@@ -53,14 +53,12 @@ public final class AliasSellAttachment extends Attachment.AbstractAttachment {
 
     @Override
     protected int getMySize() {
-        return 1 + Convert.toBytes(aliasName).length + 8;
+        return AliasAssignmentAttachment.ALIAS_NAME_RW.getSize(aliasName) + 8;
     }
 
     @Override
     protected void putMyBytes(ByteBuffer buffer) {
-        byte[] aliasBytes = Convert.toBytes(aliasName);
-        buffer.put((byte)aliasBytes.length);
-        buffer.put(aliasBytes);
+        AliasAssignmentAttachment.ALIAS_NAME_RW.writeToBuffer(aliasName, buffer);
         buffer.putLong(priceNQT);
     }
 

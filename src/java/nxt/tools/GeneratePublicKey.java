@@ -19,6 +19,7 @@ package nxt.tools;
 import nxt.crypto.Crypto;
 import nxt.util.Convert;
 import nxt.util.Logger;
+import nxt.util.security.BlockchainPermission;
 
 import java.io.BufferedReader;
 import java.io.Console;
@@ -28,6 +29,11 @@ import java.io.InputStreamReader;
 public class GeneratePublicKey {
 
     public static void main(String[] args) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("tools"));
+        }
+
         if (args.length > 0) {
             System.out.println("Usage: java nxt.tools.GeneratePublicKey");
             System.exit(1);

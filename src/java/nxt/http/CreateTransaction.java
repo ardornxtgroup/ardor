@@ -200,7 +200,7 @@ public abstract class CreateTransaction extends APIServlet.APIRequestHandler {
 
         if (feeNQT < 0L && feeRateNQTPerFXT < 0L && chain != FxtChain.FXT) {
             long minBundlerBalanceFXT = ParameterParser.getLong(req, "minBundlerBalanceFXT", 0, Constants.MAX_BALANCE_FXT, false);
-            feeRateNQTPerFXT = Peers.getBestBundlerRate(chain, minBundlerBalanceFXT, Peers.bestBundlerRateWhitelist);
+            feeRateNQTPerFXT = Peers.getBestBundlerRate(chain, minBundlerBalanceFXT, Peers.getBestBundlerRateWhitelist());
             broadcast = false;
             if (!isVoucher) {
                 response.put("bundlerRateNQTPerFXT", String.valueOf(feeRateNQTPerFXT));

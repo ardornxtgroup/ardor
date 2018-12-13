@@ -17,7 +17,9 @@
 package nxt.db;
 
 import nxt.Nxt;
+import nxt.dbschema.Db;
 import nxt.util.Logger;
+import nxt.util.security.BlockchainPermission;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -29,6 +31,7 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 public class TransactionalDb extends BasicDb {
 
@@ -54,7 +57,39 @@ public class TransactionalDb extends BasicDb {
         super(dbProperties);
     }
 
+    public static <V> V callInDbTransaction(Callable<V> callable) {
+        boolean wasInTransaction = Db.db.isInTransaction();
+        if (!wasInTransaction) {
+            Db.db.beginTransaction();
+        }
+        try {
+
+            V result = callable.call();
+            Db.db.commitTransaction();
+
+            return result;
+        } catch (Exception e) {
+            Db.db.rollbackTransaction();
+            throw new RuntimeException(e.toString(), e);
+        } finally {
+            if (!wasInTransaction) {
+                Db.db.endTransaction();
+            }
+        }
+    }
+
+    public static void runInDbTransaction(Runnable runnable) {
+        callInDbTransaction(() -> {
+            runnable.run();
+            return null;
+        });
+    }
+
     public Connection getConnection(String schema) throws SQLException {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("db"));
+        }
         Connection con = localConnection.get();
         if (con == null) {
             con = getPooledConnection();

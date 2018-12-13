@@ -1,6 +1,5 @@
 package com.jelurida.ardor.contracts;
 
-import nxt.Nxt;
 import nxt.addons.JA;
 import nxt.addons.JO;
 import nxt.blockchain.Block;
@@ -49,10 +48,10 @@ public class AllForOnePaymentTest extends AbstractContractTest {
     @Test
     public void allForOnePayment() {
         JO setupParams = new JO();
-        setupParams.put("frequency", 6);
+        setupParams.put("frequency", "Value from properties will override this setting");
         String contractName = AllForOnePayment.class.getSimpleName();
-        ContractTestHelper.deployContract(contractName, setupParams, false);
-        ContractTestHelper.deployContract(DistributedRandomNumberGenerator.class.getSimpleName(), null, true);
+        ContractTestHelper.deployContract(AllForOnePayment.class, setupParams, false);
+        ContractTestHelper.deployContract(DistributedRandomNumberGenerator.class, null, true);
         JO messageJson = new JO();
         messageJson.put("seed", ContractTestHelper.getRandomSeed(System.identityHashCode(messageJson))); // Specify a random seed
         String message = messageJson.toJSONString();
@@ -118,7 +117,7 @@ public class AllForOnePaymentTest extends AbstractContractTest {
         generateBlock(); // Now the distribution takes place (height 6)
         generateBlock(); // And now the reward transaction is processed
 
-        Block lastBlock = Nxt.getBlockchain().getLastBlock();
+        Block lastBlock = getLastBlock();
         boolean isFound = false;
         String fullHashHex = null;
         List<Long> participants = new ArrayList<>(Arrays.asList(ALICE.getId(), BOB.getId(), CHUCK.getId(), DAVE.getId()));
@@ -149,7 +148,7 @@ public class AllForOnePaymentTest extends AbstractContractTest {
                 param("validate", "true").
                 build();
         response = new JO(apiCall.invoke());
-        Assert.assertTrue(response.getString("errorDescription").startsWith("Invalid phased transaction")); // This is fine since the contract is not under account control
+        Assert.assertTrue(response.getString("errorDescription").startsWith("Cannot approve transaction, validatorSecretPhrase not specified"));
 
         // Trigger the contract based on a specific height without actually submitting the transactions
         apiCall = new APICall.Builder("triggerContractByHeight").

@@ -25,13 +25,19 @@
                 <form role="form" autocomplete="off">
                     <div class="callout callout-danger error_message" style="display:none"></div>
                     <div class="form-group">
-                        <p>
+                        <div class="form-group">
                             <span data-i18n="approve_transaction">Approve Transaction</span>
-                            <span class="at_phased_transaction_display"></span>&nbsp;
-                        </p>
+                            <span class="at_phased_transaction_display"></span>
+                        </div>
                         <div id="at_revealed_secret_div" class="form-group">
-                            <label for="at_revealed_secret" data-i18n="reveal_secret">Reveal Secret</label>
-                            <input type="password" tabindex="1" id="at_revealed_secret" name="revealedSecretText" placeholder="Leave empty if no secret" data-i18n="[placeholder]leave_empty_if_no_secret" value=""/>
+                            <div class="form-group">
+                                <label for="at_revealed_secret" data-i18n="reveal_secret">Reveal Secret</label>
+                                <input type="password" class="form-control" id="at_revealed_secret" name="revealedSecret" placeholder="Leave empty if no secret" data-i18n="[placeholder]leave_empty_if_no_secret" value="" tabindex="1"/>
+                            </div>
+                            <div class="form-group">
+                                <input type="checkbox" id="at_revealed_secret_is_text" name="revealedSecretIsText" value="true" data-default="checked" tabindex="2"/>
+                                <label for="at_revealed_secret_is_text" style="font-weight:normal;" tabindex="3" data-i18n="secret_is_text_v2"></label>
+                            </div>
                         </div>
                         <input type="hidden" id="at_phased_transaction" name="phasedTransaction" value="" />
                         <div class="alert alert-warning" id="at_min_balance_warning" role="alert" style="margin-left:0;">
@@ -57,6 +63,41 @@
 
                 <button type="button" class="btn btn-default" data-dismiss="modal" data-i18n="cancel">Cancel</button>
                 <button type="button" class="btn btn-primary" id="approve_transaction_button" data-loading-text="Submitting..." data-i18n="approve;[data-loading-text]submitting">Approve</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="reveal_secret_modal" data-transaction-type="9" data-transaction-subtype="2" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" data-i18n="reveal_secret">Reveal Secret</h4>
+            </div>
+            <div class="modal-body">
+                <form role="form" autocomplete="off">
+                    <div class="callout callout-danger error_message" style="display:none"></div>
+                    <div class="form-group">
+                        <label for="reveal_secret_secret" data-i18n="secret">Secret</label>
+                        <input type="password" class="form-control" id="reveal_secret_secret" name="revealedSecret" tabindex="1">
+                    </div>
+                    <div data-replace-with-modal-template="fee_calculation_modal_template"></div>
+                    <div data-replace-with-modal-template="secret_phrase_modal_template"></div>
+                    <div data-replace-with-modal-template="advanced_deadline_template"></div>
+                    <div data-replace-with-modal-template="advanced_approve_template"></div>
+                    <div data-replace-with-modal-template="advanced_rt_hash_template"></div>
+                    <div data-replace-with-modal-template="advanced_broadcast_template"></div>
+                    <div data-replace-with-modal-template="advanced_note_to_self_template"></div>
+
+                    <input type="hidden" name="request_type" value="approveTransaction" />
+                </form>
+            </div>
+            <div class="modal-footer" style="margin-top:0;">
+                <div class="advanced_info"><a href="#" data-i18n="advanced">advanced</a></div>
+
+                <button type="button" class="btn btn-default" data-dismiss="modal" data-i18n="cancel">Cancel</button>
+                <button type="button" class="btn btn-primary" data-loading-text="Submitting..." data-i18n="submit;[data-loading-text]submitting">Submit</button>
             </div>
         </div>
     </div>
@@ -149,6 +190,7 @@
                                     <button type="button" id="transaction_info_modal_send_message" class="btn btn-default btn-lg btn-block" data-toggle="modal" data-target="#send_message_modal" data-account="" data-i18n="send_message_to_sender">Send Message to Sender</button>
                                     <button type="button" id="transaction_info_modal_add_as_contact" class="btn btn-default btn-lg btn-block" data-toggle="modal" data-target="#add_contact_modal" data-account="" data-i18n="add_sender_as_contact">Add Sender as Contact</button>
                                     <button type="button" id="transaction_info_modal_approve_transaction" class="btn btn-default btn-lg btn-block approve_transaction_btn" data-toggle="modal" data-target="#approve_transaction_modal" data-i18n="approve_transaction">Approve Transaction</button>
+                                    <button type="button" id="transaction_info_modal_reveal_secret" class="btn btn-default btn-lg btn-block" data-toggle="modal" data-target="#reveal_secret_modal" data-i18n="reveal_secret">Reveal Secret</button>
                                     <button type="button" id="transaction_info_modal_bundle" class="btn btn-default btn-lg btn-block bundle_btn" data-toggle="modal" data-target="#bundle_transaction_modal" data-i18n="bundle">Bundle</button>
                                 </div>
                             </div>

@@ -27,7 +27,7 @@ public class GetTaggedDataCall extends APICall.Builder<GetTaggedDataCall> {
         return param("chain", chain);
     }
 
-    public GetTaggedDataCall retrieve(String retrieve) {
+    public GetTaggedDataCall retrieve(boolean retrieve) {
         return param("retrieve", retrieve);
     }
 

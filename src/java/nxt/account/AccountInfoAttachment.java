@@ -56,17 +56,13 @@ public final class AccountInfoAttachment extends Attachment.AbstractAttachment {
 
     @Override
     protected int getMySize() {
-        return 1 + Convert.toBytes(name).length + 2 + Convert.toBytes(description).length;
+        return NAME_RW.getSize(name) + DESCRIPTION_RW.getSize(description);
     }
 
     @Override
     protected void putMyBytes(ByteBuffer buffer) {
-        byte[] name = Convert.toBytes(this.name);
-        byte[] description = Convert.toBytes(this.description);
-        buffer.put((byte)name.length);
-        buffer.put(name);
-        buffer.putShort((short) description.length);
-        buffer.put(description);
+        NAME_RW.writeToBuffer(name, buffer);
+        DESCRIPTION_RW.writeToBuffer(description, buffer);
     }
 
     @Override

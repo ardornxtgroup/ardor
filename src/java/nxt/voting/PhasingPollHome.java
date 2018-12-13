@@ -16,6 +16,7 @@
 
 package nxt.voting;
 
+import nxt.Constants;
 import nxt.Nxt;
 import nxt.account.Account;
 import nxt.blockchain.ChainTransactionId;
@@ -42,6 +43,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -210,6 +212,118 @@ public final class PhasingPollHome {
         }
     }
 
+
+    private static final DbKey.HashHashLongKeyFactory<HashedSecretPhasedTransaction> hashedSecretPhasedTransactionDbKeyFactory = new DbKey.HashHashLongKeyFactory<HashedSecretPhasedTransaction>(
+            "hashed_secret", "hashed_secret_id", "transaction_full_hash", "transaction_id", "algorithm") {
+        @Override
+        public DbKey newKey(HashedSecretPhasedTransaction hashedSecretPhasedTransaction) {
+            return hashedSecretPhasedTransaction.dbKey;
+        }
+    };
+
+    private static final EntityDbTable<HashedSecretPhasedTransaction> hashedSecretPhasedTransactionTable = new EntityDbTable<HashedSecretPhasedTransaction>(
+            "public.phasing_poll_hashed_secret", hashedSecretPhasedTransactionDbKeyFactory) {
+        @Override
+        protected HashedSecretPhasedTransaction load(Connection con, ResultSet rs, DbKey dbKey) throws SQLException {
+            return new HashedSecretPhasedTransaction(rs, dbKey);
+        }
+
+        @Override
+        protected void save(Connection con, HashedSecretPhasedTransaction hashedSecretPhasedTransaction) throws SQLException {
+            hashedSecretPhasedTransaction.save(con);
+        }
+    };
+
+    private static final class HashedSecretPhasedTransaction {
+
+        private final PhasingParams.HashVoting hashVoting;
+        private final ChainTransactionId phasedTransactionId;
+        private final DbKey dbKey;
+        private final int finishHeight;
+
+        private HashedSecretPhasedTransaction(PhasingParams.HashVoting hashVoting, ChainTransactionId phasedTransactionId, int finishHeight) {
+            this.hashVoting = hashVoting;
+            this.phasedTransactionId = phasedTransactionId;
+            this.dbKey = hashedSecretPhasedTransactionDbKeyFactory.newKey(hashVoting.getHashedSecret(), phasedTransactionId.getFullHash(), hashVoting.getAlgorithm());
+            this.finishHeight = finishHeight;
+        }
+
+        private HashedSecretPhasedTransaction(ResultSet rs, DbKey dbKey) throws SQLException {
+            this.hashVoting = new PhasingParams.HashVoting(rs.getBytes("hashed_secret"), rs.getByte("algorithm"));
+            this.phasedTransactionId = new ChainTransactionId(rs.getInt("chain_id"), rs.getBytes("transaction_full_hash"));
+            this.dbKey = dbKey;
+            this.finishHeight = rs.getInt("finish_height");
+        }
+
+        private void save(Connection con) throws SQLException {
+            try (PreparedStatement pstmt = con.prepareStatement("INSERT INTO phasing_poll_hashed_secret ("
+                    + "hashed_secret, hashed_secret_id, algorithm, transaction_full_hash, transaction_id, chain_id, finish_height, height) "
+                    + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)")) {
+                int i = 0;
+                pstmt.setBytes(++i, hashVoting.getHashedSecret());
+                pstmt.setLong(++i, Convert.fullHashToId(hashVoting.getHashedSecret()));
+                pstmt.setByte(++i, hashVoting.getAlgorithm());
+                pstmt.setBytes(++i, phasedTransactionId.getFullHash());
+                pstmt.setLong(++i, phasedTransactionId.getTransactionId());
+                pstmt.setInt(++i, phasedTransactionId.getChainId());
+                pstmt.setInt(++i, finishHeight);
+                pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
+                pstmt.executeUpdate();
+            }
+        }
+
+        public ChainTransactionId getPhasedTransactionId() {
+            return phasedTransactionId;
+        }
+
+    }
+
+    public static List<ChainTransactionId> getHashedSecretPhasedTransactionIds(PhasingParams.HashVoting hashVoting, int blockchainHeight) {
+        List<ChainTransactionId> hashedSecretPhasedTransactionIds = new ArrayList<>();
+        try (DbIterator<HashedSecretPhasedTransaction> iterator = hashedSecretPhasedTransactionTable.getManyBy(
+                new DbClause.HashClause("hashed_secret", "hashed_secret_id", hashVoting.getHashedSecret())
+                        .and(new DbClause.ByteClause("algorithm", hashVoting.getAlgorithm()))
+                .and(new DbClause.IntClause("finish_height", DbClause.Op.GTE, blockchainHeight)), 0, -1)) {
+            while (iterator.hasNext()) {
+                hashedSecretPhasedTransactionIds.add(iterator.next().getPhasedTransactionId());
+            }
+        }
+        return hashedSecretPhasedTransactionIds;
+    }
+
+    public static Set<ChainTransactionId> getVotedTransactionIds(ChildTransaction transaction) {
+        PhasingVoteCastingAttachment attachment = (PhasingVoteCastingAttachment) transaction.getAttachment();
+        Set<ChainTransactionId> votedTransactionIds = new HashSet<>(attachment.getPhasedTransactionsIds());
+        if (Nxt.getBlockchain().getHeight() >= Constants.LIGHT_CONTRACTS_BLOCK) {
+            for (byte[] revealedSecret : attachment.getRevealedSecrets()) {
+                for (HashFunction hashFunction : PhasingPollHome.acceptedHashFunctions) {
+                    PhasingParams.HashVoting hashVoting = new PhasingParams.HashVoting(hashFunction.hash(revealedSecret), hashFunction.getId());
+                    List<ChainTransactionId> hashedSecretPhasedTransactions = PhasingPollHome.getHashedSecretPhasedTransactionIds(
+                            hashVoting, attachment.getFinishValidationHeight(transaction) + 1);
+                    for (ChainTransactionId hashedSecretPhasedTransactionId : hashedSecretPhasedTransactions) {
+                        if (votedTransactionIds.contains(hashedSecretPhasedTransactionId)) {
+                            continue;
+                        }
+                        ChildTransaction hashedSecretPhasedTransaction = hashedSecretPhasedTransactionId.getChildTransaction();
+                        PhasingPollHome.PhasingPoll poll = hashedSecretPhasedTransaction.getChain().getPhasingPollHome().getPoll(hashedSecretPhasedTransaction);
+                        if (poll == null) {
+                            continue;
+                        }
+                        if (! poll.getParams().isAccountWhitelisted(transaction.getSenderId())) {
+                            continue;
+                        }
+                        if (PhasingPollHome.getResult(hashedSecretPhasedTransaction) != null) {
+                            continue;
+                        }
+                        votedTransactionIds.add(hashedSecretPhasedTransactionId);
+                    }
+                }
+            }
+        }
+        return votedTransactionIds;
+    }
+
+
     private static final DbKey.HashKeyFactory<PhasingPollResult> resultDbKeyFactory = new DbKey.HashKeyFactory<PhasingPollResult>("full_hash", "id") {
         @Override
         public DbKey newKey(PhasingPollResult phasingPollResult) {
@@ -350,7 +464,8 @@ public final class PhasingPollHome {
                      PreparedStatement pstmt4 = con.prepareStatement("DELETE FROM phasing_vote WHERE transaction_id = ? AND transaction_full_hash = ?");
                      PreparedStatement pstmt5 = con.prepareStatement("DELETE FROM phasing_poll_linked_transaction WHERE transaction_id = ? AND transaction_full_hash = ?");
                      PreparedStatement pstmt6 = con.prepareStatement("DELETE FROM phasing_poll_finish WHERE transaction_id = ? AND full_hash = ?");
-                     PreparedStatement pstmt7 = con.prepareStatement("DELETE FROM phasing_sub_poll WHERE transaction_id = ? AND transaction_full_hash = ?")) {
+                     PreparedStatement pstmt7 = con.prepareStatement("DELETE FROM phasing_sub_poll WHERE transaction_id = ? AND transaction_full_hash = ?");
+                     PreparedStatement pstmt8 = con.prepareStatement("DELETE FROM phasing_poll_hashed_secret WHERE transaction_id = ? AND transaction_full_hash = ?")) {
                     while (pollsToTrim.hasNext()) {
                         PhasingPoll poll = pollsToTrim.next();
                         long id = poll.getId();
@@ -376,6 +491,9 @@ public final class PhasingPollHome {
                         pstmt7.setLong(1, id);
                         pstmt7.setBytes(2, hash);
                         pstmt7.executeUpdate();
+                        pstmt8.setLong(1, id);
+                        pstmt8.setBytes(2, hash);
+                        pstmt8.executeUpdate();
                     }
                 } catch (SQLException e) {
                     throw new RuntimeException(e.toString(), e);
@@ -582,6 +700,14 @@ public final class PhasingPollHome {
         }
         votersTable.insert(poll, phasingPollVoters);
         linkedTransactionTable.insert(poll, linkedTransactions);
+        ChainTransactionId id = ChainTransactionId.getChainTransactionId(transaction);
+        poll.getHashedSecretParams().forEach(params -> {
+            HashedSecretPhasedTransaction hashedSecretPhasedTransaction = new HashedSecretPhasedTransaction(
+                    params.getHashVoting(), id, poll.getFinishHeight());
+            if (hashedSecretPhasedTransactionTable.get(hashedSecretPhasedTransaction.dbKey) == null) {
+                hashedSecretPhasedTransactionTable.insert(hashedSecretPhasedTransaction);
+            }
+        });
     }
 
 

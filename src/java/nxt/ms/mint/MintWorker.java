@@ -31,6 +31,7 @@ import nxt.util.Convert;
 import nxt.util.JSON;
 import nxt.util.Logger;
 import nxt.util.TrustAllSSLProvider;
+import nxt.util.security.BlockchainPermission;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
@@ -66,6 +67,10 @@ import java.util.concurrent.Future;
 public class MintWorker {
 
     public static void main(String[] args) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("mint"));
+        }
         MintWorker mintWorker = new MintWorker();
         mintWorker.mint();
     }

@@ -25,6 +25,7 @@ import nxt.dbschema.Db;
 import nxt.util.Convert;
 import nxt.util.Filter;
 import nxt.util.ReadWriteUpdateLock;
+import nxt.util.security.BlockchainPermission;
 import nxt.voting.PhasingPollHome;
 
 import java.sql.Connection;
@@ -41,8 +42,13 @@ import java.util.concurrent.atomic.AtomicReference;
 public final class BlockchainImpl implements Blockchain {
 
     private static final BlockchainImpl instance = new BlockchainImpl();
+    private static final BlockchainPermission blockchainPermission = new BlockchainPermission("getBlockchain");
 
     public static BlockchainImpl getInstance() {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(blockchainPermission);
+        }
         return instance;
     }
 

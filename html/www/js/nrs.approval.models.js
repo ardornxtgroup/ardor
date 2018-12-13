@@ -54,6 +54,7 @@ var NRS = (function(NRS, $) {
                         "<a class='btn btn-xs btn-default' href='#' data-toggle='modal' data-target='#view_approval_model_modal' data-name='" + name + "'>" + $.t("view") + "</a>" +
                         "<a class='btn btn-xs btn-default' href='#' data-toggle='modal' data-target='#rename_approval_model_modal' data-name='" + name + "'>" + $.t("rename") + "</a>" +
                         "<a class='btn btn-xs btn-default' href='#' data-toggle='modal' data-target='#delete_approval_model_modal' data-name='" + name + "'>" + $.t("delete") + "</a>" +
+                    (approvalModel.secretNonce ? ("<a class='btn btn-xs btn-default' href='#' data-toggle='modal' data-target='#reproduce_secret_modal' data-name='" + name + "'>" + $.t("reproduce_secret") + "</a>") : "") +
                     "</td>" +
                     "</tr>";
             });
@@ -73,6 +74,8 @@ var NRS = (function(NRS, $) {
 		var data = NRS.getFormData($modal.find("form:first"));
 		var name = NRS.escapeRespStr(data.name);
 		var description = NRS.escapeRespStr(data.description);
+		var nonce = data.secretNonce;
+		var blockId = data.secretBlockId;
 		delete data.name;
 		if (!name) {
 			return { error: $.t("enter_unique_approval_model_name")}
@@ -131,6 +134,10 @@ var NRS = (function(NRS, $) {
 			}
             delete response.requestProcessingTime;
 			response.description = description;
+			if (nonce) {
+                response.secretNonce = nonce;
+                response.secretBlockId = blockId;
+            }
 			if (response.phasingExpression) {
                 response.phasingExpression = NRS.unescapeRespStr(response.phasingExpression);
             }
@@ -329,6 +336,49 @@ var NRS = (function(NRS, $) {
         }
     });
 
+    function hashSecret(secret, algorithm, callback) {
+        NRS.sendRequest("hash", {
+            "hashAlgorithm": algorithm,
+            "secret": secret
+        }, function (response) {
+            if (response.errorCode) {
+                $.growl(response.errorDescription);
+            } else {
+                callback(response.hash);
+            }
+        });
+    }
+
+    $("#approved_by_hashed_secret_password").change(function() {
+        var secretPhrase = $("#approved_by_hashed_secret_password").val();
+        if (NRS.accountRS != NRS.getAccountId(secretPhrase, true)) {
+            $.growl($.t("generate_secret_wrong_passphrase", { account: NRS.accountRS } ));
+            return;
+        }
+        NRS.generateSecret(secretPhrase, function (result) {
+            if (result.error) {
+                $.growl(result.error)
+            } else {
+                $("#approved_by_hashed_secret_nonce").val(result.nonce);
+                $("#approved_by_hashed_secret_block_id").val(result.blockId);
+                $("#approved_by_hashed_secret_generated_secret").val(result.secret);
+                hashSecret(result.secret, $(".hash_algorithm_model_group").find("select").val(), function(hash) {
+                    $("#approved_by_hashed_secret").val(hash);
+                });
+            }
+        });
+    });
+
+    $(".hash_algorithm_model_group").change(function() {
+        var generatedSecret = $("#approved_by_hashed_secret_generated_secret").val();
+        if (generatedSecret == "") {
+            return;
+        }
+        hashSecret(generatedSecret, $(".hash_algorithm_model_group").find("select").val(), function(hash) {
+            $("#approved_by_hashed_secret").val(hash);
+        });
+    });
+
     NRS.loadApprovalModelsList = function ($approvalModelSelect, isPhasing) {
         $approvalModelSelect.append($("<option />").val("").text($.t("none")));
         for (var key in approvalModels) {
@@ -367,6 +417,47 @@ var NRS = (function(NRS, $) {
             }
         }
     };
+
+    $("#reproduce_secret_modal").on("show.bs.modal", function(e) {
+        var $invoker = $(e.relatedTarget);
+        var name = $invoker.data("name");
+        var model = approvalModels[name];
+        $("#reproduce_secret_name").val(name);
+        $("#reproduce_secret_nonce").val(model.secretNonce);
+        $("#reproduce_secret_block_id").val(model.secretBlockId);
+        $("#reproduce_secret_hashed_secret").val(model.phasingHashedSecret);
+        $("#reproduce_secret_hash_algorithm").val(model.phasingHashedSecretAlgorithm);
+        NRS.sendRequest("getHashedSecretPhasedTransactions", {
+            phasingHashedSecret: model.phasingHashedSecret,
+            phasingHashedSecretAlgorithm: model.phasingHashedSecretAlgorithm
+        }, function (response) {
+            var transactions = "";
+            for (var i = 0; i < response.transactions.length; i++) {
+                var transaction = response.transactions[i];
+                if (transaction.approved) {
+                    continue;
+                }
+                transactions += NRS.getTransactionLink(transaction.fullHash, null, false, transaction.chain) + "<br>";
+            }
+            $("#reproduce_secret_transactions").html(transactions);
+        });
+    });
+
+    $("#reproduce_secret_password").change(function() {
+        var secretPhrase = $("#reproduce_secret_password").val();
+        var calculateSecret = NRS.calculateSecret(secretPhrase, $("#reproduce_secret_nonce").val(), $("#reproduce_secret_block_id").val());
+        $("#reproduce_secret_generated_secret").val(calculateSecret);
+        var $modal = $("#reproduce_secret_modal");
+        hashSecret(calculateSecret, $("#reproduce_secret_hash_algorithm").val(), function (hash) {
+            if (hash == $("#reproduce_secret_hashed_secret").val()) {
+                $modal.find(".error_message").html("").hide();
+                $modal.find(".info_message").html($.t("secret_reproduced")).show();
+            } else {
+                $modal.find(".error_message").html($.t("secret_does_not_match")).show();
+                $modal.find(".info_message").html("").hide();
+            }
+        })
+    });
 
     NRS.getApprovalModel = function(name) {
         return approvalModels[name];

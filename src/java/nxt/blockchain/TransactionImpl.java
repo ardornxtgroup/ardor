@@ -28,6 +28,7 @@ import nxt.util.Convert;
 import nxt.util.Filter;
 import nxt.util.JSON;
 import nxt.util.Logger;
+import nxt.util.security.BlockchainPermission;
 import org.json.simple.JSONObject;
 
 import java.math.BigInteger;
@@ -840,6 +841,10 @@ public abstract class TransactionImpl implements Transaction {
     }
 
     public static TransactionImpl.BuilderImpl newTransactionBuilder(byte[] bytes) throws NxtException.NotValidException {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("newTransactionBuilder"));
+        }
         try {
             ByteBuffer buffer = ByteBuffer.wrap(bytes);
             buffer.order(ByteOrder.LITTLE_ENDIAN);
@@ -884,12 +889,20 @@ public abstract class TransactionImpl implements Transaction {
     }
 
     public static TransactionImpl.BuilderImpl newTransactionBuilder(byte[] bytes, JSONObject prunableAttachments) throws NxtException.NotValidException {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("newTransactionBuilder"));
+        }
         TransactionImpl.BuilderImpl builder = newTransactionBuilder(bytes);
         builder.prunableAttachments(prunableAttachments);
         return builder;
     }
 
     public static TransactionImpl.BuilderImpl newTransactionBuilder(JSONObject transactionData) throws NxtException.NotValidException {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("newTransactionBuilder"));
+        }
         try {
             int chainId = ((Long) transactionData.get("chain")).intValue();
             byte type = ((Long) transactionData.get("type")).byteValue();

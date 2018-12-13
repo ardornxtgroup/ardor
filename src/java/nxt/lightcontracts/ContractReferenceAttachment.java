@@ -59,7 +59,7 @@ public final class ContractReferenceAttachment extends Attachment.AbstractAttach
 
     @Override
     protected int getMySize() {
-        return 1 + Convert.toBytes(contractName).length + 1 + Convert.toBytes(contractParams).length + ChainTransactionId.BYTE_SIZE;
+        return NAME_RW.getSize(contractName) + PARAMS_RW.getSize(contractParams) + ChainTransactionId.BYTE_SIZE;
     }
 
     @Override

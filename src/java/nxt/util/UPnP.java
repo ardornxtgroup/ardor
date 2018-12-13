@@ -17,6 +17,7 @@
 package nxt.util;
 
 import nxt.Nxt;
+import nxt.util.security.BlockchainPermission;
 import org.bitlet.weupnp.GatewayDevice;
 import org.bitlet.weupnp.GatewayDiscover;
 
@@ -46,6 +47,11 @@ public class UPnP {
      * @param   port                Port to add
      */
     public static synchronized void addPort(int port) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("upnp"));
+        }
+
         if (!initDone)
             init();
         //
@@ -74,6 +80,11 @@ public class UPnP {
      * @param   port                Port to delete
      */
     public static synchronized void deletePort(int port) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("upnp"));
+        }
+
         if (!initDone || gateway == null)
             return;
         //
@@ -96,6 +107,11 @@ public class UPnP {
      * @return                      Local address or null if the address is not available
      */
     public static synchronized InetAddress getLocalAddress() {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("upnp"));
+        }
+
         if (!initDone)
             init();
         return localAddress;
@@ -107,6 +123,11 @@ public class UPnP {
      * @return                      External address or null if the address is not available
      */
     public static synchronized InetAddress getExternalAddress() {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("upnp"));
+        }
+
         if (!initDone)
             init();
         return externalAddress;

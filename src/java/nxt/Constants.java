@@ -58,11 +58,12 @@ public final class Constants {
     public static final BigInteger ONE_FXT_BIG_INTEGER = BigInteger.valueOf(ONE_FXT);
     public static final long MAX_BALANCE_NQT = MAX_BALANCE_FXT * ONE_FXT;
     public static final int BLOCK_TIME = 60;
+    public static final int TESTNET_ACCELERATION = 6;
     public static final long INITIAL_BASE_TARGET = BigInteger.valueOf(2).pow(63).divide(BigInteger.valueOf(BLOCK_TIME * MAX_BALANCE_FXT)).longValue(); //153722867;
     public static final long MAX_BASE_TARGET = INITIAL_BASE_TARGET * (isTestnet ? MAX_BALANCE_FXT : 50);
     public static final long MIN_BASE_TARGET = INITIAL_BASE_TARGET * 9 / 10;
-    public static final int MIN_BLOCKTIME_LIMIT = BLOCK_TIME - 7;
-    public static final int MAX_BLOCKTIME_LIMIT = BLOCK_TIME + 7;
+    public static final int MIN_BLOCKTIME_DELTA = 7;
+    public static final int MAX_BLOCKTIME_DELTA = 7;
     public static final int BASE_TARGET_GAMMA = 64;
     public static final int MAX_ROLLBACK = Math.max(Nxt.getIntProperty("nxt.maxRollback"), 720);
     public static final int GUARANTEED_BALANCE_CONFIRMATIONS = isTestnet ? Nxt.getIntProperty("nxt.testnetGuaranteedBalanceConfirmations", 1440) : 1440;
@@ -109,6 +110,8 @@ public final class Constants {
 
     public static final int MAX_ACCOUNT_PROPERTY_NAME_LENGTH = 32;
     public static final int MAX_ACCOUNT_PROPERTY_VALUE_LENGTH = 160;
+    public static final int MAX_ASSET_PROPERTY_NAME_LENGTH = 32;
+    public static final int MAX_ASSET_PROPERTY_VALUE_LENGTH = 160;
 
     public static final long MAX_ASSET_QUANTITY_QNT = 1000000000L * 100000000L;
     public static final int MIN_ASSET_NAME_LENGTH = 3;
@@ -160,7 +163,9 @@ public final class Constants {
     public static final int MAX_REFERENCED_TRANSACTION_TIMESPAN = 60 * 1440 * 60;
     public static final int CHECKSUM_BLOCK_1 = Constants.isTestnet ? 17000 : 6000;
     public static final int CHECKSUM_BLOCK_2 = Constants.isTestnet ? 230000 : 221000;
-    public static final int LIGHT_CONTRACTS_BLOCK = Constants.isTestnet ? Constants.isAutomatedTest ? 0 : 341500 : Integer.MAX_VALUE;
+    public static final int LIGHT_CONTRACTS_BLOCK = Constants.isTestnet ? Constants.isAutomatedTest ? 0 : 341500 : 543000;
+    public static final int ASSET_PROPERTIES_BLOCK = Constants.isTestnet ? Constants.isAutomatedTest ? 0 : 455000 : 543000;
+    public static final int MPG_BLOCK = Constants.isTestnet ? Constants.isAutomatedTest ? 1 : 455000 : 543000;
 
     public static final int LAST_CHECKSUM_BLOCK = CHECKSUM_BLOCK_2;
 
@@ -168,7 +173,7 @@ public final class Constants {
     public static final long LAST_KNOWN_BLOCK_ID = Convert.parseUnsignedLong(isTestnet ? "2329106975025976796" : "9325030473083237377");
 
     public static final int[] MIN_VERSION = new int[] {2, 0, 10};
-    public static final int[] MIN_PROXY_VERSION = new int[] {2, 1};
+    public static final int[] MIN_PROXY_VERSION = new int[] {2, 2};
 
     public static final long UNCONFIRMED_POOL_DEPOSIT_FQT = 10 * ONE_FXT;
 

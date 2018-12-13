@@ -17,6 +17,8 @@
 package nxt.env;
 
 import nxt.Nxt;
+import nxt.util.security.BlockchainPermission;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -70,6 +72,10 @@ public class RuntimeEnvironment {
     }
 
     private static boolean isDesktopEnabled(String configuredMode) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("desktop"));
+        }
         boolean isDesktopModeConfigured;
         if (configuredMode == null) {
             isDesktopModeConfigured = "desktop".equalsIgnoreCase(Nxt.getStringProperty(RUNTIME_MODE_ARG));
@@ -85,6 +91,10 @@ public class RuntimeEnvironment {
     }
 
     public static RuntimeMode getRuntimeMode(String configuredMode) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("desktop"));
+        }
         System.out.println("isHeadless=" + isHeadless());
         if (isDesktopEnabled(configuredMode)) {
             return new DesktopMode();
@@ -96,10 +106,14 @@ public class RuntimeEnvironment {
     }
 
     public static DirProvider getDirProvider(String configuredMode) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("sensitiveInfo"));
+        }
         String dirProvider = System.getProperty(DIRPROVIDER_ARG);
         if (dirProvider != null) {
             try {
-                return (DirProvider)Class.forName(dirProvider).newInstance();
+                return (DirProvider)Class.forName(dirProvider).getConstructor().newInstance();
             } catch (ReflectiveOperationException e) {
                 System.out.println("Failed to instantiate dirProvider " + dirProvider);
                 throw new RuntimeException(e.getMessage(), e);

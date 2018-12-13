@@ -4,6 +4,9 @@ import nxt.addons.AbstractContract;
 import nxt.addons.AbstractContractContext;
 import nxt.addons.BlockContext;
 import nxt.addons.Contract;
+import nxt.addons.ContractAndSetupParameters;
+import nxt.addons.ContractParametersProvider;
+import nxt.addons.ContractSetupParameter;
 import nxt.addons.DelegatedContext;
 import nxt.addons.JA;
 import nxt.addons.JO;
@@ -29,48 +32,57 @@ import java.util.stream.Collectors;
  */
 public class AllForOnePayment extends AbstractContract {
 
+    @ContractParametersProvider
+    public interface Params {
+        @ContractSetupParameter
+        default int chain() {
+            return 2;
+        }
+
+        @ContractSetupParameter
+        default int frequency() {
+            return 10;
+        }
+    }
+
     /**
      * This contract is triggered every block
      * @param context contract context
      */
     @Override
-    public void processBlock(BlockContext context) {
-        // Read contract configuration
-        int chainId = getContractParams().getInt("chain", 2);
-        int frequency = getContractParams().getInt("frequency", 10);
-
+    public JO processBlock(BlockContext context) {
+        Params params = context.getParams(Params.class);
         // Check if the it to perform payment distribution on this height
         int height = context.getHeight();
-        if (height % frequency != 0) {
-            context.setErrorResponse(10001,"%s: ignore block at height %d", getClass().getName(), height);
-            return;
+        if (height % params.frequency() != 0) {
+            return context.generateErrorResponse(10001,"%s: ignore block at height %d", getClass().getName(), height);
         }
 
         // Find the incoming payment transactions and calculate the payment amount
-        String account = context.getConfig().getAccount();
-        List<TransactionResponse> payments = getPaymentTransactions(context, chainId, Math.max(height - frequency, 2), account);
+        String account = context.getAccount();
+        List<TransactionResponse> payments = getPaymentTransactions(context, params.chain(), Math.max(height - params.frequency(), 2), account);
         if (payments.size() == 0) {
-            context.logInfoMessage("No incoming payments between block %d and %d", Math.max(0, height - frequency + 1), height);
-            return;
+            return context.generateInfoResponse("No incoming payments between block %d and %d", Math.max(0, height - params.frequency() + 1), height);
         }
         long payment = payments.stream().mapToLong(TransactionResponse::getAmount).sum();
         long randomSeed = 0;
         for (TransactionResponse paymentTransaction : payments) {
-            randomSeed ^= paymentTransaction.getRandomSeed(context.getConfig().getSecretPhrase());
+            randomSeed ^= paymentTransaction.getRandomSeed(context.getConfig());
         }
         context.initRandom(randomSeed);
 
         // Select random recipient account, your chance of being selected is proportional to the sum of your payments
         Map<String, Long> collect = payments.stream().collect(Collectors.groupingBy(TransactionResponse::getSender, Collectors.summingLong(TransactionResponse::getAmount)));
-        Contract<Map<String, Long>, String> distributedRandomNumberGenerator = context.loadContract("DistributedRandomNumberGenerator");
-        DelegatedContext delegatedContext = new DelegatedContext(context, distributedRandomNumberGenerator.getClass().getName());
+        ContractAndSetupParameters contractAndParameters = context.loadContract("DistributedRandomNumberGenerator");
+        Contract<Map<String, Long>, String> distributedRandomNumberGenerator = (Contract<Map<String, Long>, String>) contractAndParameters.getContract();
+        DelegatedContext delegatedContext = new DelegatedContext(context, distributedRandomNumberGenerator.getClass().getName(), contractAndParameters.getParams());
         distributedRandomNumberGenerator.processInvocation(delegatedContext, collect);
         String selectedAccount = distributedRandomNumberGenerator.processInvocation(delegatedContext, collect);
         context.logInfoMessage("paying amount %d to account %s", payment, context.rsAccount(Long.parseUnsignedLong(selectedAccount)));
 
         // Submit the payment transaction
-        SendMoneyCall sendMoneyCall = SendMoneyCall.create(chainId).recipient(selectedAccount).amountNQT(payment);
-        context.createTransaction(sendMoneyCall);
+        SendMoneyCall sendMoneyCall = SendMoneyCall.create(params.chain()).recipient(selectedAccount).amountNQT(payment);
+        return context.createTransaction(sendMoneyCall);
     }
 
     /**
@@ -86,7 +98,7 @@ public class AllForOnePayment extends AbstractContract {
         BlockResponse block = GetBlockCall.create().height(height).getBlock();
         GetBlockchainTransactionsCall getBlockchainTransactionsResponse = GetBlockchainTransactionsCall.create(chainId).
                 timestamp(block.getTimestamp()).
-                account(context.getConfig().getAccountRs()).
+                account(context.getAccountRs()).
                 executedOnly(true).
                 type(chainId == 1 ? -2 : 0).subtype(0);
         List<TransactionResponse> transactionList = getBlockchainTransactionsResponse.getTransactions();
@@ -110,11 +122,12 @@ public class AllForOnePayment extends AbstractContract {
      * @param context contract contract
      */
     @Override
-    public void processRequest(RequestContext context) {
+    public JO processRequest(RequestContext context) {
         JO response = new JO();
-        int chainId = getContractParams().getInt("chain", 2);
-        int frequency = getContractParams().getInt("frequency", 10);
-        String account = context.getConfig().getAccount();
+        Params params = context.getParams(Params.class);
+        int chainId = params.chain();
+        int frequency = params.frequency();
+        String account = context.getAccount();
         List<TransactionResponse> payments = getPaymentTransactions(context, chainId, Math.max(context.getBlockchainHeight() - frequency, 2), account);
         long payment = payments.stream().mapToLong(TransactionResponse::getAmount).sum();
         response.put("paymentAmountNQT", payment);
@@ -126,7 +139,7 @@ public class AllForOnePayment extends AbstractContract {
             paymentsArray.add(paymentData);
         }
         response.put("payments", paymentsArray);
-        context.setResponse(response);
+        return response;
     }
 
 }

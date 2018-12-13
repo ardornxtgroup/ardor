@@ -35,6 +35,7 @@ import nxt.util.Listeners;
 import nxt.util.Logger;
 import nxt.util.QueuedThreadPool;
 import nxt.util.ThreadPool;
+import nxt.util.security.BlockchainPermission;
 
 import java.net.InetAddress;
 import java.net.URI;
@@ -133,7 +134,15 @@ public final class Peers {
     private static final Set<Long> blacklistedBundlerAccounts = new HashSet<>();
 
     /** Whitelisted accounts providing best bundler rate */
-    public static final Set<Long> bestBundlerRateWhitelist;
+    private static final Set<Long> bestBundlerRateWhitelist;
+
+    public static Set<Long> getBestBundlerRateWhitelist() {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("peers"));
+        }
+        return bestBundlerRateWhitelist;
+    }
 
     static {
         List<String> accountList = Nxt.getStringListProperty("nxt.blacklistedBundlerAccounts");
@@ -171,10 +180,10 @@ public final class Peers {
         if (!Constants.ENABLE_PRUNING && Constants.INCLUDE_EXPIRED_PRUNABLE) {
             services.add(Peer.Service.PRUNABLE);
         }
-        if (API.openAPIPort > 0) {
+        if (API.getOpenAPIPort() > 0) {
             services.add(Peer.Service.API);
         }
-        if (API.openAPISSLPort > 0) {
+        if (API.getOpenAPISSLPort() > 0) {
             services.add(Peer.Service.API_SSL);
         }
         if (API.apiServerCORS) {
@@ -232,6 +241,10 @@ public final class Peers {
      * Initialize peer processing
      */
     public static void init() {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("peers"));
+        }
         if (Constants.isOffline) {
             Logger.logInfoMessage("Peer services are offline");
             return;
@@ -329,6 +342,10 @@ public final class Peers {
      * Shutdown peer processing
      */
     public static void shutdown() {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("peers"));
+        }
         ThreadPool.shutdownExecutor("peersService", peersService, 5);
     }
 
@@ -340,6 +357,10 @@ public final class Peers {
      * @return                          TRUE if the listener was added
      */
     public static boolean addListener(Listener<Peer> listener, Event eventType) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("peers"));
+        }
         return Peers.listeners.addListener(listener, eventType);
     }
 
@@ -351,6 +372,10 @@ public final class Peers {
      * @return                          TRUE if the listener was removed
      */
     public static boolean removeListener(Listener<Peer> listener, Event eventType) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("peers"));
+        }
         return Peers.listeners.removeListener(listener, eventType);
     }
 
@@ -371,6 +396,10 @@ public final class Peers {
      * @return                          TRUE if this is a new peer
      */
     public static boolean addPeer(Peer peer) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("peers"));
+        }
         Peer oldPeer = peers.put(peer.getHost(), (PeerImpl)peer);
         if (oldPeer != null) {
             return false;
@@ -400,6 +429,10 @@ public final class Peers {
      * @return                          TRUE if the peer was removed
      */
     public static boolean removePeer(Peer peer) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("peers"));
+        }
         if (peer.getAnnouncedAddress() != null) {
             selfAnnouncedAddresses.remove(peer.getAnnouncedAddress());
         }
@@ -416,6 +449,10 @@ public final class Peers {
      * @return                      List of local peer services
      */
     public static List<Peer.Service> getServices() {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("peers"));
+        }
         return myServices;
     }
 
@@ -429,6 +466,10 @@ public final class Peers {
      * @return                          Peer or null if the peer could not be created
      */
     public static Peer findOrCreatePeer(String announcedAddress, boolean create) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("peers"));
+        }
         PeerImpl peer;
         if (announcedAddress == null) {
             return null;
@@ -507,6 +548,10 @@ public final class Peers {
     }
 
     public static Peer getPeer(String host) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("peers"));
+        }
         return peers.get(host);
     }
 
@@ -517,6 +562,10 @@ public final class Peers {
      * @return                          Selected peer or null
      */
     public static Peer getAnyPeer(Filter<Peer> filter) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("peers"));
+        }
         List<? extends Peer> peerList = new ArrayList<>(peers.values());
         return getAnyPeer(peerList, filter);
     }
@@ -528,6 +577,7 @@ public final class Peers {
      * @return                          Selected peer or null
      */
     public static Peer getAnyPeer(List<? extends Peer> peerList) {
+
         return getAnyPeer(peerList, null);
     }
 
@@ -539,6 +589,10 @@ public final class Peers {
      * @return                          Selected peer or null
      */
     public static Peer getAnyPeer(List<? extends Peer> peerList, Filter<Peer> filter) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("peers"));
+        }
         if (peerList.isEmpty()) {
             return null;
         }
@@ -582,6 +636,10 @@ public final class Peers {
      * @return                          List of peers
      */
     public static List<Peer> getPeers(Filter<Peer> filter, int limit) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("peers"));
+        }
         List<Peer> result = new ArrayList<>();
         for (Peer peer : peers.values()) {
             if (filter.ok(peer)) {
@@ -600,6 +658,10 @@ public final class Peers {
      * @return                          List of known peers
      */
     public static Collection<Peer> getAllPeers() {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("peers"));
+        }
         return allPeers;
     }
 
@@ -609,6 +671,10 @@ public final class Peers {
      * @return                          List of connected peers
      */
     public static List<Peer> getConnectedPeers() {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("peers"));
+        }
         if (Nxt.isEnabled(SubSystem.PEER_NETWORKING)) {
             return new ArrayList<>(NetworkHandler.connectionMap.values());
         } else {
@@ -948,6 +1014,10 @@ public final class Peers {
      * @return                  The blockchain state
      */
     public static Peer.BlockchainState getMyBlockchainState() {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("peers"));
+        }
         return Constants.isLightClient ? Peer.BlockchainState.LIGHT_CLIENT :
                 (Nxt.getBlockchainProcessor().isDownloading() ||
                         Nxt.getBlockchain().getLastBlockTimestamp() < Nxt.getEpochTime() - 600) ?
@@ -1090,6 +1160,10 @@ public final class Peers {
      * @return                  List of bundler rates
      */
     public static List<BundlerRate> getBestBundlerRates(long minBalance, Set<Long> whitelist) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("peers"));
+        }
         Map<ChildChain, BundlerRate> rateMap = new HashMap<>();
         forEachBundlerRate(rate -> {
             BundlerRate prevRate = rateMap.get(rate.getChain());
@@ -1111,6 +1185,10 @@ public final class Peers {
      * @return                  List of bundler rates
      */
     public static List<BundlerRate> getAllBundlerRates(long minBalance) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("peers"));
+        }
         List<BundlerRate> allRates = new ArrayList<>();
         forEachBundlerRate(rate -> {
             if (rate.getBalance() >= minBalance) {
@@ -1129,6 +1207,10 @@ public final class Peers {
      * @return                  Best bundler rate or -1 if there are no rates
      */
     public static long getBestBundlerRate(Chain childChain, long minBalance, Set<Long> whitelist) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("peers"));
+        }
         AtomicLong minRate = new AtomicLong(-1);
         forEachBundlerRate(rate -> {
             if (rate.getChain() == childChain && rate.getBalance() >= minBalance &&
@@ -1143,6 +1225,10 @@ public final class Peers {
      * Broadcast our current bundler rates
      */
     public static void broadcastBundlerRates() {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("peers"));
+        }
         bundlersChanged = true;
     }
 
@@ -1152,6 +1238,10 @@ public final class Peers {
      * @param   peer                Peer
      */
     public static void sendBundlerRates(Peer peer) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("peers"));
+        }
         List<BundlerRate> rates = new ArrayList<>();
         int now = Nxt.getEpochTime();
         synchronized(bundlerRates) {
@@ -1185,6 +1275,10 @@ public final class Peers {
      * @return                      TRUE if the bundler is blacklisted
      */
     public static boolean isBundlerBlacklisted(long accountId) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("peers"));
+        }
         boolean isBlacklisted;
         synchronized(blacklistedBundlerAccounts) {
             isBlacklisted = blacklistedBundlerAccounts.contains(accountId);
@@ -1198,6 +1292,10 @@ public final class Peers {
      * @param   accountId           Bundler account
      */
     public static void blacklistBundler(long accountId) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("peers"));
+        }
         synchronized(blacklistedBundlerAccounts) {
             blacklistedBundlerAccounts.add(accountId);
             Logger.logInfoMessage("Bundler " + Convert.rsAccount(accountId) + " blacklisted");
@@ -1214,6 +1312,10 @@ public final class Peers {
      * @return                      TRUE if the log level is enabled
      */
     public static boolean isLogLevelEnabled(int logLevel) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("peers"));
+        }
         return ((communicationLogging & logLevel) != 0);
     }
 
@@ -1223,6 +1325,10 @@ public final class Peers {
      * @param   logging             Communication logging value
      */
     public static void setCommunicationLogging(int logging) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("peers"));
+        }
         communicationLogging = logging;
     }
 

@@ -1,3 +1,110 @@
+ardor-client-2.2.0e:
+
+This is an experimental release, and a MANDATORY upgrade for all testnet nodes.
+It can also be used on mainnet.
+
+Added Asset Properties feature, to be activated at block 455000 on testnet only.
+
+Asset Properties allow attaching metadata to assets, in the form of name/value
+pairs. The property name can be up to 32 characters, and property value up to
+160 characters in length. Anyone can set a property on an asset. Only the asset
+issuer, or the setter of the property, can delete a property. The setter of a
+property can edit it by setting a new property with the same name.
+
+New APIs: SetAssetProperty, DeleteAssetProperty, GetAssetProperties.
+
+Implemented freezing of assets and currencies, to be used for tokens that are
+scheduled to become child chains, or need to be deactivated for other reasons.
+
+Freezing of arbitrary assets or currencies is not (and will not be) supported.
+The freezing of a particular holding must first be enabled in a new release,
+and is then triggered at a predefined height, optionally specified as asset
+property for assets, or account property for currencies.
+
+After the freeze height, no further transactions with the frozen holding are
+possible (with the exception of setting or deleting asset properties). Freezing
+is not reversible.
+
+Implemented migration of a frozen asset or currency to a new child chain. The
+migration of a particular holding must first be enabled in a new release, and
+is then triggered at a predefined height, optionally specified as asset property
+for assets, or account property for currencies.
+
+Implemented loading of account balances for new child chains. The Dominium child
+chain will be launched on testnet at or after block 455000, with testnet
+balances allocated to developer accounts only.
+
+Fixed loading transaction voucher which contains attached encrypted message.
+
+Node log file name changed from nxt.log to ardor.{n}.log where {n} is the log
+file number. The current log file is always named ardor.0.log. Up to 10 log
+files are kept.
+
+The windows startup script run.bat no longer relies on the windows registry
+when looking up the Java version.
+
+Lightweight Contracts:
+
+The contract runner now executes contracts in their own sandbox which restricts
+the contract permissions based on a standard Java policy file named ardor.policy
+By default contracts allowed to connect to any address, and read, write and 
+delete files in the temp folder of the contract runner workstation. Direct 
+access to the local workstation, or the local blockchain not through the APIs
+is blocked by default. The contract runner operator can grant additional 
+permissions per contract or for all contracts submitted by a specific account. 
+See examples in ardor.policy file.
+
+Added support for deployment and verification of single source file contract 
+which compiles into multiple class files. The contract classes are automatically 
+packaged into a Jar file when deployed to the blockchain. Similarly verification
+of the contract unpacks the Jar and compares individual class files.
+
+Parameter injection is now supported using the ContractInvocationParameter,
+ContractSetupParameter and ContractRunnerParameter annotations. This reduces
+contract boiler plate code for reading parameters. 
+
+Contract class selector was added to the contract manager plugin. Users 
+upgrading from a previous release will need to redeploy the IntelliJ plugin 
+after installing this version. The plugin version should be 2.2.0.
+
+Contract runner parameters can be specified in the nxt.properties file using
+the addon.contractRunner. prefix. The contracts.json configuration file is now
+only used when specifying secret contract runner parameters so can be ignored
+in most configuration.
+
+It is no longer required to define contracts which do not setup parameters in 
+the contract.uploader.json file.
+
+See: https://ardordocs.jelurida.com/Lightweight_Contracts for more details and 
+examples.
+
+Due to interface changes introduced by this release, all existing contracts will
+have to be redeployed on testnet and contract runners using a previous version
+won't be able to run contracts deployed using the current version.
+
+On testnet only, after block 455000 the average block time will be reduced to
+10 seconds. This is to allow faster testing and development, and to test the
+feasibility of reducing block time should the need arise on mainnet.
+
+
+--------------------------------------------------------------------------------
+ardor-client-2.1.2:
+
+This is a critical bugfix release. IMMEDIATE update is mandatory for everyone.
+
+Fixed validation of string fields length in transaction attachments.
+
+This is a stable release and should be used for mainnet nodes too, however
+lightweight contracts are still available only on testnet.
+
+Changelly exchange integration is now available in the Ardor wallet:
+
+https://nxtwiki.org/wiki/Changelly_Integration
+
+Javadoc is now available for sample contracts and API callers.
+
+
+--------------------------------------------------------------------------------
 ardor-client-2.1.1e:
 
 This is an experimental release. It is a mandatory upgrade only for testnet

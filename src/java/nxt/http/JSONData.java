@@ -239,6 +239,19 @@ public final class JSONData {
         return json;
     }
 
+    static JSONObject assetProperty(Asset.AssetProperty property, boolean includeAsset, boolean includeSetter) {
+        JSONObject json = new JSONObject();
+        if (includeAsset) {
+            json.put("asset", Long.toUnsignedString(property.getAssetId()));
+        }
+        if (includeSetter) {
+            putAccount(json, "setter", property.getSetterId());
+        }
+        json.put("property", property.getProperty());
+        json.put("value", property.getValue());
+        return json;
+    }
+
     static JSONObject askOrder(OrderHome.Ask order) {
         JSONObject json = order(order);
         json.put("type", "ask");
@@ -714,6 +727,7 @@ public final class JSONData {
         }
         if (poll.getHashedSecret() != null) {
             json.put("hashedSecret", Convert.toHexString(poll.getHashedSecret()));
+            json.put("hashedSecretAlgorithm", poll.getAlgorithm());
         }
         putVoteWeighting(json, poll.getVoteWeighting());
         PhasingPollHome.PhasingPollResult phasingPollResult = PhasingPollHome.getResult(poll.getFullHash());
@@ -754,7 +768,7 @@ public final class JSONData {
         }
     }
 
-    static JSONObject phasingOnly(AccountRestrictions.PhasingOnly phasingOnly) {
+    public static JSONObject phasingOnly(AccountRestrictions.PhasingOnly phasingOnly) {
         JSONObject json = new JSONObject();
         putAccount(json, "account", phasingOnly.getAccountId());
 
@@ -1295,7 +1309,11 @@ public final class JSONData {
     public static JSONObject contractReference(ContractReference contractReference) {
         JSONObject json = new JSONObject();
         json.put("name", contractReference.getContractName());
-        json.put("params", contractReference.getContractParams());
+        if (contractReference.getContractParams() != null) {
+            json.put("setupParameters", contractReference.getContractParams());
+        } else {
+            json.put("setupParameters", "");
+        }
         json.put("contract", contractReference.getContractId().getJSON());
         json.put("id", Long.toUnsignedString(contractReference.getId()));
         return json;

@@ -41,6 +41,7 @@ import nxt.taggeddata.TaggedDataHome;
 import nxt.util.Convert;
 import nxt.util.Logger;
 import nxt.util.TrustAllSSLProvider;
+import nxt.util.security.BlockchainPermission;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.awt.*;
@@ -76,6 +77,11 @@ public class DesktopApplication extends Application {
     private JavaScriptBridge javaScriptBridge;
 
     public static void launch() {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("desktop"));
+        }
+
         if (!isLaunched) {
             isLaunched = true;
             Application.launch(DesktopApplication.class);
@@ -88,6 +94,11 @@ public class DesktopApplication extends Application {
 
     @SuppressWarnings("unused")
     public static void refresh() {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("desktop"));
+        }
+
         Platform.runLater(() -> showStage(true));
     }
 
@@ -105,6 +116,11 @@ public class DesktopApplication extends Application {
     }
 
     public static void shutdown() {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("desktop"));
+        }
+
         System.out.println("shutting down JavaFX platform");
         Platform.exit();
         if (ENABLE_JAVASCRIPT_DEBUGGER) {

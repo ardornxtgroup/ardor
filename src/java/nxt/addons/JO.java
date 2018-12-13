@@ -28,14 +28,20 @@ public class JO extends AbstractMap {
     }
 
     public JO(JSONObject jo) {
+        if (jo == null) {
+            throw new IllegalArgumentException("Attempt to initialize JO with null JSONObject");
+        }
         this.jo = jo;
     }
 
-    public JO(Object jo) {
-        if (jo instanceof JSONObject) {
-            this.jo = (JSONObject)jo;
+    public JO(Object obj) {
+        if (obj == null) {
+            throw new IllegalArgumentException("Attempt to initialize JO with null Object");
+        }
+        if (obj instanceof JSONObject) {
+            this.jo = (JSONObject)obj;
         } else {
-            this.jo = ((JO)jo).toJSONObject();
+            this.jo = ((JO)obj).toJSONObject();
         }
     }
 
@@ -62,8 +68,13 @@ public class JO extends AbstractMap {
         Object o = jo.get(key);
         if (o == null) {
             return Collections.EMPTY_LIST; // no need to deal with null checks
+        } else if (o instanceof JSONArray) {
+            return (List<JO>)(new JA((JSONArray) o));
+        } else if(o instanceof JA) {
+            return (List<JO>)(o);
+        } else {
+            throw new IllegalArgumentException(key);
         }
-        return (List<JO>)(new JA((JSONArray) o));
     }
 
     public static JO valueOf(Object o) {
@@ -209,6 +220,9 @@ public class JO extends AbstractMap {
         Object o = jo.get(key);
         if (o == null) {
             return null;
+        }
+        if (!(o instanceof String)) {
+            return o.toString();
         }
         return (String)o;
     }

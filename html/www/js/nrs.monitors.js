@@ -135,6 +135,14 @@ var NRS = (function(NRS, $) {
         }
     });
 
+    NRS.forms.stopFundingMonitor = function($modal) {
+        var data = NRS.getFormData($modal.find("form:first"));
+        data.holding = NRS.getActiveChainId();
+        return {
+            "data": data
+        };
+    };
+
     NRS.forms.stopFundingMonitorComplete = function() {
         $.growl($.t("monitor_stopped"));
         NRS.loadPage("funding_monitors");

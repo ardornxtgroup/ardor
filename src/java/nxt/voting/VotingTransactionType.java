@@ -36,7 +36,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import static nxt.voting.VoteWeighting.VotingModel.*;
+import static nxt.voting.VoteWeighting.VotingModel.COMPOSITE;
+import static nxt.voting.VoteWeighting.VotingModel.HASH;
 
 public abstract class VotingTransactionType extends ChildTransactionType {
 
@@ -314,7 +315,7 @@ public abstract class VotingTransactionType extends ChildTransactionType {
 
         private final Fee PHASING_VOTE_FEE = (transaction, appendage) -> {
             PhasingVoteCastingAttachment attachment = (PhasingVoteCastingAttachment) transaction.getAttachment();
-            return attachment.getPhasedTransactionsIds().size() * Constants.ONE_FXT / 100;
+            return Math.max(1, attachment.getPhasedTransactionsIds().size()) * Constants.ONE_FXT / 100;
         };
 
         @Override
@@ -370,34 +371,43 @@ public abstract class VotingTransactionType extends ChildTransactionType {
                 }
             }
 
-            List<ChainTransactionId> phasedTransactionIds = attachment.getPhasedTransactionsIds();
-            if (phasedTransactionIds.size() > Constants.MAX_PHASING_VOTE_TRANSACTIONS) {
+            List<ChainTransactionId> attachmentTransactionIds = attachment.getPhasedTransactionsIds();
+            if (attachmentTransactionIds.size() > Constants.MAX_PHASING_VOTE_TRANSACTIONS) {
                 throw new NxtException.NotValidException("No more than " + Constants.MAX_PHASING_VOTE_TRANSACTIONS + " votes allowed for two-phased multi-voting");
             }
             long voterId = transaction.getSenderId();
-            for (ChainTransactionId phasedTransactionId : phasedTransactionIds) {
+            for (ChainTransactionId phasedTransactionId : attachmentTransactionIds) {
                 ChildChain childChain = phasedTransactionId.getChildChain();
                 if (childChain == null) {
                     throw new NxtException.NotValidException("Invalid child chain id " + phasedTransactionId.getChainId());
                 }
-                String phasedTransactionStringId = Long.toUnsignedString(phasedTransactionId.getTransactionId());
                 PhasingPollHome.PhasingPoll poll = childChain.getPhasingPollHome().getPoll(phasedTransactionId.getFullHash());
                 if (poll == null) {
-                    throw new NxtException.NotCurrentlyValidException("Invalid phased transaction " + phasedTransactionStringId
+                    throw new NxtException.NotCurrentlyValidException("Invalid phased transaction " + phasedTransactionId.getStringId()
                             + ", or phasing is finished");
                 }
-                if (! poll.getParams().acceptsVotes()) {
+                if (!poll.getParams().acceptsVotes()) {
                     throw new NxtException.NotValidException("This phased transaction does not require or accept voting");
                 }
-                if (! poll.getParams().isAccountWhitelisted(voterId)) {
+                if (!poll.getParams().isAccountWhitelisted(voterId)) {
                     throw new NxtException.NotValidException("Voter is not in the phased transaction whitelist");
                 }
-                if (!revealedSecrets.isEmpty()) {
+                if (poll.getFinishHeight() <= attachment.getFinishValidationHeight(transaction) + 1) {
+                    throw new NxtException.NotCurrentlyValidException(String.format("Phased transaction %s finishes at height %d which is not after approval transaction height %d",
+                            phasedTransactionId.getStringId(), poll.getFinishHeight(), attachment.getFinishValidationHeight(transaction) + 1));
+                }
+                if (revealedSecrets.isEmpty() && poll.getVoteWeighting().getVotingModel() == HASH) {
+                    throw new NxtException.NotValidException("Phased transaction " + phasedTransactionId.getStringId() + " requires revealed secret for approval");
+                }
+            }
+            if (!revealedSecrets.isEmpty()) {
+                for (ChainTransactionId phasedTransactionId : PhasingPollHome.getVotedTransactionIds(transaction)) {
+                    ChildChain childChain = phasedTransactionId.getChildChain();
+                    PhasingPollHome.PhasingPoll poll = childChain.getPhasingPollHome().getPoll(phasedTransactionId.getFullHash());
                     Iterator<PhasingParams> iterator = poll.getHashedSecretParams().iterator();
                     if (!iterator.hasNext()) {
-                        throw new NxtException.NotValidException("Phased transaction " + phasedTransactionStringId + " does not accept by-hash voting");
+                        throw new NxtException.NotValidException("Phased transaction " + phasedTransactionId.getStringId() + " does not accept by-hash voting");
                     }
-
                     boolean isMatchFound = false;
                     while (iterator.hasNext()) {
                         PhasingParams params = iterator.next();
@@ -412,20 +422,11 @@ public abstract class VotingTransactionType extends ChildTransactionType {
                             }
                         }
                     }
-
                     if (!isMatchFound) {
                         throw new NxtException.NotValidException(
-                                "Hashed secret(s) in phased transaction " + phasedTransactionStringId + " do not match any of the revealed secret");
+                                "Hashed secret(s) in phased transaction " + phasedTransactionId.getStringId() + " do not match any of the revealed secrets");
                     }
-                } else if (poll.getVoteWeighting().getVotingModel() == HASH) {
-                    throw new NxtException.NotValidException("Phased transaction " + phasedTransactionStringId + " requires revealed secret for approval");
                 }
-                if (poll.getFinishHeight() <= attachment.getFinishValidationHeight(transaction) + 1) {
-                    throw new NxtException.NotCurrentlyValidException(String.format("Phased transaction %s finishes at height %d which is not after approval transaction height %d",
-                            phasedTransactionStringId, poll.getFinishHeight(), attachment.getFinishValidationHeight(transaction) + 1));
-                }
-            }
-            if (!revealedSecrets.isEmpty()) {
                 for (int i = 0; i < matchedParams.length; i++) {
                     if (matchedParams[i] == null) {
                         throw new NxtException.NotValidException("Revealed secret with index " + i + " is not used");
@@ -436,9 +437,7 @@ public abstract class VotingTransactionType extends ChildTransactionType {
 
         @Override
         public final void applyAttachment(ChildTransactionImpl transaction, Account senderAccount, Account recipientAccount) {
-            PhasingVoteCastingAttachment attachment = (PhasingVoteCastingAttachment) transaction.getAttachment();
-            List<ChainTransactionId> phasedTransactionIds = attachment.getPhasedTransactionsIds();
-            phasedTransactionIds.forEach(phasedTransactionId ->
+            PhasingPollHome.getVotedTransactionIds(transaction).forEach(phasedTransactionId ->
                     phasedTransactionId.getChildChain().getPhasingVoteHome().addVote(transaction, senderAccount, phasedTransactionId.getFullHash()));
         }
 

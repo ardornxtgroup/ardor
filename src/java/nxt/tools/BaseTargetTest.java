@@ -19,6 +19,7 @@ package nxt.tools;
 import nxt.Constants;
 import nxt.util.Convert;
 import nxt.util.Logger;
+import nxt.util.security.BlockchainPermission;
 
 import java.math.BigInteger;
 import java.sql.Connection;
@@ -63,6 +64,10 @@ public final class BaseTargetTest {
     }
 
     public static void main(String[] args) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("tools"));
+        }
 
         try {
 

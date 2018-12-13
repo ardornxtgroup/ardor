@@ -27,43 +27,64 @@ var NRS = (function(NRS, $) {
 		NRS.fetchingModalData = true;
         var chain;
         var id;
+        var id2;
         var request;
         var key;
+        var key2;
+        var responseArray;
         if (typeof $(this).data("id") == "object") {
             var dataObject = $(this).data("id");
             chain = dataObject["chain"];
             id = dataObject["id"];
+            id2 = dataObject["id2"];
             request = dataObject["request"];
             key = dataObject["key"];
+            key2 = dataObject["key2"];
+            responseArray = dataObject["responseArray"];
         } else {
             chain = $(this).data("chain");
             id = $(this).data("id");
+            id2 = $(this).data("id2");
             request = $(this).data("request");
             key = $(this).data("key");
+            key2 = $(this).data("key2");
+            responseArray = $(this).data("responseArray");
         }
         if ($(this).data("back") == "true") {
             NRS.modalStack.pop(); // The forward modal
             NRS.modalStack.pop(); // The current modal
         }
-        NRS.showEntityDetailsModal(chain, id, request, key);
+        NRS.showEntityDetailsModal(chain, id, id2, request, key, key2, responseArray);
 	});
 
-	NRS.showEntityDetailsModal = function (chain, id, request, key) {
+	NRS.showEntityDetailsModal = function (chain, id, id2, request, key, key2, responseArray) {
         try {
             NRS.setBackLink();
     		NRS.modalStack.push({ class: "show_entity_modal_action", key: "id", value: {
     		    chain: chain,
                 id: id,
+                id2: id2,
                 request: request,
-                key: key
+                key: key,
+                key2: key2,
+                responseArray: responseArray
     		}});
-            $("#entity_details_type").html($.t(key));
+            $("#entity_details_type").html($.t(key.toLowerCase()));
             $("#entity_details_id").html(id);
             data = {};
             data[key] = id;
+            if (key2) {
+                data[key2] = id2;
+            }
             data["chain"] = chain;
             NRS.sendRequest(request, data, function(response) {
-                var entity = $.extend({}, response);
+                var entity;
+                entity = $.extend({}, response);
+                if (responseArray && responseArray !== "undefined") {
+                    var entry = $.extend({}, response[responseArray][0]);
+                    delete entity[responseArray];
+                    entity = Object.assign(entity, entry);
+                }
                 var callout = $("#entity_info_callout");
                 if (NRS[request + "Callout"]) {
                     NRS[request + "Callout"](callout, response);
@@ -71,16 +92,21 @@ var NRS = (function(NRS, $) {
                 } else {
                     callout.hide();
                 }
-                if (response.decimals) {
-                    for (var key in response) {
-                        if (!response.hasOwnProperty(key)) {
+                if (entity.decimals) {
+                    for (var key in entity) {
+                        if (!entity.hasOwnProperty(key)) {
                             continue;
                         }
                         if (key.endsWith("QNT")) {
-                            entity[key.slice(0, -3)] = NRS.intToFloat(response[key], response.decimals);
+                            entity[key.slice(0, -3)] = NRS.intToFloat(entity[key], entity.decimals);
                             delete entity[key];
                         }
                     }
+                }
+                if (entity.contract) {
+                    entity.contract_formatted_html = NRS.getTransactionLink(entity.contract.transactionFullHash, entity.id, true, entity.contract.chain);
+                    delete entity.contract;
+                    delete entity.id;
                 }
                 var detailsTable = $("#entity_details_table");
                 detailsTable.find("tbody").empty().append(NRS.createInfoTable(entity));

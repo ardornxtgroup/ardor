@@ -10,7 +10,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 /**
- * Create the transaction on a remote node, sign it locally, then broadcast to a remote node
+ * Sample Java program which creates a transaction on a remote node, signs it locally, then broadcasts it to a remote node
  */
 public class LocalSigning {
 

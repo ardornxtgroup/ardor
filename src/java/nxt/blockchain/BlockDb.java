@@ -138,7 +138,7 @@ public final class BlockDb {
         }
     }
 
-    public static Set<Long> getBlockGenerators(int startHeight) {
+    static Set<Long> getBlockGenerators(int startHeight) {
         Set<Long> generators = new HashSet<>();
         try (Connection con = getConnection();
                 PreparedStatement pstmt = con.prepareStatement(

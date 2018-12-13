@@ -255,11 +255,14 @@ public class ACTestUtils {
     }
 
     public static APICall.Builder approveBuilder(Object fullHash, Tester approver, String secret) {
-        return new APICall.Builder("approveTransaction")
+        APICall.Builder builder = new APICall.Builder("approveTransaction")
                 .param("secretPhrase", approver.getSecretPhrase())
-                .param("phasedTransaction", ChildChain.IGNIS.getId() + ":" + fullHash)
                 .param("revealedSecretText", secret)
                 .param("feeNQT", ChildChain.IGNIS.ONE_COIN);
+        if (fullHash != null) {
+            builder = builder.param("phasedTransaction", ChildChain.IGNIS.getId() + ":" + fullHash);
+        }
+        return builder;
     }
 
     public enum PhasingStatus {

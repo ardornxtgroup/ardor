@@ -16,6 +16,7 @@
 package nxt.authentication;
 
 import nxt.Constants;
+import nxt.util.security.BlockchainPermission;
 
 import java.nio.ByteBuffer;
 
@@ -29,8 +30,8 @@ public abstract class SecurityTokenFactory {
         if (Constants.isPermissioned) {
             try {
                 Class<?> factoryClass = Class.forName("com.jelurida.blockchain.authentication.BlockchainSecurityTokenFactory");
-                securityTokenFactory = (SecurityTokenFactory)factoryClass.newInstance();
-            } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+                securityTokenFactory = (SecurityTokenFactory)factoryClass.getConstructor().newInstance();
+            } catch (ReflectiveOperationException e) {
                 throw new ExceptionInInitializerError(e);
             }
         } else {
@@ -44,6 +45,10 @@ public abstract class SecurityTokenFactory {
      * @return                      Security token factory or null if no provider available
      */
     public static SecurityTokenFactory getSecurityTokenFactory() {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("authentication"));
+        }
         return securityTokenFactory;
     }
 

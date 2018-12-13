@@ -22,6 +22,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.Objects;
+import java.util.stream.Stream;
+
+import static java.util.stream.Collectors.joining;
 
 public interface DbKey {
 
@@ -60,7 +64,31 @@ public interface DbKey {
 
     }
 
-    int setPK(PreparedStatement pstmt) throws SQLException;
+    abstract class SmartFactory<T> extends Factory<T> {
+        SmartFactory(String... columns) {
+            super(pkClause(columns), pkColumns(columns), selfJoinClause(columns));
+        }
+
+        // visible for testing
+        static String selfJoinClause(String... columns) {
+            return Stream.of(columns).map(s -> "a." + s + " = b." + s).collect(joining(" AND "));
+        }
+
+        // visible for testing
+        static String pkColumns(String... columns) {
+            return Stream.of(columns).collect(joining(", "));
+        }
+
+        // visible for testing
+        static String pkClause(String... columns) {
+            return " WHERE " + Stream.of(columns).map(s -> s + " = ? ").collect(joining("AND "));
+        }
+    }
+
+
+    default int setPK(PreparedStatement pstmt) throws SQLException {
+        return setPK(pstmt, 1);
+    }
 
     int setPK(PreparedStatement pstmt, int index) throws SQLException;
 
@@ -227,6 +255,64 @@ public interface DbKey {
 
     }
 
+    abstract class HashHashLongKeyFactory<T> extends Factory<T> {
+
+        private final String idColumnA;
+        private final String hashColumnA;
+        private final String idColumnB;
+        private final String hashColumnB;
+        private final String idColumnC;
+
+        public HashHashLongKeyFactory(String hashColumnA, String idColumnA, String hashColumnB, String idColumnB, String idColumnC) {
+            super(" WHERE " + idColumnA + " = ? AND " + hashColumnA + " = ? AND " + idColumnB + " = ? AND "
+                            + hashColumnB + " = ? AND " + idColumnC + " = ? ",
+                    idColumnA + ", " + hashColumnA + ", " + idColumnB + ", " + hashColumnB + ", " + idColumnC,
+                    " a." + idColumnA + " = b." + idColumnA + " AND a." + hashColumnA + " = b." + hashColumnA
+                            + " AND a." + idColumnB + " = b." + idColumnB + " " + " AND a." + hashColumnB + " = b." + hashColumnB
+                            + " AND a." + idColumnC + " = b." + idColumnC);
+            this.idColumnA = idColumnA;
+            this.hashColumnA = hashColumnA;
+            this.idColumnB = idColumnB;
+            this.hashColumnB = hashColumnB;
+            this.idColumnC = idColumnC;
+        }
+
+        @Override
+        public DbKey newKey(ResultSet rs) throws SQLException {
+            return new HashHashLongKey(rs.getBytes(hashColumnA), rs.getLong(idColumnA),
+                    rs.getBytes(hashColumnB), rs.getLong(idColumnB), rs.getLong(idColumnC));
+        }
+
+        public DbKey newKey(byte[] hashA, byte[] hashB, long idC) {
+            return new HashHashLongKey(hashA, hashB, idC);
+        }
+
+        public DbKey newKey(byte[] hashA, long idA, byte[] hashB, long idB, long idC) {
+            return new HashHashLongKey(hashA, idA, hashB, idB, idC);
+        }
+
+    }
+
+    abstract class LongStringKeyFactory<T> extends SmartFactory<T> {
+        private final String idColumnA;
+        private final String idColumnB;
+
+        protected LongStringKeyFactory(String idColumnA, String idColumnB) {
+            super(idColumnA, idColumnB);
+            this.idColumnA = idColumnA;
+            this.idColumnB = idColumnB;
+        }
+
+        @Override
+        public DbKey newKey(ResultSet rs) throws SQLException {
+            return new LongStringKey(rs.getLong(idColumnA), rs.getString(idColumnB));
+        }
+
+        public DbKey newKey(long a, String b) {
+            return new LongStringKey(a, b);
+        }
+    }
+
     final class LongKey implements DbKey {
 
         private final long id;
@@ -240,11 +326,6 @@ public interface DbKey {
         }
 
         @Override
-        public int setPK(PreparedStatement pstmt) throws SQLException {
-            return setPK(pstmt, 1);
-        }
-
-        @Override
         public int setPK(PreparedStatement pstmt, int index) throws SQLException {
             pstmt.setLong(index, id);
             return index + 1;
@@ -252,12 +333,12 @@ public interface DbKey {
 
         @Override
         public boolean equals(Object o) {
-            return o instanceof LongKey && ((LongKey)o).id == id;
+            return o instanceof LongKey && ((LongKey) o).id == id;
         }
 
         @Override
         public int hashCode() {
-            return (int)(id ^ (id >>> 32));
+            return (int) (id ^ (id >>> 32));
         }
 
     }
@@ -275,11 +356,6 @@ public interface DbKey {
         }
 
         @Override
-        public int setPK(PreparedStatement pstmt) throws SQLException {
-            return setPK(pstmt, 1);
-        }
-
-        @Override
         public int setPK(PreparedStatement pstmt, int index) throws SQLException {
             pstmt.setString(index, id);
             return index + 1;
@@ -287,7 +363,7 @@ public interface DbKey {
 
         @Override
         public boolean equals(Object o) {
-            return o instanceof StringKey && (id != null ? id.equals(((StringKey)o).id) : ((StringKey)o).id == null);
+            return o instanceof StringKey && (id != null ? id.equals(((StringKey) o).id) : ((StringKey) o).id == null);
         }
 
         @Override
@@ -321,11 +397,6 @@ public interface DbKey {
         }
 
         @Override
-        public int setPK(PreparedStatement pstmt) throws SQLException {
-            return setPK(pstmt, 1);
-        }
-
-        @Override
         public int setPK(PreparedStatement pstmt, int index) throws SQLException {
             pstmt.setLong(index, id);
             pstmt.setBytes(index + 1, hash);
@@ -334,7 +405,7 @@ public interface DbKey {
 
         @Override
         public boolean equals(Object o) {
-            return o instanceof HashKey && Arrays.equals(hash, ((HashKey)o).hash);
+            return o instanceof HashKey && Arrays.equals(hash, ((HashKey) o).hash);
         }
 
         @Override
@@ -359,11 +430,6 @@ public interface DbKey {
         }
 
         @Override
-        public int setPK(PreparedStatement pstmt) throws SQLException {
-            return setPK(pstmt, 1);
-        }
-
-        @Override
         public int setPK(PreparedStatement pstmt, int index) throws SQLException {
             pstmt.setLong(index, idA);
             pstmt.setLong(index + 1, idB);
@@ -377,7 +443,7 @@ public interface DbKey {
 
         @Override
         public int hashCode() {
-            return (int)(idA ^ (idA >>> 32)) ^ (int)(idB ^ (idB >>> 32));
+            return (int) (idA ^ (idA >>> 32)) ^ (int) (idB ^ (idB >>> 32));
         }
 
     }
@@ -409,11 +475,6 @@ public interface DbKey {
         }
 
         @Override
-        public int setPK(PreparedStatement pstmt) throws SQLException {
-            return setPK(pstmt, 1);
-        }
-
-        @Override
         public int setPK(PreparedStatement pstmt, int index) throws SQLException {
             pstmt.setLong(index, idA);
             pstmt.setBytes(index + 1, hashA);
@@ -424,12 +485,12 @@ public interface DbKey {
         @Override
         public boolean equals(Object o) {
             return o instanceof HashLongKey && ((HashLongKey) o).idB == idB
-                    && Arrays.equals(hashA, ((HashLongKey)o).hashA);
+                    && Arrays.equals(hashA, ((HashLongKey) o).hashA);
         }
 
         @Override
         public int hashCode() {
-            return (int)(idA ^ (idA >>> 32)) ^ (int)(idB ^ (idB >>> 32));
+            return (int) (idA ^ (idA >>> 32)) ^ (int) (idB ^ (idB >>> 32));
         }
 
     }
@@ -441,7 +502,7 @@ public interface DbKey {
         private final long idB;
         private final byte[] hashB;
 
-        private HashHashKey(byte[] hashA,  byte[] hashB) {
+        private HashHashKey(byte[] hashA, byte[] hashB) {
             this.hashA = hashA;
             this.idA = Convert.fullHashToId(hashA);
             this.hashB = hashB;
@@ -464,11 +525,6 @@ public interface DbKey {
         }
 
         @Override
-        public int setPK(PreparedStatement pstmt) throws SQLException {
-            return setPK(pstmt, 1);
-        }
-
-        @Override
         public int setPK(PreparedStatement pstmt, int index) throws SQLException {
             pstmt.setLong(index, idA);
             pstmt.setBytes(index + 1, hashA);
@@ -480,14 +536,103 @@ public interface DbKey {
         @Override
         public boolean equals(Object o) {
             return o instanceof HashHashKey && Arrays.equals(hashB, ((HashHashKey) o).hashB)
-                    && Arrays.equals(hashA, ((HashHashKey)o).hashA);
+                    && Arrays.equals(hashA, ((HashHashKey) o).hashA);
         }
 
         @Override
         public int hashCode() {
-            return (int)(idA ^ (idA >>> 32)) ^ (int)(idB ^ (idB >>> 32));
+            return (int) (idA ^ (idA >>> 32)) ^ (int) (idB ^ (idB >>> 32));
         }
 
     }
 
+    final class HashHashLongKey implements DbKey {
+
+        private final long idA;
+        private final byte[] hashA;
+        private final long idB;
+        private final byte[] hashB;
+        private final long idC;
+
+        private HashHashLongKey(byte[] hashA, byte[] hashB, long idC) {
+            this.hashA = hashA;
+            this.idA = Convert.fullHashToId(hashA);
+            this.hashB = hashB;
+            this.idB = Convert.fullHashToId(hashB);
+            this.idC = idC;
+        }
+
+        private HashHashLongKey(byte[] hashA, long idA, byte[] hashB, long idB, long idC) {
+            this.idA = idA;
+            this.idB = idB;
+            this.hashA = hashA;
+            this.hashB = hashB;
+            this.idC = idC;
+        }
+
+        public byte[] getHashA() {
+            return hashA;
+        }
+
+        public byte[] getHashB() {
+            return hashB;
+        }
+
+        public long getIdC() {
+            return idC;
+        }
+
+        @Override
+        public int setPK(PreparedStatement pstmt, int index) throws SQLException {
+            pstmt.setLong(index, idA);
+            pstmt.setBytes(index + 1, hashA);
+            pstmt.setLong(index + 2, idB);
+            pstmt.setBytes(index + 3, hashB);
+            pstmt.setLong(index + 4, idC);
+            return index + 5;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            return o instanceof HashHashLongKey && idC == ((HashHashLongKey) o).idC && Arrays.equals(hashB, ((HashHashLongKey) o).hashB)
+                    && Arrays.equals(hashA, ((HashHashLongKey) o).hashA);
+        }
+
+        @Override
+        public int hashCode() {
+            return (int) (idA ^ (idA >>> 32)) ^ (int) (idB ^ (idB >>> 32)) ^ Long.hashCode(idC);
+        }
+
+    }
+
+    final class LongStringKey implements DbKey {
+        private final long idA;
+        private final String idB;
+
+        private LongStringKey(long idA, String idB) {
+            this.idA = idA;
+            this.idB = idB;
+        }
+
+        @Override
+        public int setPK(PreparedStatement pstmt, int index) throws SQLException {
+            pstmt.setLong(index, idA);
+            pstmt.setString(index + 1, idB);
+            return index + 2;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof LongStringKey)) return false;
+            LongStringKey that = (LongStringKey) o;
+            return idA == that.idA &&
+                    Objects.equals(idB, that.idB);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(idA, idB);
+        }
+    }
 }

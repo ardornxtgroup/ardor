@@ -16,7 +16,10 @@
 
 package nxt.db;
 
+import nxt.Nxt;
 import nxt.util.Logger;
+import nxt.util.ThreadPool;
+import nxt.util.security.BlockchainPermission;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -29,6 +32,10 @@ public abstract class DbVersion {
     protected final String schema;
 
     protected DbVersion(BasicDb db, String schema) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("db"));
+        }
         this.db = db;
         this.schema = schema;
     }
@@ -39,6 +46,14 @@ public abstract class DbVersion {
         try {
             con = db.getConnection("PUBLIC");
             stmt = con.createStatement();
+            //TODO: remove after testnet has upgraded
+            if (schema.equals("MPG")) {
+                ResultSet rs = stmt.executeQuery("SELECT * FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME='DOM'");
+                if (rs.next()) {
+                    stmt.executeUpdate("ALTER SCHEMA IF EXISTS DOM RENAME TO MPG");
+                    ThreadPool.runAfterStart(Nxt::shutdown);
+                }
+            }
             stmt.executeUpdate("CREATE SCHEMA IF NOT EXISTS " + schema);
         } catch (SQLException e) {
             DbUtils.rollback(con);

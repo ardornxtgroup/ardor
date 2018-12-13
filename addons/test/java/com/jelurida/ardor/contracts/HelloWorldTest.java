@@ -1,6 +1,5 @@
 package com.jelurida.ardor.contracts;
 
-import nxt.Nxt;
 import nxt.addons.JO;
 import nxt.blockchain.Block;
 import nxt.blockchain.ChainTransactionId;
@@ -16,8 +15,7 @@ public class HelloWorldTest extends AbstractContractTest {
 
     @Test
     public void helloWorld() {
-        String contractName = HelloWorld.class.getSimpleName();
-        ContractTestHelper.deployContract(contractName);
+        String contractName = ContractTestHelper.deployContract(HelloWorld.class);
 
         // Send message to trigger the contract execution
         JO messageJson = new JO();
@@ -28,7 +26,7 @@ public class HelloWorldTest extends AbstractContractTest {
         generateBlock();
 
         // Verify that the contract send back a message
-        Block lastBlock = Nxt.getBlockchain().getLastBlock();
+        Block lastBlock = getLastBlock();
         ChainTransactionId contractResultTransactionId = null;
         for (FxtTransaction transaction : lastBlock.getFxtTransactions()) {
             for (ChildTransaction childTransaction : transaction.getSortedChildTransactions()) {

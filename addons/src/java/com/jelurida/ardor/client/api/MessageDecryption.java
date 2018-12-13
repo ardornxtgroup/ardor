@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Scan for blockchain transactions and decrypt their attached message
+ * Sample Java program which iterates through blockchain transactions and decrypts their attached message
  */
 public class MessageDecryption {
 

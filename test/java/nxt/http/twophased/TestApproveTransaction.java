@@ -18,7 +18,6 @@ package nxt.http.twophased;
 
 import nxt.BlockchainTest;
 import nxt.Nxt;
-import nxt.ae.Asset;
 import nxt.blockchain.ChildChain;
 import nxt.crypto.HashFunction;
 import nxt.http.APICall;
@@ -30,8 +29,6 @@ import nxt.voting.VoteWeighting;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.util.Arrays;
 
 public class TestApproveTransaction extends BlockchainTest {
 
@@ -347,7 +344,9 @@ public class TestApproveTransaction extends BlockchainTest {
         APICall.Builder approveBuilder = ACTestUtils.approveBuilder(fullHash, BOB, "wrong secret");
 
         JSONAssert jsonAssert = new JSONAssert(approveBuilder.build().invoke());
-        Assert.assertTrue(jsonAssert.str("errorDescription").matches("Hashed secret\\(s\\) in phased transaction [0-9]+ do not match any of the revealed secret"));
+        Assert.assertEquals(
+                String.format("Hashed secret(s) in phased transaction %s:%s do not match any of the revealed secrets", ChildChain.IGNIS.getId(), fullHash),
+                jsonAssert.str("errorDescription"));
     }
 
     @Test
@@ -403,6 +402,31 @@ public class TestApproveTransaction extends BlockchainTest {
     }
 
     @Test
+    public void testApproveTransactionsWithTwoSecretsWithoutFullhash() {
+        long amount = 100 * ChildChain.IGNIS.ONE_COIN;
+        String secret1 = "abc111";
+        String secret2 = "abc222";
+        ACTestUtils.PhasingBuilder builder = new ACTestUtils.PhasingBuilder("sendMoney", ALICE);
+        builder.param("recipient", BOB.getStrId()).param("amountNQT", amount);
+        builder.votingModel(VoteWeighting.VotingModel.HASH).hashedSecret(secret1, HashFunction.SHA256).quorum(1);
+        new JSONAssert(builder.build().invoke()).str("fullHash");
+        generateBlock();
+
+        builder.hashedSecret(secret2, HashFunction.SHA256);
+        new JSONAssert(builder.build().invoke()).str("fullHash");
+        generateBlock();
+
+        // Reveal the secrets but do not list the transactions
+        APICall.Builder approveBuilder = ACTestUtils.approveBuilder(null, BOB, "");
+        approveBuilder.param("revealedSecretText", new String[] {secret1, secret2});
+
+        new JSONAssert(approveBuilder.build().invoke()).str("fullHash");
+
+        generateBlock();
+        Assert.assertEquals(2 * amount - ChildChain.IGNIS.ONE_COIN, BOB.getChainBalanceDiff(ChildChain.IGNIS.getId()));
+    }
+
+    @Test
     public void testApproveUnusedSecret() {
         long amount = 100 * ChildChain.IGNIS.ONE_COIN;
         String secret1 = "abc111";
@@ -442,7 +466,9 @@ public class TestApproveTransaction extends BlockchainTest {
         approveBuilder.param("phasedTransaction", new String[] { ChildChain.IGNIS.getId() + ":" + fullHash1,  ChildChain.IGNIS.getId() + ":" + fullHash2});
 
         JSONAssert jsonAssert = new JSONAssert(approveBuilder.build().invoke());
-        Assert.assertTrue(jsonAssert.str("errorDescription").matches("Hashed secret\\(s\\) in phased transaction [0-9]+ do not match any of the revealed secret"));
+        Assert.assertEquals(
+                String.format("Hashed secret(s) in phased transaction %s:%s do not match any of the revealed secrets", ChildChain.IGNIS.getId(), fullHash2),
+                jsonAssert.str("errorDescription"));
     }
 
     static JSONObject getSignedBytes() {

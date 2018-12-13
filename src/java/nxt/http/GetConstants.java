@@ -19,7 +19,6 @@ package nxt.http;
 import nxt.Constants;
 import nxt.Nxt;
 import nxt.account.HoldingType;
-import nxt.blockchain.Bundler;
 import nxt.blockchain.Chain;
 import nxt.blockchain.ChildChain;
 import nxt.blockchain.ChildTransactionType;
@@ -42,7 +41,6 @@ import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
