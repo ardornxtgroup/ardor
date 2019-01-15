@@ -13,8 +13,12 @@ public class DumpPeersCall extends APICall.Builder<DumpPeersCall> {
         return new DumpPeersCall();
     }
 
-    public DumpPeersCall weight(String weight) {
-        return param("weight", weight);
+    public DumpPeersCall includeNewer(boolean includeNewer) {
+        return param("includeNewer", includeNewer);
+    }
+
+    public DumpPeersCall service(String... service) {
+        return param("service", service);
     }
 
     public DumpPeersCall version(String version) {

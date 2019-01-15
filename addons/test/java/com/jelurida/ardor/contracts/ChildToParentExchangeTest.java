@@ -1,10 +1,6 @@
 package com.jelurida.ardor.contracts;
 
 import nxt.addons.JO;
-import nxt.blockchain.Block;
-import nxt.blockchain.ChildTransaction;
-import nxt.blockchain.FxtTransaction;
-import org.junit.Assert;
 import org.junit.Test;
 
 import static nxt.blockchain.ChildChain.IGNIS;
@@ -32,21 +28,9 @@ public class ChildToParentExchangeTest extends AbstractContractTest {
         generateBlock();
 
         // Since there are no coin orders the amount of IGNIS is returned
-        Block lastBlock = getLastBlock();
-        boolean isFound = false;
-        for (FxtTransaction transaction : lastBlock.getFxtTransactions()) {
-            for (ChildTransaction childTransaction : transaction.getSortedChildTransactions()) {
-                isFound = true;
-                Assert.assertEquals(2, childTransaction.getChain().getId());
-                Assert.assertEquals(0, childTransaction.getType().getType());
-                Assert.assertEquals(0, childTransaction.getType().getSubtype());
-                Assert.assertEquals(9998000000L, childTransaction.getAmount());
-                Assert.assertEquals(2000000L, childTransaction.getFee());
-                Assert.assertEquals(ALICE.getAccount().getId(), childTransaction.getSenderId());
-                Assert.assertEquals(BOB.getAccount().getId(), childTransaction.getRecipientId());
-            }
-        }
-        Assert.assertTrue(isFound);
+        testAndGetLastChildTransaction(2, 0, 0,
+                a -> a == 9998000000L, 2000000L,
+                ALICE, BOB, null);
 
         // TODO Let's generate some coin orders and the calculation
     }

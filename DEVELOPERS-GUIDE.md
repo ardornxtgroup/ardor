@@ -7,7 +7,7 @@
   - create pull requests
   - review pull requests
   - help users on issues
-  - ask us, the dev team
+  - mail us at info@jelurida.com
 
 ----
 ## Tools and Tips ##
@@ -22,9 +22,9 @@
   - H2 embedded database
   - main database: `nxt_db/`
   - test database: `nxt_test_db/`
+  - unit tests database: `nxt_unit_test_db/`
   - the database directories do not contain user specific data and can be safely deleted
   - but no need to delete them on upgrade, the DbVersion code takes care of schema updates
-  - use the nxt.db framework when accessing the database from your code
 
 ----
 ## Coding Process ##
@@ -59,6 +59,7 @@
   - all API calls can be tested manually from the auto-generated http://localhost:27876/test page
   - many tests need blocks to be generated, see the examples how to fake the forging process
   - write your tests against the http API or the public java API, which are relatively stable
+  - review existing unit tests
   
 ### Documentation ###
 

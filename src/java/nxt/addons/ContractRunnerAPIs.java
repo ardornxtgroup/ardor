@@ -14,14 +14,11 @@ import nxt.http.JSONResponses;
 import nxt.http.ParameterParser;
 import nxt.lightcontracts.ContractReference;
 import nxt.util.Convert;
-import nxt.util.Logger;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.StringReader;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
@@ -127,7 +124,6 @@ class ContractRunnerAPIs {
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
-            API.verifyPassword(req);
             ContractRunnerConfig config = contractRunner.getConfig();
             if (config instanceof NullContractRunnerConfig) {
                 return runnerNotInitializedResponse(config.getStatus()).toJSONObject();
@@ -195,52 +191,13 @@ class ContractRunnerAPIs {
             }
             JA array = new JA();
             for (String name : contractRunner.getSupportedContractNames()) {
-                ContractAndSetupParameters contractAndSetupParameters = contractRunner.getContract(name);
-                Contract contract = contractAndSetupParameters.getContract();
                 JO contractJson = new JO();
                 contractJson.put("name", name);
-                contractJson.put("contractClass", contract.getClass().getCanonicalName());
+                ContractAndSetupParameters contractAndSetupParameters = contractRunner.getContract(name);
                 contractJson.put("setupParams", contractAndSetupParameters.getParams().toJSONObject());
-                JA invocationTypes = new JA();
-                Arrays.stream(contract.getClass().getDeclaredMethods()).forEach(method -> Arrays.stream(ContractRunner.INVOCATION_TYPE.values()).forEach(invocationType -> {
-                    if (invocationType.getMethodName().equals(method.getName())) {
-                        JO param = new JO();
-                        param.put("type", invocationType.name());
-                        invocationTypes.add(param);
-                    }
-                }));
-                contractJson.put("invocationTypes", invocationTypes);
-                JA invocationParams = new JA();
-                Class<?> parametersProvider = ContractLoader.getParametersProvider(contract);
-                if (parametersProvider != null) {
-                    Method[] parameterMethods = parametersProvider.getDeclaredMethods();
-                    Arrays.stream(parameterMethods).forEach(method -> {
-                        if (method.getDeclaredAnnotation(ContractInvocationParameter.class) == null) {
-                            return;
-                        }
-                        JO param = new JO();
-                        param.put("name", method.getName());
-                        param.put("type", method.getReturnType().getCanonicalName());
-                        invocationParams.add(param);
-                    });
-                }
-                contractJson.put("supportedInvocationParams", invocationParams);
-                JA validationAnnotations = new JA();
-                for (Method m : contract.getClass().getDeclaredMethods()) {
-                    for (Annotation a : m.getDeclaredAnnotations()) {
-                        for (Annotation meta : a.annotationType().getDeclaredAnnotations()) {
-                            if (meta.annotationType().equals(ValidationAnnotation.class)) {
-                                JO annotationData = getAnnotationData(a);
-                                annotationData.put("forMethod", m.getName());
-                                validationAnnotations.add(annotationData);
-                                break;
-                            }
-                        }
-                    }
-                }
-                contractJson.put("validityChecks", validationAnnotations);
                 ContractReference contractReference = contractRunner.getSupportedContractReference(name);
-                contractJson.put("contractReference", JSONData.contractReference(contractReference));
+                contractJson.put("contractReference", JSONData.contractReference(contractReference, false));
+                contractJson.put("contract", JSONData.contract(contractAndSetupParameters.getContract()));
                 ChainTransactionId contractId = contractReference.getContractId();
                 Transaction taggedDataUploadTransaction = contractId.getChildTransaction();
                 contractJson.put("uploadTransaction", JSONData.transaction(taggedDataUploadTransaction));
@@ -248,25 +205,6 @@ class ContractRunnerAPIs {
             }
             response.put("supportedContracts", array);
             return response.toJSONObject();
-        }
-
-        private JO getAnnotationData(Annotation a) {
-            JO annotationData = new JO();
-            annotationData.put("name", a.annotationType().getSimpleName());
-            if (a.annotationType() == ValidateTransactionType.class) {
-                ValidateTransactionType validateTransactionType = (ValidateTransactionType)a;
-                try {
-                    annotationData.put("accept", String.join(",", Arrays.stream(validateTransactionType.accept()).map(Enum::name).toArray(String[]::new)));
-                    annotationData.put("reject", String.join(",", Arrays.stream(validateTransactionType.reject()).map(Enum::name).toArray(String[]::new)));
-                } catch (Exception e) {
-                    Logger.logInfoMessage("Cannot parse validation transaction type for old contract");
-                }
-            } else if (a.annotationType() == ValidateChain.class) {
-                ValidateChain validateChain = (ValidateChain)a;
-                annotationData.put("accept", Arrays.toString(validateChain.accept()));
-                annotationData.put("reject", Arrays.toString(validateChain.reject()));
-            }
-            return annotationData;
         }
 
         @Override

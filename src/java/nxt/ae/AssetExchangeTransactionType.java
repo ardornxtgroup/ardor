@@ -1,6 +1,6 @@
 /*
  * Copyright © 2013-2016 The Nxt Core Developers.
- * Copyright © 2016-2018 Jelurida IP B.V.
+ * Copyright © 2016-2019 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
@@ -1240,9 +1240,6 @@ public abstract class AssetExchangeTransactionType<Att extends Attachment> exten
 
         @Override
         protected void validateAttachment(ChildTransactionImpl transaction, AssetPropertyAttachment attachment) throws ValidationException {
-            if (Nxt.getBlockchain().getHeight() < Constants.ASSET_PROPERTIES_BLOCK) {
-                throw new NxtException.NotYetEnabledException("Setting asset properties not yet enabled");
-            }
             if (!AssetPropertyAttachment.PROPERTY_NAME_RW.validate(attachment.getProperty())
                     || attachment.getProperty().length() == 0
                     || !AssetPropertyAttachment.PROPERTY_VALUE_RW.validate(attachment.getValue())) {
@@ -1318,9 +1315,6 @@ public abstract class AssetExchangeTransactionType<Att extends Attachment> exten
 
         @Override
         protected void validateAttachment(ChildTransactionImpl transaction, AssetPropertyDeleteAttachment attachment) throws ValidationException {
-            if (Nxt.getBlockchain().getHeight() < Constants.ASSET_PROPERTIES_BLOCK) {
-                throw new NxtException.NotYetEnabledException("Deleting asset properties not yet enabled");
-            }
             Asset.AssetProperty property = Asset.getProperty(attachment.getPropertyId());
             if (property == null) {
                 throw new NxtException.NotCurrentlyValidException("No such property " + Long.toUnsignedString(attachment.getPropertyId()));

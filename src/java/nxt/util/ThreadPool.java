@@ -1,6 +1,6 @@
 /*
  * Copyright © 2013-2016 The Nxt Core Developers.
- * Copyright © 2016-2018 Jelurida IP B.V.
+ * Copyright © 2016-2019 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
@@ -55,7 +55,8 @@ public final class ThreadPool {
         SecurityManager sm = System.getSecurityManager();
         if (sm != null) {
             sm.checkPermission(new BlockchainPermission("threadPool"));
-        }afterStartJobs.add(runnable);
+        }
+        afterStartJobs.add(runnable);
     }
 
     public static synchronized void scheduleThread(String name, Runnable runnable, int delay) {

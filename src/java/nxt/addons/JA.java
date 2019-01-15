@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.AbstractList;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
@@ -64,8 +65,8 @@ public class JA extends AbstractList {
         return lo.stream().map(e -> e instanceof JO ? (JO)e : new JO(e)).collect(Collectors.toList());
     }
 
-    public void add(JO jo) {
-        ja.add(jo.toJSONObject());
+    public boolean add(JO jo) {
+        return ja.add(jo.toJSONObject());
     }
 
     public JO get(int i) {
@@ -101,4 +102,11 @@ public class JA extends AbstractList {
         }
     }
 
+    public boolean addAllJO(Collection<JO> c) {
+        boolean modified = false;
+        for (JO e : c)
+            if (add(e))
+                modified = true;
+        return modified;
+    }
 }

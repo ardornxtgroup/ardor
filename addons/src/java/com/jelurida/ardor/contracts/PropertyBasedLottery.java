@@ -15,6 +15,13 @@ import nxt.http.callers.SetAccountPropertyCall;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Sample contract which sets a property based on random selection.
+ * Warning:
+ * This design is inappropriate for gambling applications. The reason is that users can trigger this contract using a phased
+ * transaction and later not approve the trigger and response transactions in case they do not like the results.
+ * For a better approach to lottery application see the AllForOnePayment sample contract.
+ */
 public class PropertyBasedLottery extends AbstractContract {
 
     @ContractParametersProvider

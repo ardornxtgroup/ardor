@@ -13,6 +13,10 @@ public class GetPeersCall extends APICall.Builder<GetPeersCall> {
         return new GetPeersCall();
     }
 
+    public GetPeersCall includeNewer(boolean includeNewer) {
+        return param("includeNewer", includeNewer);
+    }
+
     public GetPeersCall service(String... service) {
         return param("service", service);
     }
@@ -27,5 +31,17 @@ public class GetPeersCall extends APICall.Builder<GetPeersCall> {
 
     public GetPeersCall includePeerInfo(boolean includePeerInfo) {
         return param("includePeerInfo", includePeerInfo);
+    }
+
+    public GetPeersCall version(String version) {
+        return param("version", version);
+    }
+
+    public GetPeersCall connect(String connect) {
+        return param("connect", connect);
+    }
+
+    public GetPeersCall adminPassword(String adminPassword) {
+        return param("adminPassword", adminPassword);
     }
 }

@@ -1,6 +1,6 @@
 /*
  * Copyright © 2013-2016 The Nxt Core Developers.
- * Copyright © 2016-2018 Jelurida IP B.V.
+ * Copyright © 2016-2019 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
@@ -44,9 +44,12 @@ import nxt.messaging.PrunablePlainMessageAppendix;
 import nxt.util.Convert;
 import nxt.util.Logger;
 import nxt.util.ResourceLookup;
+import nxt.util.ThreadPool;
 import nxt.voting.PhasingAppendix;
 import nxt.voting.PhasingPollHome;
 import nxt.voting.VoteWeighting;
+import org.apache.commons.math3.stat.descriptive.StatisticalSummary;
+import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -58,6 +61,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -69,7 +73,7 @@ import static nxt.addons.ContractRunner.INVOCATION_TYPE.TRANSACTION;
 
 public final class ContractRunner implements AddOn, ContractProvider {
 
-    enum INVOCATION_TYPE {
+    public enum INVOCATION_TYPE {
         TRANSACTION("processTransaction", TransactionContext.class),
         BLOCK("processBlock", BlockContext.class),
         REQUEST("processRequest", RequestContext.class),
@@ -77,6 +81,9 @@ public final class ContractRunner implements AddOn, ContractProvider {
 
         private final String methodName;
         private final Class contextClass;
+
+        Map<String, SummaryStatistics> normalMeasurements = new HashMap<>();
+        Map<String, SummaryStatistics> errorMeasurements = new HashMap<>();
 
         INVOCATION_TYPE(String methodName, Class contextClass) {
             this.methodName = methodName;
@@ -90,7 +97,67 @@ public final class ContractRunner implements AddOn, ContractProvider {
         public Class getContextClass() {
             return contextClass;
         }
+
+        void addMeasurementErr(String contractClassName, long value) {
+            errorMeasurements.computeIfAbsent(contractClassName, k -> new SummaryStatistics()).addValue(value);
+        }
+
+        void addMeasurementNormal(String contractClassName, long value) {
+            normalMeasurements.computeIfAbsent(contractClassName, k -> new SummaryStatistics()).addValue(value);
+        }
+
+        public StatisticalSummary getStatErr(String contractClassName) {
+            SummaryStatistics summaryStatistics = errorMeasurements.get(contractClassName);
+            return summaryStatistics != null ? summaryStatistics : NULL_STATISTICAL_SUMMARY;
+
+        }
+
+        public StatisticalSummary getStatNormal(String contractClassName) {
+            SummaryStatistics summaryStatistics = normalMeasurements.get(contractClassName);
+            return summaryStatistics != null ? summaryStatistics : NULL_STATISTICAL_SUMMARY;
+        }
+
+        public static Optional<INVOCATION_TYPE> getByMethodName(String methodName) {
+            return Arrays.stream(values()).filter(type -> type.getMethodName().equals(methodName)).findFirst();
+        }
     }
+
+    private static final StatisticalSummary NULL_STATISTICAL_SUMMARY = new StatisticalSummary() {
+        @Override
+        public double getMean() {
+            return 0;
+        }
+
+        @Override
+        public double getVariance() {
+            return 0;
+        }
+
+        @Override
+        public double getStandardDeviation() {
+            return 0;
+        }
+
+        @Override
+        public double getMax() {
+            return 0;
+        }
+
+        @Override
+        public double getMin() {
+            return 0;
+        }
+
+        @Override
+        public long getN() {
+            return 0;
+        }
+
+        @Override
+        public double getSum() {
+            return 0;
+        }
+    };
 
     static final String CONFIG_PROPERTY_PREFIX = "addon.contractRunner.";
     private static final String CONFIG_FILE_PROPERTY = CONFIG_PROPERTY_PREFIX + "configFile";
@@ -114,7 +181,7 @@ public final class ContractRunner implements AddOn, ContractProvider {
         apiRequests.put("triggerContractByTransaction", new ContractRunnerAPIs.TriggerContractByTransactionAPI(this, new APITag[]{APITag.ADDONS}, "triggerFullHash", "apply", "validate", "adminPassword"));
         apiRequests.put("triggerContractByHeight", new ContractRunnerAPIs.TriggerContractByHeightAPI(this, new APITag[]{APITag.ADDONS}, "contractName", "height", "apply", "adminPassword"));
         apiRequests.put("triggerContractByRequest", new ContractRunnerAPIs.TriggerContractByRequestAPI(this, new APITag[]{APITag.ADDONS}, "contractName", "setupParams", "adminPassword"));
-        apiRequests.put("triggerContractByVoucher", new ContractRunnerAPIs.TriggerContractByVoucherAPI(this, "voucher", new APITag[]{APITag.ADDONS}, "contractName", "adminPassword"));
+        apiRequests.put("triggerContractByVoucher", new ContractRunnerAPIs.TriggerContractByVoucherAPI(this, "voucher", new APITag[]{APITag.ADDONS}, "contractName"));
         apiRequests.put("uploadContractRunnerConfiguration", new ContractRunnerAPIs.UploadContractRunnerConfigurationAPI(this, "config", new APITag[]{APITag.ADDONS}, "adminPassword"));
 
         if (!Nxt.getServerStatus().isDatabaseReady()) {
@@ -142,12 +209,14 @@ public final class ContractRunner implements AddOn, ContractProvider {
         Nxt.getTransactionProcessor().addListener(this::processReleasedPhased, TransactionProcessor.Event.RELEASE_PHASED_TRANSACTION);
         ContractReference.addListener(this::contractAdded, ContractReference.Event.SET_CONTRACT_REFERENCE);
         ContractReference.addListener(this::contractDeleted, ContractReference.Event.DELETE_CONTRACT_REFERENCE);
-        Block lastBlock = Nxt.getBlockchain().getLastBlock();
-        if (lastBlock.getFxtTransactions().size() > 0 && lastBlock.getHeight() > 1) {
-            Logger.logInfoMessage("ContractRunner popOff last block");
-            Nxt.getBlockchainProcessor().popOffTo(lastBlock.getHeight() - 1);
-            Nxt.getTransactionProcessor().processLater(lastBlock.getFxtTransactions());
-        }
+        ThreadPool.runBeforeStart(() -> {
+            Block lastBlock = Nxt.getBlockchain().getLastBlock();
+            if (lastBlock.getFxtTransactions().size() > 0 && lastBlock.getHeight() > 1) {
+                Logger.logInfoMessage("ContractRunner popOff last block at height " + lastBlock.getHeight());
+                Nxt.getBlockchainProcessor().popOffTo(lastBlock.getHeight() - 1);
+                Nxt.getTransactionProcessor().processLater(lastBlock.getFxtTransactions());
+            }
+        }, true);
         Logger.logInfoMessage("ContractRunner Started");
     }
 
@@ -182,55 +251,65 @@ public final class ContractRunner implements AddOn, ContractProvider {
 
     private <T extends AbstractContractContext> JO processImpl(ContractAndSetupParameters contractAndParameters, T context, INVOCATION_TYPE invocationType) {
         Contract contract = contractAndParameters.getContract();
+        Method contractMethod;
         try {
-            Method contractMethod;
-            try {
-                contractMethod = contract.getClass().getDeclaredMethod(invocationType.getMethodName(), invocationType.getContextClass());
-            } catch (NoSuchMethodException e) {
-                return null;
-            }
-            context.setContractSetupParameters(contractAndParameters.getParams());
-            if (invocationType == BLOCK || invocationType == REQUEST) {
-                return (JO) contractMethod.invoke(contract, context);
-            }
-            AbstractOperationContext operationContext = context.getContext();
-            Annotation[] methodAnnotations = contractMethod.getDeclaredAnnotations();
-            for (Annotation annotation : methodAnnotations) {
-                if (annotation.annotationType().equals(ValidateContractRunnerIsRecipient.class)) {
-                    if (operationContext.notSameRecipient()) {
-                        return context.generateErrorResponse(11001, "The trigger %s %s recipient %s differs from contract runner account %s",
-                                invocationType, Convert.toHexString(operationContext.getTransaction().getFullHash()), operationContext.getTransaction().getRecipientRs(), config.getAccountRs());
-                    }
-                } else if (annotation.annotationType().equals(ValidateContractRunnerIsSender.class)) {
-                    if (operationContext.notSameSender()) {
-                        return context.generateErrorResponse(11004, "The trigger %s %s sender %s differs from contract runner account %s",
-                                invocationType, Convert.toHexString(operationContext.getTransaction().getFullHash()), operationContext.getTransaction().getSenderRs(), config.getAccountRs());
-                    }
-                } else if (annotation.annotationType().equals(ValidateChain.class)) {
-                    ValidateChain validateChain = (ValidateChain) annotation;
-                    int chain = operationContext.getTransaction().getChainId();
-                    boolean isAccepted = validateChain.accept().length == 0 || IntStream.of(validateChain.accept()).anyMatch(c -> c == chain);
-                    boolean isRejected = validateChain.reject().length != 0 && IntStream.of(validateChain.reject()).anyMatch(c -> c == chain);
-                    if (!isAccepted || isRejected) {
-                        return context.generateErrorResponse(11002, "The trigger %s %s chain %s is not accepted by contract type %s",
-                                invocationType, Convert.toHexString(operationContext.getTransaction().getFullHash()), chain, contract.getClass().getName());
-                    }
-                } else if (annotation.annotationType().equals(ValidateTransactionType.class)) {
-                    ValidateTransactionType validateTransactionType = (ValidateTransactionType) annotation;
-                    TransactionType transactionType = operationContext.getTransaction().getTransactionType();
-                    boolean isAccepted = validateTransactionType.accept().length == 0 || Arrays.stream(validateTransactionType.accept()).anyMatch(tt -> tt.getTransactionType() == transactionType);
-                    boolean isRejected = validateTransactionType.reject().length != 0 && Arrays.stream(validateTransactionType.reject()).anyMatch(tt -> tt.getTransactionType() == transactionType);
-                    if (!isAccepted || isRejected) {
-                        return context.generateErrorResponse(11003, "The trigger %s %s is not an accepted transaction type of contract %s",
-                                invocationType, operationContext.getTransaction().getFullHash(), contract.getClass().getName());
-                    }
+            contractMethod = contract.getClass().getDeclaredMethod(invocationType.getMethodName(), invocationType.getContextClass());
+        } catch (NoSuchMethodException e) {
+            return null;
+        }
+        context.setContractSetupParameters(contractAndParameters.getParams());
+        if (invocationType == BLOCK || invocationType == REQUEST) {
+            return invokeContract(contract, contractMethod, invocationType, context);
+        }
+        AbstractOperationContext operationContext = context.getContext();
+        Annotation[] methodAnnotations = contractMethod.getDeclaredAnnotations();
+        for (Annotation annotation : methodAnnotations) {
+            if (annotation.annotationType().equals(ValidateContractRunnerIsRecipient.class)) {
+                if (operationContext.notSameRecipient()) {
+                    return context.generateErrorResponse(11001, "The trigger %s %s recipient %s differs from contract runner account %s",
+                            invocationType, Convert.toHexString(operationContext.getTransaction().getFullHash()), operationContext.getTransaction().getRecipientRs(), config.getAccountRs());
+                }
+            } else if (annotation.annotationType().equals(ValidateContractRunnerIsSender.class)) {
+                if (operationContext.notSameSender()) {
+                    return context.generateErrorResponse(11004, "The trigger %s %s sender %s differs from contract runner account %s",
+                            invocationType, Convert.toHexString(operationContext.getTransaction().getFullHash()), operationContext.getTransaction().getSenderRs(), config.getAccountRs());
+                }
+            } else if (annotation.annotationType().equals(ValidateChain.class)) {
+                ValidateChain validateChain = (ValidateChain) annotation;
+                int chain = operationContext.getTransaction().getChainId();
+                boolean isAccepted = validateChain.accept().length == 0 || IntStream.of(validateChain.accept()).anyMatch(c -> c == chain);
+                boolean isRejected = validateChain.reject().length != 0 && IntStream.of(validateChain.reject()).anyMatch(c -> c == chain);
+                if (!isAccepted || isRejected) {
+                    return context.generateErrorResponse(11002, "The trigger %s %s chain %s is not accepted by contract type %s",
+                            invocationType, Convert.toHexString(operationContext.getTransaction().getFullHash()), chain, contract.getClass().getName());
+                }
+            } else if (annotation.annotationType().equals(ValidateTransactionType.class)) {
+                ValidateTransactionType validateTransactionType = (ValidateTransactionType) annotation;
+                TransactionType transactionType = operationContext.getTransaction().getTransactionType();
+                boolean isAccepted = validateTransactionType.accept().length == 0 || Arrays.stream(validateTransactionType.accept()).anyMatch(tt -> tt.getTransactionType() == transactionType);
+                boolean isRejected = validateTransactionType.reject().length != 0 && Arrays.stream(validateTransactionType.reject()).anyMatch(tt -> tt.getTransactionType() == transactionType);
+                if (!isAccepted || isRejected) {
+                    return context.generateErrorResponse(11003, "The trigger %s %s is not an accepted transaction type of contract %s",
+                            invocationType, operationContext.getTransaction().getFullHash(), contract.getClass().getName());
                 }
             }
-            Logger.logInfoMessage("Invoking %s on contract %s", contractMethod.getName(), contract.getClass().getCanonicalName());
-            return (JO) contractMethod.invoke(contract, context);
-        } catch (ReflectiveOperationException e) {
-            Logger.logInfoMessage("Error running contract " + contract.getClass().getName(), e);
-            return context.generateErrorResponse(11002, e.toString());
+        }
+        return invokeContract(contract, contractMethod, invocationType, context);
+    }
+
+    private <T extends AbstractContractContext> JO invokeContract(Contract contract, Method contractMethod, INVOCATION_TYPE invocationType, T context) {
+        Logger.logInfoMessage("Invoking %s on contract %s", contractMethod.getName(), contract.getClass().getCanonicalName());
+        long startTime = System.nanoTime();
+        try {
+            JO result = (JO)contractMethod.invoke(contract, context);
+            long interval = System.nanoTime() - startTime;
+            invocationType.addMeasurementNormal(contract.getClass().getCanonicalName(), interval);
+            return result;
+        } catch (Throwable t) {
+            long interval = System.nanoTime() - startTime;
+            invocationType.addMeasurementErr(contract.getClass().getCanonicalName(), interval);
+            Logger.logInfoMessage("Error running contract " + contract.getClass().getName(), t);
+            return context.generateErrorResponse(11002, t.toString());
         }
     }
 
@@ -365,9 +444,9 @@ public final class ContractRunner implements AddOn, ContractProvider {
         if (messageJson.get("errorDescription") != null) {
             return messageJson;
         }
-        String contractName = messageJson.get("contract") != null ? (String) messageJson.get("contract") : null;
-        EventSource source = messageJson.get("source") != null ? EventSource.valueOf((String) messageJson.get("source")) : EventSource.NONE;
-        String seed = messageJson.get("seed") != null ? (String) messageJson.get("seed") : null;
+        String contractName = messageJson.getString("contract");
+        EventSource source = messageJson.isExist("source") ? EventSource.valueOf(messageJson.getString("source")) : EventSource.NONE;
+        String seed = messageJson.getString("seed");
         ChainTransactionId referencedTransactionId = null;
         if (contractOrTriggerTransaction instanceof ChildTransaction) {
             referencedTransactionId = ((ChildTransaction) contractOrTriggerTransaction).getReferencedTransactionId();
@@ -514,7 +593,7 @@ public final class ContractRunner implements AddOn, ContractProvider {
                 Logger.logInfoMessage("Actual   Transaction " + actualTransactionJSON.toJSONString());
             }
         }
-        return generateErrorResponse(1000, "Cannot approve contract transaction %s chain %s", expectedTransactionJSON.get("fullHash"), expectedTransactionJSON.get("chain"));
+        return generateErrorResponse(1000, "Cannot approve contract %s transaction %s chain %s", contract.getClass().getCanonicalName(), expectedTransactionJSON.get("fullHash"), expectedTransactionJSON.get("chain"));
     }
 
     JO submitContractTransactions(Contract contract, List<JO> transactions) {
@@ -563,7 +642,7 @@ public final class ContractRunner implements AddOn, ContractProvider {
                 counter++;
             }
         }
-        return generateInfoResponse("contract runner submitted %d transactions with %d errors", counter, errorsCounter);
+        return generateInfoResponse("contract %s submitted %d transactions with %d errors", contract.getClass().getCanonicalName(), counter, errorsCounter);
     }
 
     private boolean isDuplicate(Contract contract, TransactionResponse transaction) {

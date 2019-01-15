@@ -1,6 +1,6 @@
 <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   ~ Copyright © 2013-2016 The Nxt Core Developers.                            ~
-  ~ Copyright © 2016-2018 Jelurida IP B.V.                                    ~
+  ~ Copyright © 2016-2019 Jelurida IP B.V.                                    ~
   ~                                                                           ~
   ~ See the LICENSE.txt file at the top-level directory of this distribution  ~
   ~ for licensing information.                                                ~
@@ -97,14 +97,6 @@
                         <i class="fa fa-user"></i>
                     </a>
                 </li>
-                <li id="exchange_menu_li" role="presentation" class="active show_popover" data-toggle="popover" data-delay="250" data-placement="right" data-content="EXCHANGE" data-container="#header_right" data-i18n="[data-content]exchange">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                        <i class="fa fa-exchange"></i>
-                    </a>
-                    <ul class="dropdown-menu" role="menu">
-                        <li><a role="menuitem" tabindex="-1" href="#" class="goto-page" data-page="exchange_changelly">Changelly</a></li>
-                    </ul>
-                </li>
                 <li class="dropdown show_popover" role="presentation" data-toggle="popover" data-delay="250" data-placement="bottom" data-content="SETTINGS" data-container="#header_right" data-i18n="[data-content]settings">
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown">
                         <i class="fa fa-cog"></i>
@@ -126,6 +118,8 @@
                         <li><a href="#" data-toggle="modal" data-target="#token_modal"><i class="fa fa-code"></i><span data-i18n="generate_token">Generate Token</span></a></li>
                         <li><a href="#" data-toggle="modal" data-target="#hash_modal"><i class="fa fa-calculator"></i><span data-i18n="calculate_hash">Calculate Hash</span></a></li>
                         <li><a href="#" data-toggle="modal" data-target="#transaction_json_modal"><i class="fa fa-asterisk"></i><span data-i18n="transaction_operations">Transaction Operations</span></a></li>
+                        <li role="presentation" class="divider"></li>
+                        <li><a href="#" class="goto-page" data-page="exchange_changelly"><i class="fa fa-exchange"></i><span data-i18n="changelly">Changelly</span></a></li>
                         <li role="presentation" class="divider"></li>
                         <li><a href="#" id="refreshSearchIndex"><i class="fa fa-search"></i><span data-i18n="refresh_search_index">Refresh Search Index</span></a></li>
                         <li id="api_console_li"><a href="/test" target="_blank"><i class="fa fa-magic"></i><span data-i18n="api_console">API Console</span></a></li>

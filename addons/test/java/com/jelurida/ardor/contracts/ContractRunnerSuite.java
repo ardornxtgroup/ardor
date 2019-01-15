@@ -25,7 +25,9 @@ import org.junit.runners.Suite;
         ForbiddenActionsTest.class,
         DatabaseAccessTest.class,
         LiberlandCitizenRegistryTest.class,
-        ParamInvocationHandlerTest.class
+        ParamInvocationHandlerTest.class,
+        ContractWithInnerInterfaceTest.class,
+        GetRandomNumberTest.class
 })
 public class ContractRunnerSuite extends SafeShutdownSuite {
 }

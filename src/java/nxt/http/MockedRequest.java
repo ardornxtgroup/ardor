@@ -17,6 +17,7 @@ import java.io.BufferedReader;
 import java.security.Principal;
 import java.util.Collection;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -24,10 +25,12 @@ import java.util.Map;
 public class MockedRequest implements HttpServletRequest {
 
     private final Map<String, List<String>> params;
+    private final Map<String, String[]> parameterMap = new HashMap<>();
     private final Map<String, Part> parts;
 
     public MockedRequest(Map<String, List<String>> params, Map<String, Part> parts) {
         this.params = params;
+        this.params.keySet().forEach(k -> parameterMap.put(k, params.get(k).toArray(new String[0])));
         this.parts = parts;
     }
 
@@ -266,7 +269,7 @@ public class MockedRequest implements HttpServletRequest {
 
     @Override
     public Map<String, String[]> getParameterMap() {
-        throw new UnsupportedOperationException();
+        return parameterMap;
     }
 
     @Override

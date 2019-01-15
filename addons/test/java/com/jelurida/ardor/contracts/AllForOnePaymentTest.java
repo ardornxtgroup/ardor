@@ -2,9 +2,7 @@ package com.jelurida.ardor.contracts;
 
 import nxt.addons.JA;
 import nxt.addons.JO;
-import nxt.blockchain.Block;
 import nxt.blockchain.ChildTransaction;
-import nxt.blockchain.FxtTransaction;
 import nxt.http.APICall;
 import nxt.messaging.PrunablePlainMessageAppendix;
 import nxt.util.Convert;
@@ -117,33 +115,18 @@ public class AllForOnePaymentTest extends AbstractContractTest {
         generateBlock(); // Now the distribution takes place (height 6)
         generateBlock(); // And now the reward transaction is processed
 
-        Block lastBlock = getLastBlock();
-        boolean isFound = false;
-        String fullHashHex = null;
         List<Long> participants = new ArrayList<>(Arrays.asList(ALICE.getId(), BOB.getId(), CHUCK.getId(), DAVE.getId()));
-        for (FxtTransaction transaction : lastBlock.getFxtTransactions()) {
-            for (ChildTransaction childTransaction : transaction.getSortedChildTransactions()) {
-                isFound = true;
-                Assert.assertEquals(2, childTransaction.getChain().getId());
-                Assert.assertEquals(0, childTransaction.getType().getType());
-                Assert.assertEquals(0, childTransaction.getType().getSubtype());
-                Assert.assertEquals(99998000000L, childTransaction.getAmount());
-                Assert.assertEquals(2000000L, childTransaction.getFee());
-                Assert.assertEquals(ALICE.getAccount().getId(), childTransaction.getSenderId());
-                Assert.assertTrue(participants.contains(childTransaction.getRecipientId()));
-                PrunablePlainMessageAppendix appendix = (PrunablePlainMessageAppendix) childTransaction.getAppendages().stream().filter(a -> a instanceof PrunablePlainMessageAppendix).findFirst().orElse(null);
-                if (appendix == null) {
-                    Assert.fail("PrunablePlainMessageAppendix not found");
-                }
-                fullHashHex = Convert.toHexString(childTransaction.getFullHash());
-            }
-        }
-        Assert.assertTrue(isFound);
+        ChildTransaction childTransaction = testAndGetLastChildTransaction(2, 0, 0, a -> a == 99998000000L, 2000000L, ALICE, null, null);
+        Assert.assertTrue(participants.contains(childTransaction.getRecipientId()));
+        childTransaction.getAppendages().stream()
+                .filter(PrunablePlainMessageAppendix.class::isInstance)
+                .findFirst()
+                .get();
 
         // Trigger the contract based on the transaction it just submitted
         apiCall = new APICall.Builder("triggerContractByTransaction").
                 param("chain", IGNIS.getId()).
-                param("triggerFullHash", fullHashHex).
+                param("triggerFullHash", Convert.toHexString(childTransaction.getFullHash())).
                 param("apply", "true").
                 param("validate", "true").
                 build();

@@ -1,6 +1,6 @@
 /******************************************************************************
  * Copyright © 2013-2016 The Nxt Core Developers.                             *
- * Copyright © 2016-2018 Jelurida IP B.V.                                     *
+ * Copyright © 2016-2019 Jelurida IP B.V.                                     *
  *                                                                            *
  * See the LICENSE.txt file at the top-level directory of this distribution   *
  * for licensing information.                                                 *
@@ -149,7 +149,13 @@ var NRS = (function(NRS, $, undefined) {
 	modal.on("shown.bs.modal", function() {
 		$(this).find("input[type=text]:first, textarea:first, input[type=password]:first").not("[readonly]").first().focus();
 		$(this).find("input[name=converted_account_id]").val("");
-		NRS.showedFormWarning = false; //maybe not the best place... we assume forms are only in modals?
+		$(this).find("input[name=permanent_message]").prop("disabled", false);
+		//maybe not the best place... we assume forms are only in modals?
+		for (var warning in NRS.displayFormWarning) {
+			if (NRS.displayFormWarning.hasOwnProperty(warning)) {
+				NRS.displayFormWarning[warning] = true;
+			}
+		}
         isFakeWarningDisplayed = false;
 	});
 
@@ -207,6 +213,7 @@ var NRS = (function(NRS, $, undefined) {
 		$(this).find(".callout-danger:not(.never_hide, .remote_warning), .error_message, .account_info").html("").hide();
 		$(this).find(".advanced").hide();
 		$(this).find(".recipient_public_key").hide();
+		$(this).find(".recipient_contract_reference_selector").hide();
 		$(this).find(".optional_message, .optional_note, .optional_do_not_sign, .optional_public_key").hide();
 		$(this).find(".advanced_info a").text($.t("advanced"));
 		$(this).find(".advanced_extend").each(function(index, obj) {
@@ -225,7 +232,11 @@ var NRS = (function(NRS, $, undefined) {
 		pollTypeGroup.removeClass("col-md-6").addClass("col-md-12");
 
 		$(this).find(".tx-modal-approve").empty();
-		NRS.showedFormWarning = false;
+		for (var warning in NRS.displayFormWarning) {
+			if (NRS.displayFormWarning.hasOwnProperty(warning)) {
+				NRS.displayFormWarning[warning] = true;
+			}
+		}
         isFakeWarningDisplayed = false;
         var isOffline = !!$(this).find(".mobile-offline").val();
         if (isOffline) {

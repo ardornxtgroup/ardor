@@ -1,5 +1,6 @@
 package nxt.addons;
 
+import nxt.http.callers.GetBlockCall;
 import nxt.http.responses.BlockResponse;
 
 import javax.servlet.http.HttpServletRequest;
@@ -14,16 +15,28 @@ import java.util.Map;
 public class RequestContext extends AbstractContractContext {
 
     private final HttpServletRequest req;
+    private final JO requestParams;
+    private BlockResponse blockResponse;
 
     public RequestContext(HttpServletRequest req, ContractRunnerConfig config, String contractName) {
         super(config, contractName);
         this.source = EventSource.REQUEST;
         this.req = req;
+        this.requestParams = new JO();
+        req.getParameterMap().forEach((k, v) -> requestParams.put(k, v[0])); // For parameters with multiple values we only take the first one
     }
 
     @Override
     public BlockResponse getBlock() {
-        throw new UnsupportedOperationException();
+        if (blockResponse != null) {
+            return blockResponse;
+        }
+        blockResponse = GetBlockCall.create().getBlock();
+        return blockResponse;
+    }
+
+    public JO getRuntimeParams() {
+        return requestParams;
     }
 
     public HttpServletRequest getRequest() {

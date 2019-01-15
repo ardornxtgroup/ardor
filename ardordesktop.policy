@@ -25,10 +25,9 @@ grant codeBase "file://untrustedContractCode" principal nxt.util.security.Transa
 };
 */
 
-// For contract runner 3rd party runtime libraries
+// For AddOns 3rd party runtime libraries, set to the same permissions as product code by default
 grant codeBase "file:addons/lib/*" {
-    permission java.io.FilePermission "${java.io.tmpdir}*", "read,write,delete";
-    permission java.util.PropertyPermission "java.io.tmpdir", "read";
+    permission java.security.AllPermission;
 };
 
 // The rest of the permissions should be the same for all protection domains listed below.

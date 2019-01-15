@@ -129,14 +129,14 @@ public class IgnisArdorRates<InvocationData, ReturnedData> extends AbstractContr
         if (ignisTickerResponse.get("errorCode") != null) {
             return response;
         }
-        double ignisLastTrade = ignisTickerResponse.getJo("result").numericToDouble("Last");
+        double ignisLastTrade = ignisTickerResponse.getJo("result").getDouble("Last");
 
         // Last Ardor/BTC trade
         JO ardorTickerResponse = BittrexRateProvider.getRate(context, "ARDR");
         if (ardorTickerResponse.get("errorCode") != null) {
             return response;
         }
-        double ardorLastTrade = ardorTickerResponse.getJo("result").numericToDouble("Last");
+        double ardorLastTrade = ardorTickerResponse.getJo("result").getDouble("Last");
 
         // Calculate IGNIS to Ardor rate
         long ignisNQTPerARDR = BigDecimal.valueOf(ardorLastTrade).

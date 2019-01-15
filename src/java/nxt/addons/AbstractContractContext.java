@@ -37,6 +37,7 @@ public abstract class AbstractContractContext {
     protected static final int VALIDATE_SAME_CHAIN = 1013;
     protected static final int FEE_CANNOT_CALCULATE = 1021;
     protected static final int FEE_EXCEEDS_AMOUNT = 1022;
+    protected static final int MESSAGE_TO_ENCRYPT_WITHOUT_SECRET_PHRASE = 1031;
 
     private final Blockchain blockchain = AccessController.doPrivileged((PrivilegedAction<Blockchain>)Nxt::getBlockchain);
 
@@ -72,7 +73,6 @@ public abstract class AbstractContractContext {
         chainById = Collections.unmodifiableMap(byId);
         chainByName = Collections.unmodifiableMap(byName);
     }
-
 
     protected EventSource source;
     protected ContractRunnerConfig config;
@@ -320,7 +320,7 @@ public abstract class AbstractContractContext {
     public JO createTransaction(APICall.Builder builder, boolean reduceFeeFromAmount) {
         long feeNQT = getTransactionFee(builder);
         if (feeNQT < 0) {
-            return generateInternalErrorResponse(FEE_CANNOT_CALCULATE,"%s: cannot calculate fee", getClass().getName());
+            return generateInternalErrorResponse(FEE_CANNOT_CALCULATE,"%s: cannot calculate fee, perhaps feeRateNQTPerFXT not defined for chain %s in contract runner configuration", contractName, builder.getParam("chain"));
         } else {
             builder.param("feeNQT", feeNQT);
             if (reduceFeeFromAmount && builder.isParamSet("amountNQT")) {
@@ -334,10 +334,11 @@ public abstract class AbstractContractContext {
         JO transactionResponse = createTransactionImpl(builder);
         if (response == null) {
             response = new JO();
+        } else if (response.isExist("errorCode")) {
+            return response;
         }
         if (!response.isExist("transactions")) {
-            JA transactions = new JA();
-            response.put("transactions", transactions);
+            response.put("transactions", new JA());
         }
         JA transactions = response.getArray("transactions");
         transactions.add(transactionResponse);
@@ -377,6 +378,9 @@ public abstract class AbstractContractContext {
         builder.param("message", message);
         builder.param("messageIsPrunable", "true");
         if (!builder.isParamSet("secretPhrase")) {
+            if (builder.isParamSet("messageToEncrypt")) {
+                return generateInternalErrorResponse(MESSAGE_TO_ENCRYPT_WITHOUT_SECRET_PHRASE,"%s: do not use the messageToEncrypt parameter, encrypt the data yourself and submit the encryptedMessageData and encryptedMessageNonce instead", getClass().getName());
+            }
             builder.param("publicKey", config.getPublicKeyHexString());
         }
         int chainId = Integer.parseInt(builder.getParam("chain"));

@@ -21,6 +21,10 @@ public class GetContractReferencesCall extends APICall.Builder<GetContractRefere
         return param("firstIndex", firstIndex);
     }
 
+    public GetContractReferencesCall includeContract(boolean includeContract) {
+        return param("includeContract", includeContract);
+    }
+
     public GetContractReferencesCall contractName(String contractName) {
         return param("contractName", contractName);
     }

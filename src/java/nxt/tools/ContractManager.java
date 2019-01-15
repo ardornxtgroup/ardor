@@ -16,6 +16,8 @@ import nxt.configuration.Setup;
 import nxt.crypto.Crypto;
 import nxt.http.API;
 import nxt.http.JSONResponses;
+import nxt.http.callers.EventRegisterCall;
+import nxt.http.callers.EventWaitCall;
 import nxt.http.callers.GetConstantsCall;
 import nxt.http.callers.GetContractReferencesCall;
 import nxt.http.callers.GetSupportedContractsCall;
@@ -75,6 +77,7 @@ public class ContractManager {
     private long minBundlerBalanceFXT;
     private ChildChain childChain;
     private JO contractSetup;
+    private static URL url;
 
     public enum OPTION {
         NAME('n', "name", true, "contract name", false, (OPTION)null),
@@ -192,12 +195,15 @@ public class ContractManager {
                     return;
                 }
                 contractManager.reference(contractData, contractFullHash);
+                contractManager.waitForNextBlock();
             } else if (action == OPTION.REFERENCE) {
                 byte[] contractFullHash = Convert.parseHexString(cmd.getOptionValue(OPTION.HASH.getOpt()));
                 ContractData contractData = new ContractData(contractName);
                 contractManager.reference(contractData, contractFullHash);
+                contractManager.waitForNextBlock();
             } else if (action == OPTION.DELETE) {
                 contractManager.delete(contractName);
+                contractManager.waitForNextBlock();
             } else if (action == OPTION.VERIFY) {
                 contractManager.verify(cmd.getOptionValue(OPTION.HASH.getOpt()), cmd.getOptionValue(OPTION.SOURCE.getOpt()));
             } else {
@@ -258,7 +264,7 @@ public class ContractManager {
         if (Convert.emptyToNull(account) == null) {
             // See if the node has a contract runner enabled, if so, list the contract runner account
             try {
-                JO supportedContractsResponse = GetSupportedContractsCall.create().adminPassword(API.getAdminPassword()).remote(getUrl()).call();
+                JO supportedContractsResponse = GetSupportedContractsCall.create().remote(getUrl()).call();
                 if (!supportedContractsResponse.isExist("contractRunnerAccountRS")) {
                     Logger.logInfoMessage("Account not specified and cannot determine contract runner account - %s", supportedContractsResponse.toJSONString());
                     return;
@@ -618,6 +624,9 @@ public class ContractManager {
     }
 
     private static URL getUrl() {
+        if (url != null) {
+            return url;
+        }
         String host = Convert.emptyToNull(Nxt.getStringProperty("contract.manager.serverAddress"));
         if (host == null) {
             return null;
@@ -630,7 +639,6 @@ public class ContractManager {
             HttpsURLConnection.setDefaultHostnameVerifier(TrustAllSSLProvider.getHostNameVerifier());
         }
         int port = Constants.isTestnet ? API.TESTNET_API_PORT : Nxt.getIntProperty("nxt.apiServerPort");
-        URL url;
         try {
             url = new URL(protocol, host, port, "/nxt");
         } catch (MalformedURLException e) {
@@ -638,6 +646,44 @@ public class ContractManager {
         }
         Logger.logInfoMessage("Connecting to URL " + url);
         return url;
+    }
+
+    private void waitForNextBlock() {
+        String token = null;
+        try {
+            // Monitor the blockchain for a new block
+            JO response = EventRegisterCall.create().event("Block.BLOCK_PUSHED").remote(getUrl()).call();
+            Logger.logInfoMessage("Waiting for new block %s", response.toJSONString());
+            if (!response.isExist("token")) {
+                // Registration failed
+                Logger.logInfoMessage("Something went wrong %s", response.toJSONString());
+                return;
+            }
+            token = response.getString("token");
+            JA events;
+            // Wait for the next event. The while loop is not necessary but serves as a good practice in order not to
+            // keep and Http request open for a long time.
+            //noinspection ConditionalBreakInInfiniteLoop
+            while (true) {
+                // Wait up to 1 second for the event to occur
+                response = EventWaitCall.create().timeout("1").token(token).remote(getUrl()).call();
+                events = response.getArray("events");
+                if (events.size() > 0) {
+                    // If the event occurred stop waiting
+                    break;
+                }
+                System.out.print(".");
+            }
+            // At this point the events array may include more than one event.
+            System.out.println();
+            events.objects().forEach(event -> Logger.logInfoMessage("" + event));
+        } finally {
+            if (token != null) {
+                // Unregister the event listener
+                JO response = EventRegisterCall.create().token(token).remove("true").remote(getUrl()).call();
+                Logger.logInfoMessage("EventRegisterCall remove %s", response.toJSONString());
+            }
+        }
     }
 
     public static class ContractData {

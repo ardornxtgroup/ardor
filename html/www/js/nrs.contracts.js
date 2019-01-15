@@ -1,6 +1,6 @@
 /******************************************************************************
  * Copyright © 2013-2016 The Nxt Core Developers.                             *
- * Copyright © 2016-2018 Jelurida IP B.V.                                     *
+ * Copyright © 2016-2019 Jelurida IP B.V.                                     *
  *                                                                            *
  * See the LICENSE.txt file at the top-level directory of this distribution   *
  * for licensing information.                                                 *
@@ -89,20 +89,27 @@ var NRS = (function(NRS) {
 
     NRS.jsondata.contracts = function(contract, account) {
         var isTransactionInvocation = false;
-        for (var i=0; i<contract.invocationTypes.length; i++) {
-            if (contract.invocationTypes[i].type == "TRANSACTION") {
+        var invocationTypes = "";
+        for (var i=0; i<contract.contract.invocationTypes.length; i++) {
+            var type = NRS.escapeRespStr(contract.contract.invocationTypes[i].type);
+            var typeLink = "<a href='#' class='btn btn-xs' data-toggle='modal' data-target='#view_contract_stat_modal' " +
+                "data-stat='" + JSON.stringify(contract.contract.invocationTypes[i].stat) + "' " +
+                "data-name='" + NRS.escapeRespStr(contract.name) + "' " +
+                "data-type='" + type + "'>" + type + "</a>";
+            invocationTypes += typeLink;
+            if (type == "TRANSACTION") {
                 isTransactionInvocation = true;
-                break;
             }
         }
         return {
             nameFormatted: NRS.getEntityLink({ request: "getContractReferences", key: "contractName", id: contract.contractReference.name, key2: "account", id2: account, responseArray: "contractReferences"}),
             accountFormatted: NRS.getTransactionLink(contract.uploadTransaction.fullHash, contract.uploadTransaction.senderRS, contract.uploadTransaction.chain),
+            invocationTypes: invocationTypes,
             paramsLink: isTransactionInvocation ? "<a href='#' class='btn btn-xs' data-toggle='modal' data-target='#view_contract_params_modal' " +
-                "data-params='" + JSON.stringify(contract.supportedInvocationParams, null, 2) + "' " +
+                "data-params='" + JSON.stringify(contract.contract.supportedInvocationParams, null, 2) + "' " +
                 "data-name='" + NRS.escapeRespStr(contract.name) + "'>" + $.t("parameters") + "</a>" : "",
-            validatyChecksLink: contract.validityChecks.length == 0 ? "" : "<a href='#' class='btn btn-xs' data-toggle='modal' data-target='#view_contract_validity_checks_modal' " +
-                "data-validity-checks='" + JSON.stringify(contract.validityChecks, null, 2) + "' " +
+            validatyChecksLink: contract.contract.validityChecks.length == 0 ? "" : "<a href='#' class='btn btn-xs' data-toggle='modal' data-target='#view_contract_validity_checks_modal' " +
+                "data-validity-checks='" + JSON.stringify(contract.contract.validityChecks, null, 2) + "' " +
                 "data-name='" + NRS.escapeRespStr(contract.name) + "'>" + $.t("validity_checks") + "</a>"
         };
     };
@@ -121,15 +128,13 @@ var NRS = (function(NRS) {
         NRS.renderContracts();
     };
 
-    $("#view_contract_params_modal").on("show.bs.modal", function(e) {
-        var $invoker = $(e.relatedTarget);
-        var name = $invoker.data("name");
-        $("#view_contract_params_name").val(name);
-        var params = $invoker.data("params");
-        $("#view_contract_params_content").val(JSON.stringify(params, null, 2));
-        var template = { contract: name };
+    NRS.getInvocationParamsTemplate = function(name, params) {
+        var template = {contract: name};
+        if (params.length == 0) {
+            return template;
+        }
         var paramsTemplate = {};
-        for (var i=0; i<params.length; i++) {
+        for (var i = 0; i < params.length; i++) {
             var param = params[i];
             if (param.type === "nxt.addons.JO") {
                 paramsTemplate[param.name] = {"[key]": "[value]"};
@@ -139,7 +144,34 @@ var NRS = (function(NRS) {
             }
         }
         template["params"] = paramsTemplate;
+        return template;
+    };
+
+    $("#view_contract_params_modal").on("show.bs.modal", function(e) {
+        var $invoker = $(e.relatedTarget);
+        var name = $invoker.data("name");
+        $("#view_contract_params_name").val(name);
+        var params = $invoker.data("params");
+        $("#view_contract_params_content").val(JSON.stringify(params, null, 2));
+        var template = NRS.getInvocationParamsTemplate(name, params);
         $("#view_contract_params_template").val(JSON.stringify(template, null, 2));
+    });
+
+    $("#view_contract_stat_modal").on("show.bs.modal", function(e) {
+        var $invoker = $(e.relatedTarget);
+        var name = $invoker.data("name");
+        $("#view_contract_stat_name").val(name);
+        var type = $invoker.data("type");
+        $("#view_contract_stat_type").val(type);
+        var stat = $invoker.data("stat");
+        var $viewContractStatNormal = $("#view_contract_stat_normal");
+        $viewContractStatNormal.find("tbody").empty();
+        $viewContractStatNormal.find("tbody").append(NRS.createInfoTable(stat.normal));
+        $viewContractStatNormal.show();
+        var $viewContractStatError = $("#view_contract_stat_error");
+        $viewContractStatError.find("tbody").empty();
+        $viewContractStatError.find("tbody").append(NRS.createInfoTable(stat.error));
+        $viewContractStatError.show();
     });
 
     $("#view_contract_validity_checks_modal").on("show.bs.modal", function(e) {

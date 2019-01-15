@@ -246,6 +246,12 @@ class ActiveContractRunnerConfig implements ContractRunnerConfig {
 
     @Override
     public String getStatus() {
-        return "Ok";
+        if (secretPhrase != null && !isValidator) {
+            return "Running";
+        } else if(validatorSecretPhrase != null && isValidator) {
+            return "Validating";
+        } else {
+            return "Passphrase Not Specified";
+        }
     }
 }

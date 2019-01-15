@@ -102,3 +102,10 @@ JavaFX WebView debugger:
 JavaFX WebView debugger https://github.com/mohamnag/javafx_webview_debugger
 is licensed under the MIT license:
 https://github.com/mohamnag/javafx_webview_debugger/blob/master/LICENCE
+
+
+Apache Commons:
+
+Apache Commons CLI https://commons.apache.org/proper/commons-cli/ and Apache 
+Commons Math http://commons.apache.org/proper/commons-math/ are licensed under 
+the Apache License 2.0: http://www.apache.org/licenses/LICENSE-2.0

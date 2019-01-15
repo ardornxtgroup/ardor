@@ -1,6 +1,6 @@
 /*
  * Copyright © 2013-2016 The Nxt Core Developers.
- * Copyright © 2016-2018 Jelurida IP B.V.
+ * Copyright © 2016-2019 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
@@ -166,14 +166,15 @@ public final class Constants {
     public static final int LIGHT_CONTRACTS_BLOCK = Constants.isTestnet ? Constants.isAutomatedTest ? 0 : 341500 : 543000;
     public static final int ASSET_PROPERTIES_BLOCK = Constants.isTestnet ? Constants.isAutomatedTest ? 0 : 455000 : 543000;
     public static final int MPG_BLOCK = Constants.isTestnet ? Constants.isAutomatedTest ? 1 : 455000 : 543000;
+    public static final int CHECKSUM_BLOCK_3 = Constants.isTestnet ? 974000 : 545555;
 
-    public static final int LAST_CHECKSUM_BLOCK = CHECKSUM_BLOCK_2;
+    public static final int LAST_CHECKSUM_BLOCK = CHECKSUM_BLOCK_3;
 
-    public static final int LAST_KNOWN_BLOCK = CHECKSUM_BLOCK_2;
-    public static final long LAST_KNOWN_BLOCK_ID = Convert.parseUnsignedLong(isTestnet ? "2329106975025976796" : "9325030473083237377");
+    public static final int LAST_KNOWN_BLOCK = CHECKSUM_BLOCK_3;
+    public static final long LAST_KNOWN_BLOCK_ID = Convert.parseUnsignedLong(isTestnet ? "4587541431734737086" : "4282246732967882906");
 
-    public static final int[] MIN_VERSION = new int[] {2, 0, 10};
-    public static final int[] MIN_PROXY_VERSION = new int[] {2, 2};
+    public static final int[] MIN_VERSION = new int[] {2, 2, 1};
+    public static final int[] MIN_PROXY_VERSION = new int[] {2, 2, 1};
 
     public static final long UNCONFIRMED_POOL_DEPOSIT_FQT = 10 * ONE_FXT;
 

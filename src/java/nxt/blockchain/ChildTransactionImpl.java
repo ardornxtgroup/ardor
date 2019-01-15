@@ -1,6 +1,6 @@
 /*
  * Copyright © 2013-2016 The Nxt Core Developers.
- * Copyright © 2016-2018 Jelurida IP B.V.
+ * Copyright © 2016-2019 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
@@ -253,7 +253,7 @@ public final class ChildTransactionImpl extends TransactionImpl implements Child
     public long getMinimumFeeFQT(int blockchainHeight) {
         long totalFee = super.getMinimumFeeFQT(blockchainHeight);
         if (referencedTransactionId != null) {
-            totalFee = Math.addExact(totalFee, blockchainHeight < Constants.LIGHT_CONTRACTS_BLOCK ? Constants.ONE_FXT : Constants.ONE_FXT / 100);
+            totalFee = Math.addExact(totalFee, Constants.ONE_FXT / 100);
         }
         return totalFee;
     }

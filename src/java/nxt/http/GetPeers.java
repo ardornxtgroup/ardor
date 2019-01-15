@@ -1,6 +1,6 @@
 /*
  * Copyright © 2013-2016 The Nxt Core Developers.
- * Copyright © 2016-2018 Jelurida IP B.V.
+ * Copyright © 2016-2019 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
@@ -19,19 +19,26 @@ package nxt.http;
 import nxt.peer.Peer;
 import nxt.peer.Peers;
 import nxt.util.Convert;
+import nxt.util.Logger;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public final class GetPeers extends APIServlet.APIRequestHandler {
 
     static final GetPeers instance = new GetPeers();
 
     private GetPeers() {
-        super(new APITag[] {APITag.NETWORK}, "active", "state", "service", "service", "service", "includePeerInfo");
+        super(new APITag[] {APITag.NETWORK}, "active", "state", "service", "service", "service", "includePeerInfo", "version", "includeNewer", "connect", "adminPassword");
     }
 
     @Override
@@ -41,6 +48,17 @@ public final class GetPeers extends APIServlet.APIRequestHandler {
         String stateValue = Convert.emptyToNull(req.getParameter("state"));
         String[] serviceValues = req.getParameterValues("service");
         boolean includePeerInfo = "true".equalsIgnoreCase(req.getParameter("includePeerInfo"));
+        final boolean includeNewer = "true".equalsIgnoreCase(req.getParameter("includeNewer"));
+        String version = Convert.nullToEmpty(req.getParameter("version"));
+        int[] versions;
+        if (version.equals("")) {
+            versions = new int[] { 0,0,0 };
+        } else {
+            versions = Arrays.stream((version.endsWith("e") ?
+                    version.substring(0, version.length() - 1).split("\\.") : version.split("\\.")))
+                    .mapToInt(Integer::parseInt)
+                    .toArray();
+        }
         final Peer.State state;
         if (stateValue != null) {
             try {
@@ -62,6 +80,21 @@ public final class GetPeers extends APIServlet.APIRequestHandler {
             }
         }
 
+        boolean connect = "true".equalsIgnoreCase(req.getParameter("connect")) && API.checkPassword(req);
+        if (connect) {
+            List<Callable<Object>> connects = new ArrayList<>();
+            Peers.getAllPeers().forEach(peer -> connects.add(() -> {
+                peer.connectPeer();
+                return null;
+            }));
+            ExecutorService service = Executors.newFixedThreadPool(10);
+            try {
+                service.invokeAll(connects);
+            } catch (InterruptedException e) {
+                Logger.logMessage(e.toString(), e);
+            }
+        }
+
         Collection<Peer> peers;
         if (active) {
             peers = Peers.getPeers(p -> p.getState() != Peer.State.NON_CONNECTED);
@@ -70,30 +103,13 @@ public final class GetPeers extends APIServlet.APIRequestHandler {
         } else {
             peers = Peers.getAllPeers();
         }
-
+        final long services = serviceCodes;
         JSONArray peersJSON = new JSONArray();
-        if (serviceCodes != 0) {
-            final long services = serviceCodes;
-            if (includePeerInfo) {
-                peers.forEach(peer -> {
-                    if (peer.providesServices(services)) {
-                        peersJSON.add(JSONData.peer(peer));
-                    }
-                });
-            } else {
-                peers.forEach(peer -> {
-                    if (peer.providesServices(services)) {
-                        peersJSON.add(peer.getHost());
-                    }
-                });
-            }
-        } else {
-            if (includePeerInfo) {
-                peers.forEach(peer -> peersJSON.add(JSONData.peer(peer)));
-            } else {
-                peers.forEach(peer -> peersJSON.add(peer.getHost()));
-            }
-        }
+        peers.stream().filter(peer -> version.isEmpty() ||
+                (peer.getVersion() != null && (includeNewer ? !Peers.isOldVersion(peer.getVersion(), versions) : peer.getVersion().startsWith(version))))
+                .filter(peer -> services == 0 || peer.providesServices(services))
+                .map(peer -> includePeerInfo ? JSONData.peer(peer) : peer.getHost())
+                .forEach(peersJSON::add);
 
         JSONObject response = new JSONObject();
         response.put("peers", peersJSON);

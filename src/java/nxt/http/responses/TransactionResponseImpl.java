@@ -111,7 +111,7 @@ public class TransactionResponseImpl implements TransactionResponse {
             confirmations = -1;
         }
         JO attachment = transactionJson.getJo("attachment");
-        if (attachment != null && attachment.isExist("encryptedMessage")) {
+        if (attachment != null && attachment.isExist("encryptedMessage") && attachment.isExist("version.PrunableEncryptedMessage")) {
             encryptedAppendix = new PrunableEncryptedMessageAppendix(attachment.toJSONObject());
         }
     }

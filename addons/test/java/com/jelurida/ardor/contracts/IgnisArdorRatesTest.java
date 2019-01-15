@@ -3,15 +3,15 @@ package com.jelurida.ardor.contracts;
 import nxt.account.AccountPropertyAttachment;
 import nxt.account.AccountPropertyTransactionType;
 import nxt.addons.JO;
-import nxt.blockchain.Block;
 import nxt.blockchain.ChildTransaction;
 import nxt.blockchain.ChildTransactionType;
-import nxt.blockchain.FxtTransaction;
 import nxt.http.APICall;
 import nxt.messaging.MessagingTransactionType;
 import nxt.messaging.PrunableEncryptedMessageAppendix;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.util.List;
 
 import static nxt.blockchain.ChildChain.IGNIS;
 
@@ -32,29 +32,29 @@ public class IgnisArdorRatesTest extends AbstractContractTest {
         // Contract should submit transaction now
         generateBlock();
         // Verify that the contract sent back a message
-        Block lastBlock = getLastBlock();
         boolean isMessageFound = false;
         boolean isPropertyFound = false;
-        for (FxtTransaction transaction : lastBlock.getFxtTransactions()) {
-            for (ChildTransaction childTransaction : transaction.getSortedChildTransactions()) {
-                if (ChildTransactionType.findTransactionType(childTransaction.getType().getType(), childTransaction.getType().getSubtype()) == MessagingTransactionType.ARBITRARY_MESSAGE)  {
-                    isMessageFound = true;
-                    Assert.assertEquals(2, childTransaction.getChain().getId());
-                    PrunableEncryptedMessageAppendix appendix = (PrunableEncryptedMessageAppendix)childTransaction.getAppendages().stream().filter(a -> a instanceof PrunableEncryptedMessageAppendix).findFirst().orElse(null);
-                    if (appendix == null) {
-                        Assert.fail("PrunableEncryptedMessageAppendix not found");
-                    }
-                    Assert.assertEquals(ALICE.getAccount().getId(), childTransaction.getSenderId());
-                    Assert.assertEquals(BOB.getAccount().getId(), childTransaction.getRecipientId());
-                    continue;
-                }
-                if (ChildTransactionType.findTransactionType(childTransaction.getType().getType(), childTransaction.getType().getSubtype()) == AccountPropertyTransactionType.ACCOUNT_PROPERTY_SET) {
-                    isPropertyFound = true;
-                    Assert.assertEquals(2, childTransaction.getChain().getId());
-                    Assert.assertTrue(childTransaction.getAttachment() instanceof AccountPropertyAttachment);
-                    AccountPropertyAttachment accountPropertyAttachment = (AccountPropertyAttachment)childTransaction.getAttachment();
-                    Assert.assertEquals("IgnisPerArdorRates", accountPropertyAttachment.getProperty());
-                }
+        List<? extends ChildTransaction> lastBlockTransactions = getLastBlockChildTransactions(2);
+        for (ChildTransaction childTransaction : lastBlockTransactions) {
+            if (ChildTransactionType.findTransactionType(childTransaction.getType().getType(), childTransaction.getType().getSubtype()) == MessagingTransactionType.ARBITRARY_MESSAGE)  {
+                isMessageFound = true;
+                Assert.assertEquals(2, childTransaction.getChain().getId());
+                PrunableEncryptedMessageAppendix appendix = childTransaction.getAppendages()
+                        .stream()
+                        .filter(PrunableEncryptedMessageAppendix.class::isInstance)
+                        .map(PrunableEncryptedMessageAppendix.class::cast)
+                        .findFirst()
+                        .get();
+                Assert.assertEquals(ALICE.getId(), childTransaction.getSenderId());
+                Assert.assertEquals(BOB.getId(), childTransaction.getRecipientId());
+                continue;
+            }
+            if (ChildTransactionType.findTransactionType(childTransaction.getType().getType(), childTransaction.getType().getSubtype()) == AccountPropertyTransactionType.ACCOUNT_PROPERTY_SET) {
+                isPropertyFound = true;
+                Assert.assertEquals(2, childTransaction.getChain().getId());
+                Assert.assertTrue(childTransaction.getAttachment() instanceof AccountPropertyAttachment);
+                AccountPropertyAttachment accountPropertyAttachment = (AccountPropertyAttachment)childTransaction.getAttachment();
+                Assert.assertEquals("IgnisPerArdorRates", accountPropertyAttachment.getProperty());
             }
         }
         Assert.assertTrue(isMessageFound);

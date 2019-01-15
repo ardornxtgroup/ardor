@@ -1,6 +1,6 @@
 /******************************************************************************
  * Copyright © 2013-2016 The Nxt Core Developers.                             *
- * Copyright © 2016-2018 Jelurida IP B.V.                                     *
+ * Copyright © 2016-2019 Jelurida IP B.V.                                     *
  *                                                                            *
  * See the LICENSE.txt file at the top-level directory of this distribution   *
  * for licensing information.                                                 *
@@ -81,6 +81,7 @@ var NRS = (function (NRS, $) {
     
     var CHAIN_DISPLAY_TO_LOGIC_MAPPING = { "BITS": "BITSWIFT" };
     var CHAIN_LOGIC_TO_DISPLAY_MAPPING = { "BITSWIFT": "BITS" };
+    var CHAIN_DESCRIPTION = [];
 
     NRS.loadAlgorithmList = function (algorithmSelect, isPhasingHash) {
         var hashAlgorithms;
@@ -347,6 +348,13 @@ var NRS = (function (NRS, $) {
         return name != null ? name : chainName;
     };
 
+    NRS.getChainDescription = function(chainId) {
+        if (CHAIN_DESCRIPTION.length == 0) {
+            CHAIN_DESCRIPTION = ["", $.t("parent_chain"), $.t("main_child_chain"), $.t("euro_pegged_chain"), $.t("bits_chain"), $.t("mpg_chain") ];
+        }
+        return CHAIN_DESCRIPTION[chainId];
+    };
+
     NRS.findChainByName = function(chainName) {
         for (var id in  NRS.constants.CHAIN_PROPERTIES) {
             if (NRS.constants.CHAIN_PROPERTIES.hasOwnProperty(id) &&
@@ -380,12 +388,20 @@ var NRS = (function (NRS, $) {
         return NRS.getActiveChainId() == 1;
     };
 
+    NRS.isIgnisChain = function() {
+        return NRS.getActiveChainId() == 2;
+    };
+
     NRS.getActiveChainName = function() {
         return NRS.getChainDisplayName(String(NRS.constants.CHAIN_PROPERTIES[NRS.getActiveChainId()].name).escapeHTML());
     };
 
     NRS.getParentChainName = function() {
         return NRS.getChainDisplayName(String(NRS.constants.CHAIN_PROPERTIES[1].name).escapeHTML());
+    };
+
+    NRS.getParentChainDecimals = function() {
+        return NRS.constants.CHAIN_PROPERTIES[1].decimals;
     };
 
     NRS.getActiveChainDecimals = function() {
@@ -420,6 +436,7 @@ var NRS = (function (NRS, $) {
         return -1;
     };
 
+    // TODO should we add the chain description to login page as well? This would requires some re-design
     NRS.createChainSelect = function() {
         // Build chain select box for login page
         var chains = $('select[name="chain"]');

@@ -1,6 +1,6 @@
 /******************************************************************************
  * Copyright © 2013-2016 The Nxt Core Developers.                             *
- * Copyright © 2016-2018 Jelurida IP B.V.                                     *
+ * Copyright © 2016-2019 Jelurida IP B.V.                                     *
  *                                                                            *
  * See the LICENSE.txt file at the top-level directory of this distribution   *
  * for licensing information.                                                 *
@@ -492,6 +492,9 @@ var NRS = (function (NRS, $, undefined) {
             $("#buy_coin_with_nxt").html($.t("buy_coin_with_nxt", {
                 base: NRS.getChainDisplayName(coin.name), counter: NRS.getActiveChainName()
             }));
+            $("#buy_nxt_with_coin").html($.t("buy_nxt_with_coin", {
+                base: NRS.getChainDisplayName(coin.name), counter: NRS.getActiveChainName()
+            }));
             $("#buy_coin_price").val("");
             $("#buy_coin_quantity, #buy_coin_total").val("0");
 
@@ -828,6 +831,7 @@ var NRS = (function (NRS, $, undefined) {
             var quantityQNT = NRS.convertToQNT(quantity, currentCoin.decimals);
             var priceNQTPerCoin = NRS.convertToQNT(price, NRS.getActiveChainDecimals());
             var totalNXT = NRS.formatQuantity(NRS.multiply(quantityQNT, priceNQTPerCoin), currentCoin.decimals + NRS.getActiveChainDecimals());
+            $(this).find('input[name=calculatedAmountNXT]').val(NRS.convertToQNTf(NRS.multiply(quantityQNT, priceNQTPerCoin), currentCoin.decimals + NRS.getActiveChainDecimals()));
         } catch (err) {
             $.growl($.t("error_invalid_input", { input: "quantity " + quantity + " price " + price + " decimals " + currentCoin.decimals }), {
                 "type": "danger"
@@ -877,12 +881,11 @@ var NRS = (function (NRS, $, undefined) {
         $("#coin_order_coin").val(coinId);
         $("#coin_order_quantity").val(quantityQNT);
         $("#coin_order_price").val(priceNQTPerCoin);
-        var feeDecimals = $("input[name=fee_decimals]");
         if (currentCoin.id == "1") {
-            feeDecimals.val(currentCoin.decimals);
+            $("input[name=isParentChainTransaction]").val("1");
             $("#coin_order_fee_coin").html(NRS.getParentChainName());
         } else {
-            feeDecimals.val(NRS.getActiveChainDecimals());
+            $("input[name=isParentChainTransaction]").val("");
             $("#coin_order_fee_coin").html(NRS.getActiveChainName());
         }
     });
@@ -1213,12 +1216,11 @@ var NRS = (function (NRS, $, undefined) {
         var order = $invoker.data("order");
         var exchange = $invoker.data("exchange");
         $("#cancel_coin_order_order").val(order);
-        var feeDecimals = $("input[name=fee_decimals]");
         if (exchange == "1") {
-            feeDecimals.val(NRS.getChainDecimals(1));
+            $("input[name=isParentChainTransaction]").val("1");
             $("#cancel_coin_order_fee_coin").html(NRS.getParentChainName());
         } else {
-            feeDecimals.val(NRS.getActiveChainDecimals());
+            $("input[name=isParentChainTransaction]").val("");
             $("#cancel_coin_order_fee_coin").html(NRS.getActiveChainName());
         }
     });

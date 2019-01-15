@@ -1,6 +1,6 @@
 /*
  * Copyright © 2013-2016 The Nxt Core Developers.
- * Copyright © 2016-2018 Jelurida IP B.V.
+ * Copyright © 2016-2019 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
@@ -16,9 +16,7 @@
 
 package nxt.db;
 
-import nxt.Nxt;
 import nxt.util.Logger;
-import nxt.util.ThreadPool;
 import nxt.util.security.BlockchainPermission;
 
 import java.sql.Connection;
@@ -46,14 +44,6 @@ public abstract class DbVersion {
         try {
             con = db.getConnection("PUBLIC");
             stmt = con.createStatement();
-            //TODO: remove after testnet has upgraded
-            if (schema.equals("MPG")) {
-                ResultSet rs = stmt.executeQuery("SELECT * FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME='DOM'");
-                if (rs.next()) {
-                    stmt.executeUpdate("ALTER SCHEMA IF EXISTS DOM RENAME TO MPG");
-                    ThreadPool.runAfterStart(Nxt::shutdown);
-                }
-            }
             stmt.executeUpdate("CREATE SCHEMA IF NOT EXISTS " + schema);
         } catch (SQLException e) {
             DbUtils.rollback(con);

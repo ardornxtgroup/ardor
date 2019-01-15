@@ -1,6 +1,6 @@
 /******************************************************************************
  * Copyright © 2013-2016 The Nxt Core Developers.                             *
- * Copyright © 2016-2018 Jelurida IP B.V.                                     *
+ * Copyright © 2016-2019 Jelurida IP B.V.                                     *
  *                                                                            *
  * See the LICENSE.txt file at the top-level directory of this distribution   *
  * for licensing information.                                                 *
@@ -1626,20 +1626,26 @@ var NRS = (function (NRS, $) {
             if (highestBidOrder != -1) {
                 var totalNQT = new BigInteger(NRS.multiply(asset.balanceQNT, highestBidOrder));
             }
-            rows += "<tr data-asset='" + NRS.escapeRespStr(asset.asset) + "'>" +
-                "<td><a href='#' data-goto-asset='" + NRS.escapeRespStr(asset.asset) + "'>" + NRS.escapeRespStr(asset.name) + "</a></td>" +
+            var assetId = NRS.escapeRespStr(asset.asset);
+            var assetName = NRS.escapeRespStr(asset.name);
+            var decimals = NRS.escapeRespStr(asset.decimals);
+            rows += "<tr data-asset='" + assetId + "'>" +
+                "<td><a href='#' data-goto-asset='" + assetId + "'>" + assetName + "</a></td>" +
                 "<td class='quantity numeric'>" + NRS.formatQuantity(asset.balanceQNT, asset.decimals, false, quantityDecimals) + "</td>" +
                 "<td class='numeric'>" + NRS.formatQuantity(asset.quantityQNT, asset.decimals, false, totalDecimals) + "</td>" +
                 "<td class='numeric'>" + percentageAsset + "%</td>" +
                 "<td class='numeric'>" + (lowestAskOrder != -1 ? NRS.formatQuantity(lowestAskOrder, NRS.getActiveChainDecimals(), false, askDecimals) : "") + "</td>" +
                 "<td class='numeric'>" + (highestBidOrder != -1 ? NRS.formatQuantity(highestBidOrder, NRS.getActiveChainDecimals(), false, bidDecimals) : "") + "</td>" +
-                "<td class='numeric'>" + (highestBidOrder != -1 ? NRS.formatQuantity(totalNQT, asset.decimals + NRS.getActiveChainDecimals(), false, valueDecimals) : "") + "</td>" +
-                "<td>" +
-                    "<a href='#' class='btn btn-xs btn-default' data-toggle='modal' data-target='#transfer_asset_modal' data-asset='" + NRS.escapeRespStr(asset.asset) + "' data-name='" + NRS.escapeRespStr(asset.name) + "' data-decimals='" + NRS.escapeRespStr(asset.decimals) + "' data-action='transfer_asset'>" + $.t("transfer") + "</a>" +
-                    "<a href='#' class='btn btn-xs btn-default' data-toggle='modal' data-target='#transfer_asset_modal' data-asset='" + NRS.escapeRespStr(asset.asset) + "' data-name='" + NRS.escapeRespStr(asset.name) + "' data-decimals='" + NRS.escapeRespStr(asset.decimals) + "' data-action='delete_shares'>" + $.t("delete_shares") + "</a>" +
-                    "<a href='#' class='btn btn-xs btn-default' data-toggle='modal' data-target='#transfer_asset_modal' data-asset='" + NRS.escapeRespStr(asset.asset) + "' data-name='" + NRS.escapeRespStr(asset.name) + "' data-decimals='" + NRS.escapeRespStr(asset.decimals) + "' data-action='increase_shares'>" + $.t("increase_shares") + "</a>" +
-                "</td>" +
-            "</tr>";
+                "<td class='numeric'>" + (highestBidOrder != -1 ? NRS.formatQuantity(totalNQT, asset.decimals + NRS.getActiveChainDecimals(), false, valueDecimals) : "") + "</td>";
+            rows += "<td><a href='#' class='btn btn-xs btn-default' data-toggle='modal' data-target='#transfer_asset_modal' data-asset='" + assetId + "' data-name='" + assetName + "' data-decimals='" + decimals + "' data-action='transfer_asset'>" + $.t("transfer") + "</a>";
+            if (asset.account == NRS.account && NRS.isIgnisChain()) {
+                // Share increase is only allowed for non-singleton assets
+                if (asset.quantityQNT != 1 || asset.decimals != 0) {
+                    rows += "<a href='#' class='btn btn-xs btn-default' data-toggle='modal' data-target='#transfer_asset_modal' data-asset='" + assetId + "' data-name='" + assetName + "' data-decimals='" + decimals + "' data-action='increase_shares'>" + $.t("increase_shares") + "</a>";
+                }
+                rows += "<a href='#' class='btn btn-xs btn-default' data-toggle='modal' data-target='#transfer_asset_modal' data-asset='" + assetId + "' data-name='" + assetName + "' data-decimals='" + decimals + "' data-action='delete_shares'>" + $.t("delete_shares") + "</a>";
+            }
+            rows += "</td></tr>";
         }
         NRS.dataLoaded(rows);
     };
@@ -1771,10 +1777,10 @@ var NRS = (function (NRS, $) {
             };
         }
 
-        if (!NRS.showedFormWarning) {
+        if (NRS.displayFormWarning["asset_transfer_warning"]) {
             if (NRS.settings["asset_transfer_warning"] && NRS.settings["asset_transfer_warning"] != 0) {
                 if (new Big(data.quantity).cmp(new Big(NRS.settings["asset_transfer_warning"])) > 0) {
-                    NRS.showedFormWarning = true;
+                    NRS.displayFormWarning["asset_transfer_warning"] = false;
                     return {
                         "error": $.t("error_max_asset_transfer_warning", {
                             "qty": String(NRS.settings["asset_transfer_warning"]).escapeHTML()

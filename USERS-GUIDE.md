@@ -11,6 +11,7 @@
 ----
 ## What do I need to do? ##
 
+  - for documentation https://ardordocs.jelurida.com/Getting_started
   - for a quick start, see README.md
   - for configuration and updates, see OPERATORS-GUIDE.md
 
@@ -28,6 +29,8 @@
 ### Ardor ###
 
   - peer-to-peer protocol
+  - parent child chain architecture
+  - proof of stake consensus
   - efficient blockchain technology (can run on low-power devices)
   - allows payment *transactions*, *exchange trading*, *name registrations*, *voting* and much more
   - no need to trust third parties anymore
@@ -44,11 +47,6 @@
 ----
 ## How can I contribute? ##
 
-  - review pull requests
-  - help users on issues
-  - join the forums and find places where you can help
-  - get your friends to join Ardor
-  - generate blocks via the forging capability
-  - ask us, the dev team
+  - contact us at info@jelurida.com
 
 ----

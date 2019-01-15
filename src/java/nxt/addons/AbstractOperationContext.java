@@ -21,7 +21,6 @@ public abstract class AbstractOperationContext extends AbstractContractContext {
         super(config, contractName);
         this.runtimeParams = runtimeParams;
         this.seed = seed;
-        this.source = EventSource.TRANSACTION;
         this.fullHash = fullHash;
         this.chain = chainId;
         this.blockId = blockId;

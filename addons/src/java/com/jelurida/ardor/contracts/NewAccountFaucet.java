@@ -19,11 +19,6 @@ public class NewAccountFaucet extends AbstractContract {
     @ContractParametersProvider
     public interface Params {
         @ContractSetupParameter
-        default int chain() {
-            return 0;
-        }
-
-        @ContractSetupParameter
         default long thresholdAmountNQT(long oneCoin) {
             return 720 * oneCoin;
         }
@@ -40,7 +35,7 @@ public class NewAccountFaucet extends AbstractContract {
     }
 
     @Override
-    @ValidateChain(accept = 2)
+    @ValidateChain(accept = {1,2})
     public JO processVoucher(VoucherContext context) {
         // Check that the voucher asks for payment from the faucet account
         TransactionResponse voucherTransaction = context.getTransaction();
@@ -61,10 +56,11 @@ public class NewAccountFaucet extends AbstractContract {
         }
 
         Params params = context.getParams(Params.class);
-        int chain = params.chain();
+        int chain = context.getVoucher().getJo("transactionJSON").getInt("chain");
         // Load previous faucet transactions
+        int type = chain == 1 ? -2 : 0;
         List<TransactionResponse> transactionList = GetExecutedTransactionsCall.create(chain).sender(context.getConfig().getAccountRs()).
-                type(0).subtype(0).getTransactions();
+                type(type).subtype(0).getTransactions();
         int height = context.getBlockchainHeight();
         long thresholdBlocks = params.thresholdBlocks();
         long sum = transactionList.stream().filter(t -> t.getHeight() >= height - thresholdBlocks).mapToLong(TransactionResponse::getAmount).sum();
@@ -79,7 +75,10 @@ public class NewAccountFaucet extends AbstractContract {
         long faucetAmountNQT = params.faucetAmountNQT(oneCoin);
 
         // Calculate transaction fee and submit the payment transaction
-        SendMoneyCall sendMoneyCall = SendMoneyCall.create(chain).recipient(voucherTransaction.getRecipient()).recipientPublicKey(voucherPublicKey).amountNQT(faucetAmountNQT);
+        SendMoneyCall sendMoneyCall = SendMoneyCall.create(chain).recipient(voucherTransaction.getRecipient()).amountNQT(faucetAmountNQT);
+        if (chain > 1) {
+            sendMoneyCall = sendMoneyCall.recipientPublicKey(voucherPublicKey);
+        }
         return context.createTransaction(sendMoneyCall, false);
     }
 }

@@ -21,8 +21,3 @@
   - next run of Ardor will upgrade database if necessary
   
 ----
-
-## How to manage multiple Ardor nodes? ##
-  Check [Nxt-Kit's homepage](https://github.com/nxt-ext/nxt-kit) for more information.
-
-----

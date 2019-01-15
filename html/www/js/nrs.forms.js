@@ -1,6 +1,6 @@
 /******************************************************************************
  * Copyright © 2013-2016 The Nxt Core Developers.                             *
- * Copyright © 2016-2018 Jelurida IP B.V.                                     *
+ * Copyright © 2016-2019 Jelurida IP B.V.                                     *
  *                                                                            *
  * See the LICENSE.txt file at the top-level directory of this distribution   *
  * for licensing information.                                                 *
@@ -19,6 +19,14 @@
  */
 var NRS = (function(NRS, $) {
 	NRS.forms = {};
+	NRS.displayFormWarning = {
+		"amount_warning": true,
+		"fee_warning": true,
+		"decimal_positions_warning": true,
+		"asset_transfer_warning": true,
+		"currency_transfer_warning": true,
+		"contract_params_warning": true
+	};
 
 	$(".modal form input").keydown(function(e) {
 		if (e.which == "13") {
@@ -213,7 +221,16 @@ var NRS = (function(NRS, $) {
 		return data;
 	};
 
-    NRS.submitForm = function($modal, $btn) {
+	function warnAndUnlock($modal, $form, $btn, formErrorFunction, msg) {
+		NRS.logConsole(msg);
+		$form.find(".error_message").html(msg).show();
+		if (formErrorFunction) {
+			formErrorFunction();
+		}
+		NRS.unlockForm($modal, $btn);
+	}
+
+	NRS.submitForm = function($modal, $btn) {
 		if (!$btn) {
 			$btn = $modal.find("button.btn-primary:not([data-dismiss=modal])");
 		}
@@ -259,19 +276,9 @@ var NRS = (function(NRS, $) {
 		var originalRequestType = requestType;
         if (NRS.isRequireBlockchain(requestType)) {
 			if (NRS.downloadingBlockchain && NRS.settings.transact_during_download === "0" && !NRS.state.apiProxy) {
-				$form.find(".error_message").html($.t("error_blockchain_downloading")).show();
-				if (formErrorFunction) {
-					formErrorFunction();
-				}
-				NRS.unlockForm($modal, $btn);
-				return;
+				return warnAndUnlock($modal, $form, $btn, formErrorFunction, $.t("error_blockchain_downloading"));
 			} else if (NRS.state.isScanning) {
-				$form.find(".error_message").html($.t("error_form_blockchain_rescanning")).show();
-				if (formErrorFunction) {
-					formErrorFunction();
-				}
-				NRS.unlockForm($modal, $btn);
-				return;
+				return warnAndUnlock($modal, $form, $btn, formErrorFunction, $.t("error_form_blockchain_rescanning"));
 			}
 		}
 
@@ -308,7 +315,6 @@ var NRS = (function(NRS, $) {
 						}).capitalize();
 					} else {
 						var min = $(this).attr("min");
-
 						if (value < min) {
 							error = $.t("error_min_value", {
 								"field": NRS.getTranslatedFieldName(name).toLowerCase(),
@@ -323,14 +329,7 @@ var NRS = (function(NRS, $) {
 						"field": NRS.getTranslatedFieldName(name).toLowerCase()
 					}).capitalize();
 				}
-
-				$form.find(".error_message").html(error).show();
-
-				if (formErrorFunction) {
-					formErrorFunction();
-				}
-
-				NRS.unlockForm($modal, $btn);
+				warnAndUnlock($modal, $form, $btn, formErrorFunction, error);
 				invalidElement = true;
 				return false;
 			}
@@ -346,12 +345,7 @@ var NRS = (function(NRS, $) {
 			if (!output) {
 				return;
 			} else if (output.error) {
-				$form.find(".error_message").html(output.error.escapeHTML()).show();
-				if (formErrorFunction) {
-					formErrorFunction();
-				}
-				NRS.unlockForm($modal, $btn);
-				return;
+				return warnAndUnlock($modal, $form, $btn, formErrorFunction, output.error.escapeHTML());
 			} else {
 				if (output.requestType) {
 					requestType = output.requestType;
@@ -411,21 +405,11 @@ var NRS = (function(NRS, $) {
 		if (data.recipient) {
 			data.recipient = $.trim(data.recipient);
 			if (NRS.isNumericAccount(data.recipient)) {
-				$form.find(".error_message").html($.t("error_numeric_ids_not_allowed")).show();
-				if (formErrorFunction) {
-					formErrorFunction(false, data);
-				}
-				NRS.unlockForm($modal, $btn);
-				return;
+				return warnAndUnlock($modal, $form, $btn, formErrorFunction, $.t("error_numeric_ids_not_allowed"));
 			} else if (!NRS.isRsAccount(data.recipient)) {
 				var convertedAccountId = $modal.find("input[name=converted_account_id]").val();
 				if (!convertedAccountId || (!NRS.isNumericAccount(convertedAccountId) && !NRS.isRsAccount(convertedAccountId))) {
-					$form.find(".error_message").html($.t("error_account_id")).show();
-					if (formErrorFunction) {
-						formErrorFunction(false, data);
-					}
-					NRS.unlockForm($modal, $btn);
-					return;
+					return warnAndUnlock($modal, $form, $btn, formErrorFunction, $.t("error_account_id"));
 				} else {
 					data.recipient = convertedAccountId;
 					data["_extra"] = {
@@ -444,12 +428,7 @@ var NRS = (function(NRS, $) {
 					merchantInfo = $.trim(result[1]);
 
 					if (!data.add_message || !data.message) {
-						$form.find(".error_message").html($.t("info_merchant_message_required")).show();
-						if (formErrorFunction) {
-							formErrorFunction(false, data);
-						}
-						NRS.unlockForm($modal, $btn);
-						return;
+						return warnAndUnlock($modal, $form, $btn, formErrorFunction, $.t("info_merchant_message_required"));
 					}
 
 					if (merchantInfo == "numeric") {
@@ -521,13 +500,23 @@ var NRS = (function(NRS, $) {
 						} else {
 							errorMessage = $.t("error_merchant_message_" + regexType);
 						}
-
-						$form.find(".error_message").html(errorMessage).show();
-						if (formErrorFunction) {
-							formErrorFunction(false, data);
-						}
-						NRS.unlockForm($modal, $btn);
-						return;
+						return warnAndUnlock($modal, $form, $btn, formErrorFunction, errorMessage);
+					}
+				}
+			}
+		}
+		if (NRS.displayFormWarning["contract_params_warning"]) {
+			var $selector = $form.find(".recipient_contract_reference_selector");
+			if ($selector.is(":visible")) {
+				var contractName = $selector.find("select").val();
+				if (contractName != "") {
+					try {
+						var params = JSON.parse(data.message);
+					} catch (e) {
+						return warnAndUnlock($modal, $form, $btn, formErrorFunction, $.t("contract_params_json_format_error", { message: e.message }));
+					}
+					if (params.contract !== contractName) {
+						return warnAndUnlock($modal, $form, $btn, formErrorFunction, $.t("incorrect_contract_name_error", { name: contractName }));
 					}
 				}
 			}
@@ -535,82 +524,74 @@ var NRS = (function(NRS, $) {
 		try {
 			data = NRS.addMessageData(data, requestType);
 		} catch (err) {
-			$form.find(".error_message").html(String(err.message).escapeHTML()).show();
-			if (formErrorFunction) {
-				formErrorFunction();
-			}
-			NRS.unlockForm($modal, $btn);
-			return;
+			return warnAndUnlock($modal, $form, $btn, formErrorFunction, String(err.message).escapeHTML());
 		}
 
         if ("secretPhrase" in data && !data.secretPhrase.length && !NRS.rememberPassword &&
                 !(data.calculateFee && NRS.accountInfo.publicKey)) {
-			$form.find(".error_message").html($.t("error_passphrase_required")).show();
-			if (formErrorFunction) {
-				formErrorFunction(false, data);
-			}
-            $("#" + $modal.attr('id').replace('_modal', '') + "_password").focus();
-			NRS.unlockForm($modal, $btn);
-			return;
+			$("#" + $modal.attr('id').replace('_modal', '') + "_password").focus();
+			return warnAndUnlock($modal, $form, $btn, formErrorFunction, $.t("error_passphrase_required"));
 		}
 
-		if (!NRS.showedFormWarning) {
-			if ("amountNXT" in data && NRS.settings["amount_warning"] && NRS.settings["amount_warning"] != "0") {
-				try {
-					var amountNQT = NRS.convertToNQT(data.amountNXT);
-				} catch (err) {
-					$form.find(".error_message").html(String(err).escapeHTML() + " (" + $.t("amount") + ")").show();
-					if (formErrorFunction) {
-						formErrorFunction(false, data);
+		if (NRS.displayFormWarning["amount_warning"]) {
+			if (("amountNXT" in data || "calculatedAmountNXT" in data) && NRS.settings["amount_warning"]) {
+				var warningAmountNQT = NRS.settings["amount_warning"][NRS.getActiveChainId() - 1];
+				if (warningAmountNQT != "0") {
+					try {
+						var amountNQT;
+						if (data.calculatedAmountNXT) {
+							amountNQT = NRS.convertToNQT(data.calculatedAmountNXT);
+							delete data.calculatedAmountNXT;
+						} else {
+							amountNQT = NRS.convertToNQT(data.amountNXT);
+						}
+					} catch (err) {
+						return warnAndUnlock($modal, $form, $btn, formErrorFunction, String(err).escapeHTML() + " (" + $.t("amount") + ")");
 					}
-					NRS.unlockForm($modal, $btn);
-					return;
-				}
-
-				if (new BigInteger(amountNQT).compareTo(new BigInteger(NRS.settings["amount_warning"])) > 0) {
-					NRS.showedFormWarning = true;
-					$form.find(".error_message").html($.t("error_max_amount_warning", {
-						"nxt": NRS.formatAmount(NRS.settings["amount_warning"]), "coin": NRS.getActiveChainName()
-					})).show();
-					if (formErrorFunction) {
-						formErrorFunction(false, data);
+					if (new BigInteger(amountNQT).compareTo(new BigInteger(warningAmountNQT)) > 0) {
+						NRS.displayFormWarning["amount_warning"] = false;
+						warnAndUnlock($modal, $form, $btn, formErrorFunction, $.t("error_max_amount_warning", {
+							"nxt": NRS.formatAmount(warningAmountNQT), "coin": NRS.getActiveChainName()
+						}));
+						return;
 					}
-					NRS.unlockForm($modal, $btn);
-					return;
-				}
-			}
-
-			if ("feeNXT" in data && NRS.settings["fee_warning"] && NRS.settings["fee_warning"] != "0") {
-				try {
-					if (data.fee_decimals) {
-						data.feeNQT = NRS.floatToInt(data.feeNXT, parseInt(data.fee_decimals));
-						delete data.fee_decimals;
-					} else {
-						data.feeNQT = NRS.convertToNQT(data.feeNXT);
-					}
-					delete data.feeNXT;
-				} catch (err) {
-					$form.find(".error_message").html(String(err).escapeHTML() + " (" + $.t("fee") + ")").show();
-					if (formErrorFunction) {
-						formErrorFunction(false, data);
-					}
-					NRS.unlockForm($modal, $btn);
-					return;
-				}
-
-				if (new BigInteger(data.feeNQT).compareTo(new BigInteger(NRS.settings["fee_warning"])) > 0) {
-					NRS.showedFormWarning = true;
-					$form.find(".error_message").html($.t("error_max_fee_warning", {
-						"nxt": NRS.formatAmount(NRS.settings["fee_warning"]), "coin": NRS.getActiveChainName()
-					})).show();
-					if (formErrorFunction) {
-						formErrorFunction(false, data);
-					}
-					NRS.unlockForm($modal, $btn);
-					return;
 				}
 			}
+		}
 
+		var isParentChainTransaction = (data.isParentChainTransaction == "1");
+		var isFeeNxtSpecified = "feeNXT" in data;
+		var feeDecimals;
+		try {
+			if (isFeeNxtSpecified) {
+				if (isParentChainTransaction) {
+					feeDecimals = NRS.getParentChainDecimals();
+				} else {
+					feeDecimals = NRS.getActiveChainDecimals();
+				}
+				data.feeNQT = NRS.floatToInt(data.feeNXT, feeDecimals);
+				delete data.feeNXT;
+			}
+		} catch (err) {
+			return warnAndUnlock($modal, $form, $btn, formErrorFunction, String(err).escapeHTML() + " (" + $.t("fee") + ")");
+		}
+
+		if (NRS.displayFormWarning["fee_warning"]) {
+			if (isFeeNxtSpecified && NRS.settings["fee_warning"]) {
+				var feeWarningChainId = isParentChainTransaction ? 1 : NRS.getActiveChainId();
+				var warningFeeNQT = NRS.settings["fee_warning"][feeWarningChainId - 1];
+				if (warningFeeNQT != "0") {
+					if (new BigInteger(data.feeNQT).compareTo(new BigInteger(warningFeeNQT)) > 0) {
+						NRS.displayFormWarning["fee_warning"] = false;
+						return warnAndUnlock($modal, $form, $btn, formErrorFunction, $.t("error_max_fee_warning", {
+							"nxt": NRS.formatAmount(warningFeeNQT, null, null, null, feeDecimals), "coin": NRS.getChainName(feeWarningChainId)
+						}));
+					}
+				}
+			}
+		}
+
+		if (NRS.displayFormWarning["decimal_positions_warning"]) {
 			if ("decimals" in data) {
                 try {
                     var decimals = parseInt(data.decimals);
@@ -618,20 +599,15 @@ var NRS = (function(NRS, $) {
                     decimals = 0;
 				}
 
-				if (decimals < 2 || decimals > 6) {
+				if (decimals < 2) {
 					if (requestType == "issueAsset" && data.quantityQNT == "1") {
 						// Singleton asset no need to warn
 					} else {
-						NRS.showedFormWarning = true;
+						NRS.displayFormWarning["decimal_positions_warning"] = false;
 						var entity = (requestType == 'issueCurrency' ? 'currency' : 'asset');
-						$form.find(".error_message").html($.t("error_decimal_positions_warning", {
+						return warnAndUnlock($modal, $form, $btn, formErrorFunction, $.t("error_decimal_positions_warning", {
 							"entity": entity
-						})).show();
-						if (formErrorFunction) {
-							formErrorFunction(false, data);
-						}
-						NRS.unlockForm($modal, $btn);
-						return;
+						}));
 					}
 				}
 			}
@@ -642,13 +618,8 @@ var NRS = (function(NRS, $) {
 		if (data.doNotBroadcast || data.calculateFee || data.isVoucher) {
 			data.broadcast = "false";
 			if (data.isVoucher && !data.secretPhrase) {
-                    $form.find(".error_message").html($.t("voucher_generator_secret_phrase")).show();
-                    if (formErrorFunction) {
-                        formErrorFunction(false, data);
-                    }
-                    NRS.unlockForm($modal, $btn);
-                    return;
-                }
+				return warnAndUnlock($modal, $form, $btn, formErrorFunction, $.t("voucher_generator_secret_phrase"));
+			}
             if (data.calculateFee) {
                 if (NRS.accountInfo.publicKey) {
                     data.publicKey = NRS.accountInfo.publicKey;
@@ -661,12 +632,7 @@ var NRS = (function(NRS, $) {
 		}
 		if (data.messageFile && data.encrypt_message) {
 			if (!NRS.isFileEncryptionSupported()) {
-                $form.find(".error_message").html($.t("file_encryption_not_supported")).show();
-                if (formErrorFunction) {
-                    formErrorFunction(false, data);
-                }
-                NRS.unlockForm($modal, $btn);
-                return;
+				return warnAndUnlock($modal, $form, $btn, formErrorFunction, $.t("file_encryption_not_supported"));
             }
 			try {
 				NRS.encryptFile(data.messageFile, data.encryptionKeys, function(encrypted) {
@@ -680,11 +646,7 @@ var NRS = (function(NRS, $) {
 					})
 				});
 			} catch (err) {
-				$form.find(".error_message").html(String(err).escapeHTML()).show();
-				if (formErrorFunction) {
-					formErrorFunction(false, data);
-				}
-				NRS.unlockForm($modal, $btn);
+				return warnAndUnlock($modal, $form, $btn, formErrorFunction, String(err).escapeHTML());
 			}
 		} else {
 			NRS.sendRequest(requestType, data, function (response) {
@@ -742,13 +704,7 @@ var NRS = (function(NRS, $) {
 			}
 
 		} else if (response.errorCode) {
-			$form.find(".error_message").html(NRS.escapeRespStr(response.errorDescription)).show();
-
-			if (formErrorFunction) {
-				formErrorFunction(response, data);
-			}
-
-			NRS.unlockForm($modal, $btn);
+			return warnAndUnlock($modal, $form, $btn, formErrorFunction, NRS.escapeRespStr(response.errorDescription));
 		} else {
 			if (data.calculateFee) {
 				NRS.unlockForm($modal, $btn, false);

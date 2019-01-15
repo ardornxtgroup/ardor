@@ -76,10 +76,10 @@ in such a way that no trusted third parties are required anymore.
     - OPERATORS-GUIDE.md
 
   - in the wiki:
-    - nxtwiki.org
+    - https://ardordocs.jelurida.com/Getting_started
 
   - on the forums:
-    - nxtforum.org
+    - https://ardorforum.org/
     
 ----
 

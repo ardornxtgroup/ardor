@@ -1,6 +1,6 @@
 /******************************************************************************
  * Copyright © 2013-2016 The Nxt Core Developers.                             *
- * Copyright © 2016-2018 Jelurida IP B.V.                                     *
+ * Copyright © 2016-2019 Jelurida IP B.V.                                     *
  *                                                                            *
  * See the LICENSE.txt file at the top-level directory of this distribution   *
  * for licensing information.                                                 *
@@ -140,6 +140,16 @@ var NRS = (function(NRS, $, undefined) {
         $(this).find("#voucher_reader").hide();
         $(this).find("#parse_voucher_output").hide();
         $(this).find("#voucher_submit_btn").prop("disabled", true);
+        if (!NRS.isFileReaderSupported()) {
+            $(this).find(".file-reader-support").hide();
+            $(this).find(".info_message").html($.t("voucher_in_desktop_wallet")).show();
+        } else {
+            $(this).find(".file-reader-support").show();
+            $(this).find(".info_message").html("").hide();
+        }
+        if (!NRS.isVideoSupported()) {
+            $(this).find(".video-support").hide();
+        }
     });
 
     loadVoucherModal.on("hidden.bs.modal", function() {
@@ -147,21 +157,23 @@ var NRS = (function(NRS, $, undefined) {
     });
 
     $('#voucher_json').change(function() {
-        var modal = $(this).closest(".modal");
+        var $modal = $(this).closest(".modal");
+        $modal.find(".error_message").html("").hide();
         var voucherText = $('#voucher_json').val();
+        voucherText = voucherText.replace(/[\u2018\u2019]/g, "'").replace(/[\u201C\u201D]/g, '"'); // Replace unicode quotes with Ascii ones
         var msg;
         try {
             var voucher = JSON.parse(voucherText);
         } catch (e) {
             msg = $.t("cannot_parse_voucher", { voucher: voucherText });
-            modal.find(".error_message").html(msg).show();
+            $modal.find(".error_message").html(msg).show();
             NRS.logConsole(msg);
             return;
         }
         var transactionJSON = voucher.transactionJSON;
         if (!NRS.verifySignature(voucher.signature, voucher.unsignedTransactionBytes, voucher.publicKey)) {
             msg = $.t("invalid_signature", { signature: voucher.signature, publicKey: voucher.publicKey });
-            modal.find(".error_message").html(msg).show();
+            $modal.find(".error_message").html(msg).show();
             NRS.logConsole(msg);
             return;
         }
@@ -171,7 +183,7 @@ var NRS = (function(NRS, $, undefined) {
         var result = NRS.verifyTransactionBytes(voucher.unsignedTransactionBytes, voucher.requestType, details, transactionJSON.attachment, false);
         if (result.fail) {
             msg = $.t("cannot_verify_voucher_content", { param: result.param, expected: result.expected, actual: result.actual });
-            modal.find(".error_message").html(msg).show();
+            $modal.find(".error_message").html(msg).show();
             NRS.logConsole(msg);
             return;
         }

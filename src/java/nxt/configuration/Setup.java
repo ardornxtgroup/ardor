@@ -25,7 +25,7 @@ public interface Setup {
     Setup FULL_NODE = new Setup() {
 
         // Init and shutdown sequence are based on the old Nxt.init() and Nxt.shutdown() sequence
-        private List<SubSystem> initSequence = Arrays.asList(LOGGER, SYSTEM_TRAY, DB, BLOCKCHAIN, PEER_NETWORKING, THREAD_POOL, ADDONS, API_SERVER, RANDOMIZATION, DESKTOP_WALLET);
+        private List<SubSystem> initSequence = Arrays.asList(LOGGER, SYSTEM_TRAY, DB, BLOCKCHAIN, PEER_NETWORKING, ADDONS, THREAD_POOL, API_SERVER, RANDOMIZATION, DESKTOP_WALLET);
         private List<SubSystem> shutdownSequence = Arrays.asList(DESKTOP_WALLET, ADDONS, RANDOMIZATION, API_SERVER, THREAD_POOL, BLOCKCHAIN, PEER_NETWORKING, DB, LOGGER, SYSTEM_TRAY);
 
         @Override
@@ -56,7 +56,7 @@ public interface Setup {
     };
 
     Setup UNIT_TEST = new Setup() {
-        private List<SubSystem> initSequence = Arrays.asList(LOGGER, DB, BLOCKCHAIN, PEER_NETWORKING, THREAD_POOL, ADDONS, API_SERVER, RANDOMIZATION);
+        private List<SubSystem> initSequence = Arrays.asList(LOGGER, DB, BLOCKCHAIN, PEER_NETWORKING, ADDONS, THREAD_POOL, API_SERVER, RANDOMIZATION);
         private List<SubSystem> shutdownSequence = Arrays.asList(ADDONS, RANDOMIZATION, API_SERVER, THREAD_POOL, BLOCKCHAIN, PEER_NETWORKING, DB, LOGGER);
 
         @Override

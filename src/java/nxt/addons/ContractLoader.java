@@ -77,14 +77,14 @@ public class ContractLoader {
         }
     }
 
-    static ContractAndSetupParameters loadContractAndSetupParameters(ContractReference contractReference) {
+    public static ContractAndSetupParameters loadContractAndSetupParameters(ContractReference contractReference) {
         ChainTransactionId contractId = contractReference.getContractId();
         JO contractSetupParams = getContractSetupParams(contractReference);
-        Contract contract = loadContract(contractId, contractSetupParams);
+        Contract contract = loadContract(contractId);
         return new ContractAndSetupParameters(contract, contractSetupParams);
     }
 
-    private static Contract loadContract(ChainTransactionId transactionId, JO setupParams) {
+    private static Contract loadContract(ChainTransactionId transactionId) {
         Chain chain = transactionId.getChain();
         if (!(chain instanceof ChildChain)) {
             throw new IllegalArgumentException(String.format("Cannot load contract, chain %s is not a child chain", chain));
@@ -137,9 +137,9 @@ public class ContractLoader {
         principals[2] = new TransactionPrincipal(Convert.toHexString(Crypto.sha256().digest(data)));
         switch (taggedData.getType()) {
             case CLASS_FILE_MIME_TYPE:
-                return loadContract(name, data, setupParams, codeSigners, principals);
+                return loadContract(name, data, codeSigners, principals);
             case JAR_FILE_MIME_TYPE:
-                return loadContractFromJar(name, data, setupParams, codeSigners, principals);
+                return loadContractFromJar(name, data, codeSigners, principals);
             default:
                 throw new IllegalArgumentException(String.format("Tagged data mime type %s does not represent an executable contract, chain %s full hash %s", taggedData.getType(), chain.getName(), Convert.toHexString(fullHash)));
         }
@@ -166,14 +166,14 @@ public class ContractLoader {
         return codeSigners;
     }
 
-    private static Contract loadContract(String name, byte[] data, JO setupParams, CodeSigner[] codeSigners, Principal[] principals) {
+    private static Contract loadContract(String name, byte[] data, CodeSigner[] codeSigners, Principal[] principals) {
         return AccessController.doPrivileged((PrivilegedAction<Contract>) () -> {
             ClassLoader classLoader = new CloudDataClassLoader();
             return loadContract(classLoader, name, data, codeSigners, principals);
         });
     }
 
-    private static Contract loadContractFromJar(String name, byte[] buffer, JO setupParams, CodeSigner[] codeSigners, Principal[] principals) {
+    private static Contract loadContractFromJar(String name, byte[] buffer, CodeSigner[] codeSigners, Principal[] principals) {
         return AccessController.doPrivileged((PrivilegedAction<Contract>) () -> {
             ClassLoader classLoader = new CloudDataClassLoader();
             return loadContractFromJar(classLoader, name, buffer, codeSigners, principals);
@@ -305,7 +305,12 @@ public class ContractLoader {
                 if (i >= 0)
                     sm.checkPackageDefinition(name.substring(0, i));
             }
-            return defineClass(name, classBytes, 0, classBytes.length, protectionDomain);
+            Class<?> loadedClass = findLoadedClass(name);
+            if (loadedClass != null) {
+                return loadedClass;
+            } else {
+                return defineClass(name, classBytes, 0, classBytes.length, protectionDomain);
+            }
         }
 
         /**

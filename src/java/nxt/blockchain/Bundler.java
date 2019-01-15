@@ -1,6 +1,6 @@
 /*
  * Copyright © 2013-2016 The Nxt Core Developers.
- * Copyright © 2016-2018 Jelurida IP B.V.
+ * Copyright © 2016-2019 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
@@ -159,7 +159,8 @@ public final class Bundler {
             long childFee = childTransaction.getFee();
             BigInteger minParentFeeFQT = minRateNQTPerFXTBigInteger.multiply(BigInteger.valueOf(minChildFeeFQT));
             if (BigInteger.valueOf(childFee).multiply(Constants.ONE_FXT_BIG_INTEGER).compareTo(minParentFeeFQT) < 0) {
-                Logger.logInfoMessage("Bundler not bundling child transaction %s fee %d [FQT] lower than min required fee %d [FQT]",
+                Logger.logInfoMessage("Bundler not bundling child transaction %d:%s fee %d [FQT] lower than min required fee %d [FQT]",
+                        childTransaction.getChain().getId(),
                         Convert.toHexString(childTransaction.getFullHash()),
                         BigInteger.valueOf(childFee),
                         minParentFeeFQT.divide(Constants.ONE_FXT_BIG_INTEGER));

@@ -1,6 +1,6 @@
 /*
  * Copyright © 2013-2016 The Nxt Core Developers.
- * Copyright © 2016-2018 Jelurida IP B.V.
+ * Copyright © 2016-2019 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
@@ -26,6 +26,16 @@ import nxt.account.BalanceHome;
 import nxt.account.FundingMonitor;
 import nxt.account.HoldingType;
 import nxt.account.Token;
+import nxt.addons.Contract;
+import nxt.addons.ContractAndSetupParameters;
+import nxt.addons.ContractInvocationParameter;
+import nxt.addons.ContractLoader;
+import nxt.addons.ContractRunner.INVOCATION_TYPE;
+import nxt.addons.JA;
+import nxt.addons.JO;
+import nxt.addons.ValidateChain;
+import nxt.addons.ValidateTransactionType;
+import nxt.addons.ValidationAnnotation;
 import nxt.ae.Asset;
 import nxt.ae.AssetDeleteAttachment;
 import nxt.ae.AssetDividendHome;
@@ -75,19 +85,27 @@ import nxt.shuffling.ShufflingParticipantHome;
 import nxt.taggeddata.TaggedDataHome;
 import nxt.util.Convert;
 import nxt.util.Filter;
+import nxt.util.Logger;
 import nxt.voting.PhasingPollHome;
 import nxt.voting.PhasingVoteHome;
 import nxt.voting.PollHome;
 import nxt.voting.VoteHome;
 import nxt.voting.VoteWeighting;
+import org.apache.commons.math3.stat.descriptive.StatisticalSummary;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.MathContext;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public final class JSONData {
 
@@ -1306,7 +1324,7 @@ public final class JSONData {
         return json;
     }
 
-    public static JSONObject contractReference(ContractReference contractReference) {
+    public static JSONObject contractReference(ContractReference contractReference, boolean includeContract) {
         JSONObject json = new JSONObject();
         json.put("name", contractReference.getContractName());
         if (contractReference.getContractParams() != null) {
@@ -1314,11 +1332,97 @@ public final class JSONData {
         } else {
             json.put("setupParameters", "");
         }
-        json.put("contract", contractReference.getContractId().getJSON());
+        if (includeContract) {
+            ContractAndSetupParameters contractAndSetupParameters = ContractLoader.loadContractAndSetupParameters(contractReference);
+            json.put("contract", contract(contractAndSetupParameters.getContract()));
+        } else {
+            json.put("contract", contractReference.getContractId().getJSON());
+        }
         json.put("id", Long.toUnsignedString(contractReference.getId()));
         return json;
     }
 
+    public static JSONObject contract(Contract contract) {
+        JSONObject json = new JSONObject();
+        json.put("contractClass", contract.getClass().getCanonicalName());
+        JA invocationTypes = new JA();
+        Arrays.stream(contract.getClass().getDeclaredMethods())
+                .flatMap(method -> INVOCATION_TYPE.getByMethodName(method.getName()).map(Stream::of).orElseGet(Stream::empty))
+                .forEach(invocationType -> {
+                    JO param = new JO();
+                    param.put("type", invocationType.name());
+                    JO stat = new JO();
+                    JSONObject normal = stat(invocationType.getStatNormal(contract.getClass().getCanonicalName()));
+                    stat.put("normal", normal);
+                    JSONObject error = stat(invocationType.getStatErr(contract.getClass().getCanonicalName()));
+                    stat.put("error", error);
+                    param.put("stat", stat);
+                    invocationTypes.add(param);
+                });
+        json.put("invocationTypes", invocationTypes);
+        JA invocationParams = new JA();
+        Class<?> parametersProvider = ContractLoader.getParametersProvider(contract);
+        if (parametersProvider != null) {
+            Method[] parameterMethods = parametersProvider.getDeclaredMethods();
+            invocationParams.addAllJO(
+                    Arrays.stream(parameterMethods)
+                            .filter(method -> method.getDeclaredAnnotation(ContractInvocationParameter.class) != null)
+                            .map(method -> {
+                                JO param = new JO();
+                                param.put("name", method.getName());
+                                param.put("type", method.getReturnType().getCanonicalName());
+                                return param;
+                            })
+                            .collect(Collectors.toList()));
+        }
+        json.put("supportedInvocationParams", invocationParams);
+        JA validationAnnotations = new JA();
+        for (Method m : contract.getClass().getDeclaredMethods()) {
+            for (Annotation a : m.getDeclaredAnnotations()) {
+                for (Annotation meta : a.annotationType().getDeclaredAnnotations()) {
+                    if (meta.annotationType().equals(ValidationAnnotation.class)) {
+                        JO annotationData = getAnnotationData(a);
+                        annotationData.put("forMethod", m.getName());
+                        validationAnnotations.add(annotationData);
+                        break;
+                    }
+                }
+            }
+        }
+        json.put("validityChecks", validationAnnotations);
+        return json;
+    }
+
+    private static JSONObject stat(StatisticalSummary stat) {
+        JO json = new JO();
+        json.put("max", String.format(Locale.ROOT, "%.3f", stat.getMax() / 1e9));
+        json.put("min", String.format(Locale.ROOT, "%.3f", stat.getMin()  / 1e9));
+        json.put("average", String.format(Locale.ROOT, "%.3f", stat.getMean() / 1e9));
+        json.put("count", stat.getN());
+        json.put("std", String.format(Locale.ROOT, "%.3f", stat.getStandardDeviation() / 1e9));
+        json.put("sum", String.format(Locale.ROOT, "%.3f", stat.getSum() / 1e9));
+        json.put("variance", String.format(Locale.ROOT, "%.3f", stat.getVariance() / 1e18));
+        return json.toJSONObject();
+    }
+
+    private static JO getAnnotationData(Annotation a) {
+        JO annotationData = new JO();
+        annotationData.put("name", a.annotationType().getSimpleName());
+        if (a.annotationType() == ValidateTransactionType.class) {
+            ValidateTransactionType validateTransactionType = (ValidateTransactionType) a;
+            try {
+                annotationData.put("accept", Arrays.stream(validateTransactionType.accept()).map(Enum::name).collect(Collectors.joining(",")));
+                annotationData.put("reject", Arrays.stream(validateTransactionType.reject()).map(Enum::name).collect(Collectors.joining(",")));
+            } catch (Exception e) {
+                Logger.logInfoMessage("Cannot parse validation transaction type for old contract");
+            }
+        } else if (a.annotationType() == ValidateChain.class) {
+            ValidateChain validateChain = (ValidateChain) a;
+            annotationData.put("accept", Arrays.toString(validateChain.accept()));
+            annotationData.put("reject", Arrays.toString(validateChain.reject()));
+        }
+        return annotationData;
+    }
 
     static void putPrunableAttachment(JSONObject json, Transaction transaction) {
         JSONObject prunableAttachment = transaction.getPrunableAttachmentJSON();

@@ -2,9 +2,7 @@ package com.jelurida.ardor.contracts;
 
 import nxt.addons.JA;
 import nxt.addons.JO;
-import nxt.blockchain.Block;
 import nxt.blockchain.ChildTransaction;
-import nxt.blockchain.FxtTransaction;
 import nxt.http.APICall;
 import org.junit.Assert;
 import org.junit.Test;
@@ -33,11 +31,9 @@ public class SplitPaymentTest extends AbstractContractTest {
         generateBlock();
 
         // Verify that the contract paid all recipients
-        Block lastBlock = getLastBlock();
-        FxtTransaction parentTransaction = lastBlock.getFxtTransactions().get(0);
-        List<? extends ChildTransaction> childTransactions = parentTransaction.getSortedChildTransactions();
-        Assert.assertEquals(3, childTransactions.size());
-        for (ChildTransaction childTransaction : childTransactions) {
+        List<? extends ChildTransaction> transactions = getLastBlockChildTransactions(2);
+        Assert.assertEquals(3, transactions.size());
+        for (ChildTransaction childTransaction : transactions) {
             long recipientId = childTransaction.getRecipientId();
             long amount = childTransaction.getAmount();
             long fee = childTransaction.getFee();
@@ -57,8 +53,8 @@ public class SplitPaymentTest extends AbstractContractTest {
                 param("chain", IGNIS.getId()).
                 param("triggerFullHash", triggerFullHash).build();
         JO response = new JO(apiCall.invoke());
-        JA transactions = new JA(response.get("transactions"));
-        Assert.assertEquals(3, transactions.size());
+        JA transactionsJson = new JA(response.get("transactions"));
+        Assert.assertEquals(3, transactionsJson.size());
     }
 
 }

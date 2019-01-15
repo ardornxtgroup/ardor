@@ -1,6 +1,6 @@
 /******************************************************************************
  * Copyright © 2013-2016 The Nxt Core Developers.                             *
- * Copyright © 2016-2018 Jelurida IP B.V.                                     *
+ * Copyright © 2016-2019 Jelurida IP B.V.                                     *
  *                                                                            *
  * See the LICENSE.txt file at the top-level directory of this distribution   *
  * for licensing information.                                                 *
@@ -186,7 +186,9 @@ var NRS = (function (NRS, $, undefined) {
         $("#transaction_info_data").html(transaction.chain + ":" + transaction.fullHash);
         try {
             var async = false;
-
+            var $transactionRawData = $("#transaction_raw_data");
+            $transactionRawData.html(JSON.stringify(transaction, null, 4));
+            hljs.highlightBlock($transactionRawData[0]);
             var transactionDetails = $.extend({}, transaction);
             delete transactionDetails.attachment;
             if (transactionDetails.referencedTransaction !== undefined) {
@@ -1815,7 +1817,7 @@ var NRS = (function (NRS, $, undefined) {
         bundleTransactionModal.find('#bundle_transaction_child_fee').val(NRS.formatQuantity(feeNQT, NRS.getChainDecimals(chain)));
         bundleTransactionModal.find('#bundle_transaction_chain_name').html(NRS.getChain(chain).name);
         bundleTransactionModal.find('#bundle_transaction_chain_id').val(chain); // only necessary to validate local signing
-        bundleTransactionModal.find('input[name=fee_decimals]').val(NRS.getChain(1).decimals);
+        bundleTransactionModal.find('input[name=isParentChainTransaction]').val("1");
 
         $("#bundle_transaction_fee_coin").html(NRS.getParentChainName());
     });

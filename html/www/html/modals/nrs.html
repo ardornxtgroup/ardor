@@ -1,6 +1,6 @@
 <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   ~ Copyright © 2013-2016 The Nxt Core Developers.                            ~
-  ~ Copyright © 2016-2018 Jelurida IP B.V.                                    ~
+  ~ Copyright © 2016-2019 Jelurida IP B.V.                                    ~
   ~                                                                           ~
   ~ See the LICENSE.txt file at the top-level directory of this distribution  ~
   ~ for licensing information.                                                ~
@@ -14,7 +14,7 @@
   ~                                                                           ~
   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
 
-<div class="modal fade" id="send_money_modal" data-transaction-type="0" data-transaction-subtype="0" tabindex="-1" role="dialog" aria-hidden="true">
+<div class="modal fade has-recipient" id="send_money_modal" data-transaction-type="0" data-transaction-subtype="0" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-700">
         <div class="modal-content">
             <div class="modal-header">
@@ -602,7 +602,7 @@
                     <img height="128px" width="128px" src="img/nxt_logo.png" align="left" hspace="10" vspace="10">
                     <p>
                         Copyright © 2013-2016 The Nxt Core Developers.<br />
-                        Copyright © 2016-2018 Jelurida IP B.V.<br />
+                        Copyright © 2016-2019 Jelurida IP B.V.<br />
                         Distributed under the <a href="https://www.jelurida.com/jpl" target="_new">Jelurida Public License (JPL)</a> version 1.1 for the Ardor Public Blockchain Platform, with ABSOLUTELY NO WARRANTY.<br />
                     </p>
                     <p>
@@ -639,6 +639,7 @@
                         <li class="active"><a href="#block_info_transactions_tab" data-toggle="tab" id="block_info_transactions_tab_link" data-i18n="transactions">Transactions</a></li>
                         <li><a href="#block_info_executed_phased_tab" data-toggle="tab" data-i18n="executed_phased_transactions">Executed Phased Transactions</a></li>
                         <li><a href="#block_info_details_tab" data-toggle="tab" data-i18n="block_details">Block Details</a></li>
+                        <li><a href="#block_info_raw_data_tab" data-toggle="tab" data-i18n="raw_data">Raw Data</a></li>
                     </ul>
                     <div class="tab-content">
                         <div class="tab-pane active" id="block_info_transactions_tab" style="max-height:350px;overflow:auto;">
@@ -682,6 +683,11 @@
 
                                 </tbody>
                             </table>
+                        </div>
+                        <div class="tab-pane" id="block_info_raw_data_tab" style="max-height:350px;overflow:auto;">
+                            <div class="form-group">
+                                <pre><code class="json hljs" id="block_raw_data"></code></pre>
+                            </div>
                         </div>
                     </div>
                 </div>

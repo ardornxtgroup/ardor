@@ -1,6 +1,6 @@
 /*
  * Copyright © 2013-2016 The Nxt Core Developers.
- * Copyright © 2016-2018 Jelurida IP B.V.
+ * Copyright © 2016-2019 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
@@ -31,7 +31,7 @@ public final class GetContractReferences extends APIServlet.APIRequestHandler {
     static final GetContractReferences instance = new GetContractReferences();
 
     private GetContractReferences() {
-        super(new APITag[] {APITag.ACCOUNTS}, "account", "contractName", "firstIndex", "lastIndex");
+        super(new APITag[] {APITag.ACCOUNTS}, "account", "contractName", "includeContract", "firstIndex", "lastIndex");
     }
 
     @Override
@@ -39,6 +39,7 @@ public final class GetContractReferences extends APIServlet.APIRequestHandler {
 
         long accountId = ParameterParser.getAccountId(req, "account", true);
         String contractName = Convert.emptyToNull(req.getParameter("contractName"));
+        boolean includeContract = "true".equalsIgnoreCase(req.getParameter("includeContract"));
         int firstIndex = ParameterParser.getFirstIndex(req);
         int lastIndex = ParameterParser.getLastIndex(req);
 
@@ -48,7 +49,7 @@ public final class GetContractReferences extends APIServlet.APIRequestHandler {
         JSONData.putAccount(response, "account", accountId);
         try (DbIterator<ContractReference> iterator = ContractReference.getContractReferences(accountId, contractName, firstIndex, lastIndex)) {
             while (iterator.hasNext()) {
-                contractsJSON.add(JSONData.contractReference(iterator.next()));
+                contractsJSON.add(JSONData.contractReference(iterator.next(), includeContract));
             }
         }
         return response;

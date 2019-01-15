@@ -1,6 +1,6 @@
 /*
  * Copyright © 2013-2016 The Nxt Core Developers.
- * Copyright © 2016-2018 Jelurida IP B.V.
+ * Copyright © 2016-2019 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
@@ -24,6 +24,7 @@ import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
+import javafx.stage.FileChooser;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -45,6 +46,7 @@ import nxt.util.security.BlockchainPermission;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.awt.*;
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Field;
@@ -375,14 +377,21 @@ public class DesktopApplication extends Application {
     private void downloadFile(byte[] data, String filename) {
         Path folderPath = Paths.get(System.getProperty("user.home"), "downloads");
         Path path = Paths.get(folderPath.toString(), filename);
-        Logger.logInfoMessage("Downloading data to " + path.toAbsolutePath());
-        try {
-            OutputStream outputStream = Files.newOutputStream(path);
-            outputStream.write(data);
-            outputStream.close();
-            growl(String.format("File %s saved to folder %s", filename, folderPath));
-        } catch (IOException e) {
-            growl("Download failed " + e.getMessage(), e);
+        Logger.logInfoMessage("Before downloading file %s to default path %s", filename, path.toAbsolutePath());
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save File");
+        fileChooser.setInitialDirectory(folderPath.toFile());
+        fileChooser.setInitialFileName(filename);
+        File file = fileChooser.showSaveDialog(stage);
+        if (file != null) {
+            try (OutputStream outputStream = Files.newOutputStream(file.toPath());){
+                outputStream.write(data);
+                growl(String.format("File %s downloaded", file.getAbsolutePath()));
+            } catch (IOException e) {
+                growl("Download failed " + e.getMessage(), e);
+            }
+        } else {
+            growl("File download cancelled");
         }
     }
 

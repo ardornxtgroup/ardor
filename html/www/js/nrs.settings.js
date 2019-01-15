@@ -1,6 +1,6 @@
 /******************************************************************************
  * Copyright © 2013-2016 The Nxt Core Developers.                             *
- * Copyright © 2016-2018 Jelurida IP B.V.                                     *
+ * Copyright © 2016-2019 Jelurida IP B.V.                                     *
  *                                                                            *
  * See the LICENSE.txt file at the top-level directory of this distribution   *
  * for licensing information.                                                 *
@@ -24,8 +24,8 @@ var NRS = (function(NRS, $) {
         "marketplace": "-1",
         "exchange": "-1",
         "console_log": "0",
-		"fee_warning": "100000000000",
-		"amount_warning": "10000000000000",
+		"fee_warning": ["100000000000","100000000000","10000","100000000000","100000000000"],
+		"amount_warning": ["10000000000000","10000000000000","10000000","10000000000000","10000000000000"],
 		"asset_transfer_warning": "10000",
 		"currency_transfer_warning": "10000",
 		"24_hour_format": "1",
@@ -43,7 +43,7 @@ var NRS = (function(NRS, $) {
         "changelly_api_key": "77c34bb4f2bc40519df33a474097936f",
         "changelly_api_secret": "76021037dd6358c33de88810fa4093852bf278a683843c37ea9913acc2746ee0",
         "changelly_coin0": "BTC",
-        "changelly_coin1": "BCH",
+        "changelly_coin1": "XRP",
         "changelly_coin2": "ETH",
 		"max_nxt_decimals": "4",
         "fake_entity_warning": "1",
@@ -245,7 +245,19 @@ var NRS = (function(NRS, $) {
 			var setting = $("#settings_" + key);
             if (/_warning/i.test(key) && isAmountWarning(key)) {
 				if (setting.length) {
-					setting.val(NRS.convertToNXT(NRS.settings[key]));
+					var amount;
+					if (Array.isArray(NRS.settings[key])) {
+						amount = NRS.settings[key][NRS.getActiveChainId() - 1];
+					} else {
+						if (key === "fee_warning" || key === "amount_warning") {
+							NRS.logConsole("Resetting " + key + " value to default");
+							NRS.settings[key] = NRS.defaultSettings[key];
+							amount = NRS.settings[key][NRS.getActiveChainId() - 1];
+						} else {
+							amount = NRS.settings[key];
+						}
+					}
+					setting.val(NRS.convertToNXT(amount));
 				}
 			} else if (!/_color/i.test(key)) {
 				if (setting.length) {
@@ -589,7 +601,17 @@ var NRS = (function(NRS, $) {
 
 	NRS.updateSettings = function(key, value) {
 		if (key) {
-			NRS.settings[key] = value;
+			if (Array.isArray(NRS.settings[key])) {
+				NRS.settings[key][NRS.getActiveChainId() - 1] = value;
+			} else {
+				if (key === "fee_warning" || key === "amount_warning") {
+					NRS.logConsole("Resetting " + key + " value to default");
+					NRS.settings[key] = NRS.defaultSettings[key];
+					NRS.settings[key][NRS.getActiveChainId() - 1] = value;
+				} else {
+					NRS.settings[key] = value;
+				}
+			}
 			if (key == "language") {
 				NRS.setStrItem("language", value);
 			}

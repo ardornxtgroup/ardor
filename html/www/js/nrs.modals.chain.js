@@ -1,6 +1,6 @@
 /******************************************************************************
  * Copyright © 2013-2016 The Nxt Core Developers.                             *
- * Copyright © 2016-2018 Jelurida IP B.V.                                     *
+ * Copyright © 2016-2019 Jelurida IP B.V.                                     *
  *                                                                            *
  * See the LICENSE.txt file at the top-level directory of this distribution   *
  * for licensing information.                                                 *
@@ -64,8 +64,12 @@ var NRS = (function(NRS, $) {
                             chainDetails.bundler_formatted_html = NRS.getAccountLink(response.rates[i], "account");
                             chainDetails.bundling_rate_formatted_html = NRS.formatQuantity(response.rates[i].minRateNQTPerFXT, chain.decimals) +
                                 " [" + chain.name + " " + $.t("per") + " " + NRS.getParentChainName() + "]";
-                            chainDetails.fee_limit_formatted_html = NRS.formatQuantity(response.rates[i].currentFeeLimitFQT, NRS.getChain(1).decimals) +
-                                " [" + NRS.getParentChainName() + "]";
+                            if (response.rates[i].currentFeeLimitFQT === NRS.constants.MAX_LONG_JAVA) {
+                                chainDetails.fee_limit_formatted_html = $.t("unlimited");
+                            } else {
+                                chainDetails.fee_limit_formatted_html = NRS.formatQuantity(response.rates[i].currentFeeLimitFQT, NRS.getChain(1).decimals) +
+                                    " [" + NRS.getParentChainName() + "]";
+                            }
                             break;
                         }
                     }

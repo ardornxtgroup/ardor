@@ -1,6 +1,6 @@
 /*
  * Copyright © 2013-2016 The Nxt Core Developers.
- * Copyright © 2016-2018 Jelurida IP B.V.
+ * Copyright © 2016-2019 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
@@ -99,6 +99,16 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 new byte[] {
                         -63, 125, 46, -107, 86, -81, -17, -44, 50, -90, -51, 78, -10, -41, -104,
                         -32, 96, 0, 2, -76, 3, 82, -69, -62, 112, 98, -107, 83, 25, -123, -119, -78
+                });
+        map.put(Constants.CHECKSUM_BLOCK_3, Constants.isTestnet ?
+                new byte[] {
+                        -7, -58, 83, 26, 80, 57, 38, -8, -73, 16, -35, 56, -33, 0, -18, -21, 11,
+                        -80, -6, -58, -83, -2, 22, -82, 70, 61, 81, -34, 22, -114, 41, 104
+                }
+                :
+                new byte[] {
+                        66, 95, 48, 11, 62, 26, -44, -98, -114, 66, 3, 13, -84, 88, -67, 71, -23,
+                        -46, -120, -19, 98, 23, 81, -22, 37, 122, -113, 9, -103, 55, -126, -77
                 });
         checksums = Collections.unmodifiableNavigableMap(map);
     }

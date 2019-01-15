@@ -117,10 +117,6 @@ public class JO extends AbstractMap {
         return Long.parseUnsignedLong((String) value);
     }
 
-    public double numericToDouble(String key) {
-        return (Double)jo.get(key);
-    }
-
     // Used by JSON encodeObject
     @Override
     public Set<Entry> entrySet() {
@@ -159,6 +155,36 @@ public class JO extends AbstractMap {
             return (int)value;
         }
         return (int)getLong(key);
+    }
+
+    public double getDouble(String key, double defaultValue) {
+        if (isExist(key)) {
+            return getDouble(key);
+        }
+        return defaultValue;
+    }
+
+    public double getDouble(String key) {
+        Object value = jo.get(key);
+        if (value instanceof String) {
+            return Double.parseDouble((String)value);
+        }
+        return (double)value;
+    }
+
+    public float getFloat(String key, float defaultValue) {
+        if (isExist(key)) {
+            return getFloat(key);
+        }
+        return defaultValue;
+    }
+
+    public float getFloat(String key) {
+        Object value = jo.get(key);
+        if (value instanceof Float) {
+            return (float)value;
+        }
+        return (float)getDouble(key);
     }
 
     public short getShort(String key, short defaultValue) {

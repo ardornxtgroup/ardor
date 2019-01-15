@@ -15,10 +15,17 @@ import java.math.BigInteger;
 import static nxt.blockchain.TransactionTypeEnum.PARENT_PAYMENT;
 import static nxt.blockchain.TransactionTypeEnum.CHILD_PAYMENT;
 
+/**
+ * Sample contract which receives amount from the trigger transaction and returns a random amount between 0 and twice the received amount.
+ * Warning:
+ * This design is inappropriate for gambling applications. The reason is that users can trigger this contract using a phased
+ * transaction and later not approve the trigger and response transactions in case they do not like the results.
+ * For a better approach to gambling application see the AllForOnePayment sample contract.
+ */
 public class RandomPayment extends AbstractContract {
 
     /**
-     * Sample contract which receives amount from the trigger transaction and returns a random amount between 0 and twice the received amount
+     * Process a payment transaction and send back random amount to the sender
      * @param context contract context
      */
     @Override
