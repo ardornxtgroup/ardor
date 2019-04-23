@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class GetBuyOffersCall extends APICall.Builder<GetBuyOffersCall> {
@@ -10,21 +9,11 @@ public class GetBuyOffersCall extends APICall.Builder<GetBuyOffersCall> {
     }
 
     public static GetBuyOffersCall create(int chain) {
-        GetBuyOffersCall instance = new GetBuyOffersCall();
-        instance.param("chain", chain);
-        return instance;
+        return new GetBuyOffersCall().param("chain", chain);
     }
 
     public GetBuyOffersCall requireLastBlock(String requireLastBlock) {
         return param("requireLastBlock", requireLastBlock);
-    }
-
-    public GetBuyOffersCall chain(String chain) {
-        return param("chain", chain);
-    }
-
-    public GetBuyOffersCall chain(int chain) {
-        return param("chain", chain);
     }
 
     public GetBuyOffersCall firstIndex(int firstIndex) {

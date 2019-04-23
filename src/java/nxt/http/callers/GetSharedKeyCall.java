@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class GetSharedKeyCall extends APICall.Builder<GetSharedKeyCall> {
@@ -15,10 +14,6 @@ public class GetSharedKeyCall extends APICall.Builder<GetSharedKeyCall> {
 
     public GetSharedKeyCall nonce(String nonce) {
         return param("nonce", nonce);
-    }
-
-    public GetSharedKeyCall secretPhrase(String secretPhrase) {
-        return param("secretPhrase", secretPhrase);
     }
 
     public GetSharedKeyCall account(String account) {

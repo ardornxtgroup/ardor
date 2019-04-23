@@ -72,8 +72,8 @@ public class MigrationMonitor {
     }
 
     public static void enableMigration(long holdingId, HoldingType holdingType, ChildChain targetChain, int minHeight, int actualHeight) {
-        if (!Constants.isAutomatedTest && Nxt.getServerStatus() != ServerStatus.BEFORE_DATABASE) {
-            throw new IllegalStateException("Setting migration only allowed during tests or in DbVersion");
+        if (!Constants.isAutomatedTest && Nxt.getServerStatus() != ServerStatus.BEFORE_DATABASE && !Nxt.getBlockchainProcessor().isScanning()) {
+            throw new IllegalStateException("Setting migration only allowed during tests, rescan, or in DbVersion");
         }
         HoldingMigration holdingMigration = HoldingMigration.getByChildChain(targetChain);
         if (holdingMigration != null) {

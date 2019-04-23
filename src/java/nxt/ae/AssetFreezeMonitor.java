@@ -16,6 +16,7 @@
 
 package nxt.ae;
 
+import nxt.Constants;
 import nxt.Nxt;
 import nxt.NxtException;
 import nxt.account.HoldingType;
@@ -80,7 +81,7 @@ public class AssetFreezeMonitor {
             int count = 0;
             while (orders.hasNext()) {
                 orders.next().cancelOrder(null);
-                if (++count % 1000 == 0) {
+                if (++count % Constants.BATCH_COMMIT_SIZE == 0) {
                     Db.db.commitTransaction();
                 }
             }

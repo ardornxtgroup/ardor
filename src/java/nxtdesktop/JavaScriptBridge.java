@@ -21,7 +21,9 @@ import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import nxt.Nxt;
 import nxt.addons.JO;
+import nxt.crypto.Crypto;
 import nxt.http.API;
+import nxt.util.Convert;
 import nxt.util.Logger;
 import nxt.util.security.BlockchainPermission;
 
@@ -115,4 +117,17 @@ public class JavaScriptBridge {
         return clipboard.setContent(content);
     }
 
+    @SuppressWarnings("unused")
+    public void renderPaperWallet(String page) {
+        API.setPaperWalletPage(page);
+        byte[] hash = Crypto.sha256().digest(page.getBytes(StandardCharsets.UTF_8));
+        Platform.runLater(() -> {
+            try {
+                URI uri = API.getPaperWalletUri();
+                Desktop.getDesktop().browse(new URI(uri.getScheme(), uri.getUserInfo(), uri.getHost(), uri.getPort(), uri.getPath(), "hash=" + Convert.toHexString(hash), uri.getFragment()));
+            } catch (Exception e) {
+                Logger.logInfoMessage("Cannot open paper wallet " + e);
+            }
+        });
+    }
 }

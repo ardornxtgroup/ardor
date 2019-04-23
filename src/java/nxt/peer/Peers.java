@@ -774,6 +774,7 @@ public final class Peers {
             //
             getConnectedPeers().forEach(peer -> {
                 if (((PeerImpl)peer).isHandshakePending() && peer.getLastUpdated() < now - NetworkHandler.peerConnectTimeout) {
+                    Logger.logDebugMessage("Disconnecting dead peer " + peer.getHost() + " last updated " + peer.getLastUpdated() + " at " + now);
                     peer.disconnectPeer();
                 }
             });

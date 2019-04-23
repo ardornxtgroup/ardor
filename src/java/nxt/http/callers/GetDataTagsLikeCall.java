@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class GetDataTagsLikeCall extends APICall.Builder<GetDataTagsLikeCall> {
@@ -10,21 +9,11 @@ public class GetDataTagsLikeCall extends APICall.Builder<GetDataTagsLikeCall> {
     }
 
     public static GetDataTagsLikeCall create(int chain) {
-        GetDataTagsLikeCall instance = new GetDataTagsLikeCall();
-        instance.param("chain", chain);
-        return instance;
+        return new GetDataTagsLikeCall().param("chain", chain);
     }
 
     public GetDataTagsLikeCall requireLastBlock(String requireLastBlock) {
         return param("requireLastBlock", requireLastBlock);
-    }
-
-    public GetDataTagsLikeCall chain(String chain) {
-        return param("chain", chain);
-    }
-
-    public GetDataTagsLikeCall chain(int chain) {
-        return param("chain", chain);
     }
 
     public GetDataTagsLikeCall firstIndex(int firstIndex) {

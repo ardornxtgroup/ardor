@@ -2417,7 +2417,7 @@ http://wrapbootstrap.com/preview/WB0907F35 */
   }
 
   body .modal-dialog-wide, .modal-dialog-wider {
-    width: 840px;
+    width: 950px;
   }
 }
 
@@ -3529,7 +3529,7 @@ input.masked {
   display:none;
 }
 
-.optional_message, .optional_note, .optional_do_not_sign, .optional_public_key {
+.optional_message, .optional_note, .optional_do_not_sign, .optional_public_key, .piece_entry_group {
   display:none;
 }
 

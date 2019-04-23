@@ -215,7 +215,7 @@ public final class CoinExchange {
                 }
             }
         }
-        return orderTable.getManyBy(dbClause, from, to, "ORDER BY bid_price DESC");
+        return orderTable.getManyBy(dbClause, from, to, "ORDER BY bid_price DESC, creation_height ASC, transaction_height ASC, transaction_index ASC");
     }
 
     /**

@@ -98,6 +98,33 @@
     </div>
 </div>
 
+<div id="multi_piece_modal_ui_element">
+    <div class="row">
+        <div class="col-xs-12 multi_piece_list">
+            <label data-i18n="{{labelI18n}}">{{labelText}}</label>
+            <i class="fa fa-question-circle modal-context-help" data-content="" data-toggle="popover" data-trigger="hover" data-container="#{{modalId}}" data-i18n="[data-content]{{helpI18n}}"></i>
+            <div class="form-group form_group_multi_piece">
+                <div id="piece_secret_phrase_reader" class="input-group scan-qr-code-reader" style="display:none;width:384px;height:384px;"></div>
+                <div class="input-group">
+                    <input type="text" class="form-control piece-selector-input" placeholder="PIECE" data-i18n="[placeholder]piece" disabled />
+                    <span class="input-group-btn">
+                        <button id="piece_secret_phrase_scan" type="button" data-reader="piece_secret_phrase_reader" data-result="piece" class="scan-qr-code btn btn-default">
+                            <i class="fa fa-qrcode"></i>
+                        </button>
+                        <button class="btn btn-default remove-piece-btn" type="button"><i class="fa fa-minus"></i></button>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row form-group">
+        <div class="col-xs-12">
+            <a href="#" class="btn add-piece-btn"><i class="fa fa-plus"></i> <span data-i18n="add_piece">ADD PIECE</span></a>
+            <a href="#" class="btn btn-primary combine-pieces-btn"><span data-i18n="combine">COMBINE</span></a>
+        </div>
+    </div>
+</div>
+
 <div id="min_balance_model_modal_ui_element">
     <label for="{{modalName}}_{{labelI18n}}" data-i18n="{{labelI18n}}">{{labelText}}</label>
     <i class="fa fa-question-circle modal-context-help" data-content="" data-toggle="popover" data-trigger="hover" data-container="#{{modalId}}" data-i18n="[data-content]{{helpI18n}}"></i>

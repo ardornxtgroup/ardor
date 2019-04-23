@@ -53,6 +53,7 @@ public class ForgingReward extends AbstractContract {
         default boolean isRewardArdor() {
             return true;
         }
+
         @ContractSetupParameter
         String ardorNodeAddress();
 
@@ -101,13 +102,15 @@ public class ForgingReward extends AbstractContract {
      * @param address the address of the node to query or null for using the local ardor node
      */
     private JO sendReward(BlockContext context, int interval, String address) {
-        URL url = null;
+        final URL url;
         if (address != null) {
             try {
                 url = new URL(address);
             } catch (MalformedURLException e) {
                 throw new IllegalStateException(e);
             }
+        } else {
+            url = null;
         }
         // Load the last generated blocks from the blockchain
         JO response = GetBlocksCall.create().firstIndex(0).lastIndex(interval - 1).includeTransactions(false).includeExecutedPhased(false).remote(url).call();
@@ -117,13 +120,13 @@ public class ForgingReward extends AbstractContract {
         Map<String, Long> collect = blocks.stream().collect(Collectors.groupingBy(b -> BlockResponse.create(b).getGenerator(), Collectors.counting()));
         Logger.logInfoMessage("Last %d blocks frequency map %s", interval, collect.toString());
 
-        // Exclude forgers which signaled their intention not to be rewarded
+        // Include only forgers which signaled their intention to be rewarded
         collect.keySet().removeIf(g -> {
-            JO getAccountPropertiesResponse = GetAccountPropertiesCall.create().property("NoForgingReward").setter(g).recipient(g).call();
-            return getAccountPropertiesResponse.getJoList("properties").size() > 0;
+            JO getAccountPropertiesResponse = GetAccountPropertiesCall.create().property("ForgingReward").setter(g).recipient(g).remote(url).call();
+            return getAccountPropertiesResponse.getJoList("properties").size() == 0;
         });
         if (collect.size() == 0) {
-            return context.generateInfoResponse("All forgers gave up on the reward");
+            return context.generateInfoResponse("No forger applied for the reward");
         }
 
         // Invoke the random distribution contract to randomly select one of the forgers based on their number of blocks generated

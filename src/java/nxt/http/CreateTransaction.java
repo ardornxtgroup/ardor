@@ -47,6 +47,8 @@ import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import static nxt.http.JSONResponses.FEATURE_NOT_AVAILABLE;
 import static nxt.http.JSONResponses.INCORRECT_EC_BLOCK;
@@ -69,14 +71,18 @@ public abstract class CreateTransaction extends APIServlet.APIRequestHandler {
             "phasingRecipientPropertyName", "phasingRecipientPropertyValue",
             "phasingExpression",
             "recipientPublicKey",
-            "ecBlockId", "ecBlockHeight",
-            "voucher"
+            "ecBlockId", "ecBlockHeight", "voucher",
+            "sharedPiece", "sharedPiece", "sharedPiece", "sharedPieceAccount"
     };
 
     private static String[] addCommonParameters(String[] parameters) {
         String[] result = Arrays.copyOf(parameters, parameters.length + commonParameters.length);
         System.arraycopy(commonParameters, 0, result, parameters.length, commonParameters.length);
         return result;
+    }
+
+    public static List<String> getCommonParameters() {
+        return Collections.unmodifiableList(Arrays.asList(commonParameters));
     }
 
     CreateTransaction(APITag[] apiTags, String... parameters) {

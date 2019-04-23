@@ -323,113 +323,71 @@ var NRS = (function(NRS, $) {
 		}
 	};
 
-	NRS.getAccountAlias = function(account) {
-		var result = {};
-		NRS.sendRequest("getAlias", {
-			"aliasName": account,
-			"chain": 2 // always use Ignis
-		}, function(response) {
-			if (response.errorCode) {
-				result.error = response.errorDescription;
-			} else {
-				if (response.aliasURI) {
-					var alias = String(response.aliasURI);
-					var regex_1 = /acct:(.*)@nxt/;
-					var regex_2 = /nacc:(.*)/;
-					var match = alias.match(regex_1);
-					if (!match) {
-						match = alias.match(regex_2);
-					}
-					if (match && match[1]) {
-						match[1] = String(match[1]).toUpperCase();
-						if (/^\d+$/.test(match[1])) {
-							var address = new NxtAddress();
-							if (address.set(match[1])) {
-								match[1] = address.toString();
-							} else {
-								esult.error = $.t("error_invalid_account_id");
-								return;
-							}
-						}
-						result.id = match[1];
-					} else {
-						result.error = $.t("alias_account_no_link") + (!alias ? $.t("error_uri_empty") : $.t("uri_is", {
-							"uri": NRS.escapeRespStr(alias)
-						}));
-					}
-				} else if (response.aliasName) {
-					result.error = $.t("error_alias_empty_uri");
-				} else {
-					result.error = response.errorDescription ? $.t("error") + ": " + NRS.escapeRespStr(response.errorDescription) : $.t("error_alias");
-				}
-			}
-		}, { isAsync: false });
-		return result;
-	};
+    NRS.getAccountAlias = function(alias) {
+        var result = {};
+        NRS.sendRequest("getAlias", {
+            "aliasName": alias,
+            "chain": 2 // always use Ignis
+        }, function(response) {
+            if (response.errorCode) {
+                result.error = response.errorDescription;
+                return
+            }
+            if (response.aliasURI) {
+                var aliasURI = String(response.aliasURI);
+                var regex_1 = /acct:(.*)@nxt/;
+                var regex_2 = /nacc:(.*)/;
+                var match = aliasURI.match(regex_1);
+                if (!match) {
+                    match = aliasURI.match(regex_2);
+                }
+                if (match && match[1]) {
+                    match[1] = String(match[1]).toUpperCase();
+                    if (/^\d+$/.test(match[1])) {
+                        var address = new NxtAddress();
+                        if (address.set(match[1])) {
+                            match[1] = address.toString();
+                        } else {
+                            result.error = $.t("error_invalid_account_id");
+                            return;
+                        }
+                    }
+                    result.id = match[1];
+                    result.timestamp = response.timestamp;
+                    return;
+                }
+            }
+            result.id = response.accountRS;
+			result.timestamp = response.timestamp;
+        }, { isAsync: false });
+        return result;
+    };
 
-	NRS.checkRecipientAlias = function(account, modal) {
+	NRS.checkRecipientAlias = function(alias, modal) {
 		var classes = "callout-info callout-danger callout-warning";
 		var callout = modal.find(".account_info").first();
 		var accountInputField = modal.find("input[name=converted_account_id]");
-
 		accountInputField.val("");
+		var result = NRS.getAccountAlias(alias);
+		if (result.error) {
+            callout.removeClass(classes).addClass("callout-danger").html($.t("error_invalid_account_id")).show();
+            return;
+        }
+		var account = result.id;
+        NRS.checkAccountStatus(account, function(response) {
+            displayPublicKey(response, account, modal);
+            loadContractReferences(account);
+            updateRecipientOptions(response, modal);
+            callout.removeClass(classes).addClass("callout-" + response.type).html($.t("alias_account_link", {
+                "account_id": NRS.escapeRespStr(account)
+            }) + " " + response.message + " " + $.t("alias_last_adjusted", {
+                "timestamp": NRS.formatTimestamp(result.timestamp)
+            })).show();
 
-		NRS.sendRequest("getAlias", {
-			"aliasName": account,
-            "chain": 2 // always use Ignis
-        }, function(response) {
-			if (response.errorCode) {
-				callout.removeClass(classes).addClass("callout-danger").html($.t("error_invalid_account_id")).show();
-			} else {
-				if (response.aliasURI) {
-					var alias = String(response.aliasURI);
-					var timestamp = response.timestamp;
-					var regex_1 = /acct:(.*)@nxt/;
-					var regex_2 = /nacc:(.*)/;
-					var match = alias.match(regex_1);
-					if (!match) {
-						match = alias.match(regex_2);
-					}
-
-					if (match && match[1]) {
-						account = match[1];
-						account = String(account).toUpperCase();
-						if (/^\d+$/.test(account)) {
-							var address = new NxtAddress();
-							if (address.set(account)) {
-								account = address.toString();
-							} else {
-								accountInputField.val("");
-								callout.removeClass(classes).addClass("callout-danger").html($.t("error_invalid_account_id")).show();
-								return;
-							}
-						}
-						NRS.checkAccountStatus(account, function(response) {
-							displayPublicKey(response, account, modal);
-							loadContractReferences(account);
-							updateRecipientOptions(response, modal);
-							callout.removeClass(classes).addClass("callout-" + response.type).html($.t("alias_account_link", {
-								"account_id": NRS.escapeRespStr(account)
-							}) + " " + response.message + " " + $.t("alias_last_adjusted", {
-								"timestamp": NRS.formatTimestamp(timestamp)
-							})).show();
-
-							if (response.type == "info" || response.type == "warning") {
-								accountInputField.val(NRS.escapeRespStr(account));
-							}
-						});
-					} else {
-						callout.removeClass(classes).addClass("callout-danger").html($.t("alias_account_no_link") + (!alias ? $.t("error_uri_empty") : $.t("uri_is", {
-							"uri": NRS.escapeRespStr(alias)
-						}))).show();
-					}
-				} else if (response.aliasName) {
-					callout.removeClass(classes).addClass("callout-danger").html($.t("error_alias_empty_uri")).show();
-				} else {
-					callout.removeClass(classes).addClass("callout-danger").html(response.errorDescription ? $.t("error") + ": " + NRS.escapeRespStr(response.errorDescription) : $.t("error_alias")).show();
-				}
-			}
-		});
+            if (response.type == "info" || response.type == "warning") {
+                accountInputField.val(NRS.escapeRespStr(account));
+            }
+        });
 	};
 
     function updateRecipientOptions(accountResponse, modal) {

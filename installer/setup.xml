@@ -204,9 +204,10 @@
             <executable targetfile="${INSTALL_PATH}/passphraseRecovery.sh"/>
         </pack>
 
-        <pack name="jre.win" os="windows" required="yes" uninstall="false" hidden="true">
+        <pack name="jdk.win" os="windows" required="yes" uninstall="false" hidden="true">
             <description>Java 64 bit for Windows</description>
-            <fileset dir="../jre" targetdir="${INSTALL_PATH}/jre" override="true"/>
+            <fileset dir="../jdk" targetdir="${INSTALL_PATH}/jdk" override="true"/>
+			<fileset dir="../javafx-sdk" targetdir="${INSTALL_PATH}/javafx-sdk" override="true"/>
         </pack>
 
         <pack name="server.mac" os="mac_osx" required="yes" uninstall="false" hidden="true">
@@ -216,10 +217,11 @@
 			<executable targetfile="${INSTALL_PATH}/Contents/MacOS/ardor"/>
 		</pack>
 
-        <pack name="jre.mac" os="mac_osx" required="yes" uninstall="false" hidden="true">
+        <pack name="jdk.mac" os="mac_osx" required="yes" uninstall="false" hidden="true">
             <description>Java 64 bit for Mac</description>
-            <fileset dir="../jre" targetdir="${INSTALL_PATH}/jre" override="true"/>
-            <executable targetfile="${INSTALL_PATH}/jre/bin/java" failure="warn" keep="true"/>
+            <fileset dir="../jdk" targetdir="${INSTALL_PATH}/jdk" override="true"/>
+            <executable targetfile="${INSTALL_PATH}/jdk/bin/java" failure="warn" keep="true"/>
+			<fileset dir="../javafx-sdk" targetdir="${INSTALL_PATH}/javafx-sdk" override="true"/>
         </pack>
 
     </packs>

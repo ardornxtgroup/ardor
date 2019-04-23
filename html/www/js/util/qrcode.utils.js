@@ -98,9 +98,13 @@ var NRS = (function (NRS) {
                 NRS.stopScanQRCode();
             },
             function (error) {
-                NRS.logConsole(error.message);
+                NRS.logConsole("Scan error: " + error.message);
                 reader.hide();
-                $.growl($.t("video_error"));
+                if (NRS.isCameraAccessSupported()) {
+                    $.growl($.t("video_error"));
+                } else {
+                    $.growl($.t("scan_not_supported"));
+                }
                 NRS.stopScanQRCode();
             }
         );
@@ -120,7 +124,7 @@ var NRS = (function (NRS) {
 
         Instascan.Camera.getCameras().then(function (cameras) {
             if (cameras.length > 0) {
-                scanner.start(cameras[0]);
+                scanner.start(cameras[NRS.mobileSettings.camera_id]);
             } else {
                 qrcodeError(e);
                 NRS.stopScanQRCode();

@@ -31,6 +31,7 @@ import nxt.blockchain.ChildChain;
 import nxt.blockchain.Transaction;
 import nxt.crypto.Crypto;
 import nxt.crypto.EncryptedData;
+import nxt.crypto.SecretSharingGenerator;
 import nxt.dgs.DigitalGoodsHome;
 import nxt.messaging.EncryptToSelfMessageAppendix;
 import nxt.messaging.EncryptedMessageAppendix;
@@ -65,6 +66,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -74,6 +76,8 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.StringJoiner;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static nxt.http.JSONResponses.*;
 
@@ -205,6 +209,17 @@ public final class ParameterParser {
             throw new ParameterException(incorrect(name));
         }
         return values;
+    }
+
+    public static BigInteger getBigInteger(HttpServletRequest req, String name, boolean isMandatory) throws ParameterException {
+        String paramValue = Convert.emptyToNull(req.getParameter(name));
+        if (paramValue == null) {
+            if (isMandatory) {
+                throw new ParameterException(missing(name));
+            }
+            return BigInteger.ZERO;
+        }
+        return new BigInteger(paramValue);
     }
 
     public static byte[] getBytes(HttpServletRequest req, String name, boolean isMandatory) throws ParameterException {
@@ -481,9 +496,31 @@ public final class ParameterParser {
     }
 
     public static String getSecretPhrase(HttpServletRequest req, boolean isMandatory) throws ParameterException {
-        String secretPhrase = Convert.emptyToNull(req.getParameter("secretPhrase"));
-        if (secretPhrase == null && isMandatory) {
-            throw new ParameterException(MISSING_SECRET_PHRASE);
+        return getSecretPhrase(req, null, isMandatory);
+    }
+
+    public static String getSecretPhrase(HttpServletRequest req, String prefix, boolean isMandatory) throws ParameterException {
+        String secretPhraseParam = prefix == null ? "secretPhrase" : (prefix + "SecretPhrase");
+        String secretPhrase = Convert.emptyToNull(req.getParameter(secretPhraseParam));
+        if (secretPhrase != null) {
+            return secretPhrase;
+        }
+        String[] sharedPieces = req.getParameterValues("sharedPiece");
+        if (sharedPieces == null || prefix != null) {
+            if (isMandatory) {
+                throw new ParameterException(MISSING_SECRET_PHRASE);
+            } else {
+                return null;
+            }
+        }
+        List<String> clientSharedPieces = Arrays.asList(sharedPieces);
+        long accountId = getAccountId(req, "sharedPieceAccount", false);
+        String sharedSecretAccount = Convert.rsAccount(accountId);
+        List<String> serverSharedPieces = Nxt.getStringListProperty("nxt.secretPhrasePieces." + sharedSecretAccount);
+        List<String> allSharedPieces = Stream.concat(clientSharedPieces.stream(), serverSharedPieces.stream()).distinct().collect(Collectors.toList());
+        secretPhrase = SecretSharingGenerator.combine(allSharedPieces.toArray(new String[]{}));
+        if (accountId != 0 && Account.getId(Crypto.getPublicKey(secretPhrase)) != accountId) {
+            throw new ParameterException(JSONResponses.error(String.format("Combined secret phrase does not reproduce secret phrase for account %s", sharedSecretAccount)));
         }
         return secretPhrase;
     }
@@ -495,7 +532,7 @@ public final class ParameterParser {
     public static byte[] getPublicKey(HttpServletRequest req, String prefix) throws ParameterException {
         String secretPhraseParam = prefix == null ? "secretPhrase" : (prefix + "SecretPhrase");
         String publicKeyParam = prefix == null ? "publicKey" : (prefix + "PublicKey");
-        String secretPhrase = Convert.emptyToNull(req.getParameter(secretPhraseParam));
+        String secretPhrase = getSecretPhrase(req, prefix, false);
         boolean isVoucher = "true".equalsIgnoreCase(req.getParameter("voucher"));
         if (secretPhrase == null || isVoucher) {
             try {

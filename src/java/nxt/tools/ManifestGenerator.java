@@ -21,6 +21,7 @@ import nxt.env.service.ArdorService_ServiceManagement;
 import nxt.util.security.BlockchainPermission;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitOption;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -42,10 +43,10 @@ public class ManifestGenerator {
         }
 
         ManifestGenerator manifestGenerator = new ManifestGenerator();
-        manifestGenerator.generate("./resource/nxt.manifest.mf", Nxt.class.getCanonicalName(), "./lib");
+        manifestGenerator.generate("./resource/ardor.manifest.mf", Nxt.class.getCanonicalName(), "./lib", "./javafx-sdk/lib");
         String serviceClassName = ArdorService_ServiceManagement.class.getCanonicalName();
         serviceClassName = serviceClassName.substring(0, serviceClassName.length() - "_ServiceManagement".length());
-        manifestGenerator.generate("./resource/nxtservice.manifest.mf", serviceClassName, "./lib");
+        manifestGenerator.generate("./resource/ardorservice.manifest.mf", serviceClassName, "./lib");
     }
 
     private void generate(String fileName, String className, String ... directories) {
@@ -61,12 +62,21 @@ public class ManifestGenerator {
             } catch (IOException e) {
                 throw new IllegalStateException(e);
             }
-            classpath.append(dirListing.getClasspath());
+            classpath.append(dirListing.getFileList().toString());
         }
         classpath.append("conf/");
         manifest.getMainAttributes().put(Attributes.Name.CLASS_PATH, classpath.toString());
         try {
-            manifest.write(Files.newOutputStream(Paths.get(fileName), StandardOpenOption.CREATE));
+            Path path = Paths.get(fileName);
+            if (Files.exists(path)) {
+                Files.delete(path);
+            }
+            manifest.write(Files.newOutputStream(path, StandardOpenOption.CREATE));
+            System.out.println("Manifest file " + fileName + " generated");
+
+            // Print the file content to assist debugging
+            byte[] encoded = Files.readAllBytes(path);
+            System.out.println(new String(encoded, StandardCharsets.UTF_8));
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
@@ -74,12 +84,12 @@ public class ManifestGenerator {
 
     private static class DirListing extends SimpleFileVisitor<Path> {
 
-        private final StringBuilder classpath = new StringBuilder();
+        private final StringBuilder fileList = new StringBuilder();
 
         @Override
         public FileVisitResult visitFile(Path file, BasicFileAttributes attr) {
-            Path dir = file.subpath(file.getNameCount() - 2, file.getNameCount() - 1);
-            classpath.append(dir).append('/').append(file.getFileName()).append(' ');
+            Path dir = file.subpath(1, file.getNameCount() - 1);
+            fileList.append(dir.toString().replace('\\', '/')).append('/').append(file.getFileName()).append(' ');
             return FileVisitResult.CONTINUE;
         }
 
@@ -93,8 +103,8 @@ public class ManifestGenerator {
             return FileVisitResult.CONTINUE;
         }
 
-        public StringBuilder getClasspath() {
-            return classpath;
+        public StringBuilder getFileList() {
+            return fileList;
         }
     }
 }

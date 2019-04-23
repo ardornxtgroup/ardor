@@ -201,7 +201,7 @@ public final class AliasHome {
 
         private void save(Connection con) throws SQLException {
             try (PreparedStatement pstmt = con.prepareStatement("MERGE INTO alias_offer (id, price, buyer_id, "
-                    + "height) KEY (id, height) VALUES (?, ?, ?, ?)")) {
+                    + "height, latest) KEY (id, height) VALUES (?, ?, ?, ?, TRUE)")) {
                 int i = 0;
                 pstmt.setLong(++i, this.aliasId);
                 pstmt.setLong(++i, this.priceNQT);
@@ -267,8 +267,8 @@ public final class AliasHome {
 
         private void save(Connection con) throws SQLException {
             try (PreparedStatement pstmt = con.prepareStatement("MERGE INTO alias (id, account_id, alias_name, alias_name_lower, "
-                    + "alias_uri, timestamp, height) KEY (id, height) "
-                    + "VALUES (?, ?, ?, ?, ?, ?, ?)")) {
+                    + "alias_uri, timestamp, height, latest) KEY (id, height) "
+                    + "VALUES (?, ?, ?, ?, ?, ?, ?, TRUE)")) {
                 int i = 0;
                 pstmt.setLong(++i, this.id);
                 pstmt.setLong(++i, this.accountId);

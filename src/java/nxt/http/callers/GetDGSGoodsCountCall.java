@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class GetDGSGoodsCountCall extends APICall.Builder<GetDGSGoodsCountCall> {
@@ -10,9 +9,7 @@ public class GetDGSGoodsCountCall extends APICall.Builder<GetDGSGoodsCountCall> 
     }
 
     public static GetDGSGoodsCountCall create(int chain) {
-        GetDGSGoodsCountCall instance = new GetDGSGoodsCountCall();
-        instance.param("chain", chain);
-        return instance;
+        return new GetDGSGoodsCountCall().param("chain", chain);
     }
 
     public GetDGSGoodsCountCall requireLastBlock(String requireLastBlock) {
@@ -21,14 +18,6 @@ public class GetDGSGoodsCountCall extends APICall.Builder<GetDGSGoodsCountCall> 
 
     public GetDGSGoodsCountCall seller(String seller) {
         return param("seller", seller);
-    }
-
-    public GetDGSGoodsCountCall chain(String chain) {
-        return param("chain", chain);
-    }
-
-    public GetDGSGoodsCountCall chain(int chain) {
-        return param("chain", chain);
     }
 
     public GetDGSGoodsCountCall inStockOnly(String inStockOnly) {

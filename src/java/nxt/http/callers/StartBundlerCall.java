@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class StartBundlerCall extends APICall.Builder<StartBundlerCall> {
@@ -10,9 +9,7 @@ public class StartBundlerCall extends APICall.Builder<StartBundlerCall> {
     }
 
     public static StartBundlerCall create(int chain) {
-        StartBundlerCall instance = new StartBundlerCall();
-        instance.param("chain", chain);
-        return instance;
+        return new StartBundlerCall().param("chain", chain);
     }
 
     public StartBundlerCall filter(String... filter) {
@@ -31,23 +28,11 @@ public class StartBundlerCall extends APICall.Builder<StartBundlerCall> {
         return param("minRateNQTPerFXT", minRateNQTPerFXT);
     }
 
-    public StartBundlerCall chain(String chain) {
-        return param("chain", chain);
-    }
-
-    public StartBundlerCall chain(int chain) {
-        return param("chain", chain);
-    }
-
     public StartBundlerCall bundlingRulesJSON(String bundlingRulesJSON) {
         return param("bundlingRulesJSON", bundlingRulesJSON);
     }
 
     public StartBundlerCall feeCalculatorName(String feeCalculatorName) {
         return param("feeCalculatorName", feeCalculatorName);
-    }
-
-    public StartBundlerCall secretPhrase(String secretPhrase) {
-        return param("secretPhrase", secretPhrase);
     }
 }

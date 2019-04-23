@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class VerifyPrunableMessageCall extends APICall.Builder<VerifyPrunableMessageCall> {
@@ -10,9 +9,7 @@ public class VerifyPrunableMessageCall extends APICall.Builder<VerifyPrunableMes
     }
 
     public static VerifyPrunableMessageCall create(int chain) {
-        VerifyPrunableMessageCall instance = new VerifyPrunableMessageCall();
-        instance.param("chain", chain);
-        return instance;
+        return new VerifyPrunableMessageCall().param("chain", chain);
     }
 
     public VerifyPrunableMessageCall requireLastBlock(String requireLastBlock) {
@@ -25,14 +22,6 @@ public class VerifyPrunableMessageCall extends APICall.Builder<VerifyPrunableMes
 
     public VerifyPrunableMessageCall encryptedMessageData(byte[] encryptedMessageData) {
         return param("encryptedMessageData", encryptedMessageData);
-    }
-
-    public VerifyPrunableMessageCall chain(String chain) {
-        return param("chain", chain);
-    }
-
-    public VerifyPrunableMessageCall chain(int chain) {
-        return param("chain", chain);
     }
 
     public VerifyPrunableMessageCall compressMessageToEncrypt(String compressMessageToEncrypt) {

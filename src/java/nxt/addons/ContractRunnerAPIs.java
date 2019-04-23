@@ -244,6 +244,11 @@ class ContractRunnerAPIs {
         protected boolean isChainSpecific() {
             return false;
         }
+
+        @Override
+        protected boolean requireFullClient() {
+            return true;
+        }
     }
 
     private static JO runnerNotInitializedResponse(String description) {
@@ -252,5 +257,7 @@ class ContractRunnerAPIs {
         response.put("errorDescription", description);
         return response;
     }
+
+
 
 }

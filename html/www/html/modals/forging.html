@@ -30,10 +30,7 @@
                         <span data-i18n="passphrase_remote_warning">Your passphrase will be sent to the server!</span>
                     </div>
                     <div class="callout callout-danger error_message" style="display:none"></div>
-                    <div class="form-group secret_phrase">
-                        <label for="start_forging_password" data-i18n="passphrase">PASSPHRASE</label>
-                        <input type="password" name="secretPhrase" id="start_forging_password" class="form-control" placeholder="" tabindex="1">
-                    </div>
+                    <div data-replace-with-modal-template="secret_phrase_modal_template"></div>
                     <input type="hidden" name="request_type" value="startForging" />
                 </form>
             </div>
@@ -61,10 +58,7 @@
                         <span data-i18n="passphrase_remote_warning">Your passphrase will be sent to the server!</span>
                     </div>
                     <div class="callout callout-danger error_message" style="display:none"></div>
-                    <div class="form-group secret_phrase">
-                        <label for="stop_forging_password" data-i18n="passphrase">PASSPHRASE</label>
-                        <input type="password" name="secretPhrase" id="stop_forging_password" class="form-control" placeholder="" tabindex="1">
-                    </div>
+                    <div data-replace-with-modal-template="secret_phrase_modal_template"></div>
                     <input type="hidden" name="request_type" value="stopForging" />
                 </form>
             </div>

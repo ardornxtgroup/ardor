@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class GetExecutedTransactionsCall extends APICall.Builder<GetExecutedTransactionsCall> {
@@ -10,21 +9,11 @@ public class GetExecutedTransactionsCall extends APICall.Builder<GetExecutedTran
     }
 
     public static GetExecutedTransactionsCall create(int chain) {
-        GetExecutedTransactionsCall instance = new GetExecutedTransactionsCall();
-        instance.param("chain", chain);
-        return instance;
+        return new GetExecutedTransactionsCall().param("chain", chain);
     }
 
     public GetExecutedTransactionsCall requireLastBlock(String requireLastBlock) {
         return param("requireLastBlock", requireLastBlock);
-    }
-
-    public GetExecutedTransactionsCall chain(String chain) {
-        return param("chain", chain);
-    }
-
-    public GetExecutedTransactionsCall chain(int chain) {
-        return param("chain", chain);
     }
 
     public GetExecutedTransactionsCall firstIndex(int firstIndex) {
@@ -41,14 +30,6 @@ public class GetExecutedTransactionsCall extends APICall.Builder<GetExecutedTran
 
     public GetExecutedTransactionsCall subtype(int subtype) {
         return param("subtype", subtype);
-    }
-
-    public GetExecutedTransactionsCall recipient(String recipient) {
-        return param("recipient", recipient);
-    }
-
-    public GetExecutedTransactionsCall recipient(long recipient) {
-        return unsignedLongParam("recipient", recipient);
     }
 
     public GetExecutedTransactionsCall numberOfConfirmations(String numberOfConfirmations) {

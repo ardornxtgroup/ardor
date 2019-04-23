@@ -21,12 +21,8 @@ import nxt.Nxt;
 import nxt.blockchain.ChildChain;
 import nxt.blockchain.Transaction;
 import nxt.blockchain.TransactionImpl;
-import nxt.db.DbClause;
-import nxt.db.DbIterator;
-import nxt.db.DbKey;
-import nxt.db.DbUtils;
-import nxt.db.PrunableDbTable;
-import nxt.db.VersionedPersistentDbTable;
+import nxt.db.*;
+import nxt.dbschema.Db;
 import nxt.util.Convert;
 import nxt.util.Logger;
 import nxt.util.Search;
@@ -168,17 +164,21 @@ public final class TaggedDataHome {
     private void deleteTags(Map<String,Integer> expiredTags) {
         try (Connection con = tagTable.getConnection();
              PreparedStatement pstmt = con.prepareStatement("UPDATE data_tag SET tag_count = tag_count - ? WHERE tag = ?");
-             PreparedStatement pstmtDelete = con.prepareStatement("DELETE FROM data_tag WHERE tag_count <= 0")) {
+             PreparedStatement pstmtDelete = con.prepareStatement("DELETE FROM data_tag WHERE tag_count <= 0 LIMIT " + Constants.BATCH_COMMIT_SIZE)) {
             for (Map.Entry<String,Integer> entry : expiredTags.entrySet()) {
                 pstmt.setInt(1, entry.getValue());
                 pstmt.setString(2, entry.getKey());
                 pstmt.executeUpdate();
                 Logger.logDebugMessage("Reduced tag count for " + entry.getKey() + " by " + entry.getValue());
             }
-            int deleted = pstmtDelete.executeUpdate();
-            if (deleted > 0) {
-                Logger.logDebugMessage("Deleted " + deleted + " tags");
-            }
+            int deleted;
+            do {
+                deleted = pstmtDelete.executeUpdate();
+                if (deleted > 0) {
+                    Logger.logDebugMessage("Deleted " + deleted + " tags");
+                }
+                Db.db.commitTransaction();
+            } while (deleted >= Constants.BATCH_COMMIT_SIZE);
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
         }
@@ -232,9 +232,11 @@ public final class TaggedDataHome {
     }
 
     void restore(Transaction transaction, TaggedDataAttachment attachment, int blockTimestamp, int height) {
-        TaggedData taggedData = new TaggedData(transaction, attachment, blockTimestamp, height);
-        taggedDataTable.insert(taggedData);
-        addTags(taggedData, height);
+        if (taggedDataTable.get(taggedDataKeyFactory.newKey(transaction.getFullHash(), transaction.getId())) == null) {
+            TaggedData taggedData = new TaggedData(transaction, attachment, blockTimestamp, height);
+            taggedDataTable.insert(taggedData);
+            addTags(taggedData, height);
+        }
     }
 
     public boolean isPruned(byte[] transactionFullHash) {

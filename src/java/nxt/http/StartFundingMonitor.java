@@ -90,7 +90,7 @@ public final class StartFundingMonitor extends APIServlet.APIRequestHandler {
             return JSONResponses.incorrect("threshold", "Minimum funding threshold is " + FundingMonitor.MIN_FUND_THRESHOLD);
         }
         int interval = ParameterParser.getInt(req, "interval", FundingMonitor.MIN_FUND_INTERVAL, Integer.MAX_VALUE, true);
-        long feeRateNQTPerFXT = ParameterParser.getLong(req, "feeRateNQTPerFXT", 1, Constants.MAX_BALANCE_NQT, true);
+        long feeRateNQTPerFXT = ParameterParser.getLong(req, "feeRateNQTPerFXT", 0, Constants.MAX_BALANCE_NQT, true);
         String secretPhrase = ParameterParser.getSecretPhrase(req, true);
         switch (holdingType) {
             case ASSET:
@@ -120,9 +120,11 @@ public final class StartFundingMonitor extends APIServlet.APIRequestHandler {
         if (account == null) {
             return UNKNOWN_ACCOUNT;
         }
-        if (FundingMonitor.startMonitor(chain, holdingType, holdingId, property, amount, threshold, interval, secretPhrase, feeRateNQTPerFXT)) {
+        FundingMonitor monitor = FundingMonitor.startMonitor(chain, holdingType, holdingId, property, amount, threshold, interval, secretPhrase, feeRateNQTPerFXT);
+        if (monitor != null) {
             JSONObject response = new JSONObject();
             response.put("started", true);
+            response.put("monitor", JSONData.accountMonitor(monitor, false));
             return response;
         } else {
             return MONITOR_ALREADY_STARTED;

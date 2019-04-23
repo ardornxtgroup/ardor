@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class StopShufflerCall extends APICall.Builder<StopShufflerCall> {
@@ -11,10 +10,6 @@ public class StopShufflerCall extends APICall.Builder<StopShufflerCall> {
 
     public static StopShufflerCall create() {
         return new StopShufflerCall();
-    }
-
-    public StopShufflerCall secretPhrase(String secretPhrase) {
-        return param("secretPhrase", secretPhrase);
     }
 
     public StopShufflerCall account(String account) {

@@ -73,8 +73,10 @@ public final class APIProxyServlet extends AsyncMiddleManServlet {
             MultiMap<String> parameters = getRequestParameters(request);
             String requestType = getRequestType(parameters);
             if (APIProxy.isActivated() && isForwardable(requestType)) {
-                if (parameters.containsKey("secretPhrase") || parameters.containsKey("adminPassword") || parameters.containsKey("sharedKey")) {
-                    throw new ParameterException(JSONResponses.PROXY_SECRET_DATA_DETECTED);
+                for (String sensitiveParam : API.SENSITIVE_PARAMS) {
+                    if (parameters.containsKey(sensitiveParam)) {
+                        throw new ParameterException(JSONResponses.PROXY_SECRET_DATA_DETECTED);
+                    }
                 }
                 if (!initRemoteRequest(request, requestType)) {
                     if (Peers.getPeers(peer -> peer.getState() == Peer.State.CONNECTED, 1).size() >= 1) {
@@ -294,7 +296,7 @@ public final class APIProxyServlet extends AsyncMiddleManServlet {
                     os.write(b);
                     allInput = ByteBuffer.wrap(os.toByteArray());
                 }
-                int tokenPos = PasswordFinder.process(allInput, new String[] { "secretPhrase=", "adminPassword=", "sharedKey=" });
+                int tokenPos = PasswordFinder.process(allInput, new String[] { "secretPhrase=", "adminPassword=", "sharedKey=", "sharedPiece=" });
                 if (tokenPos >= 0) {
                     JSONStreamAware error = JSONResponses.PROXY_SECRET_DATA_DETECTED;
                     throw new PasswordDetectedException(error);

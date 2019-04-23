@@ -37,7 +37,7 @@ public class WaitForBlock {
             // keep and Http request open for a long time.
             while (true) {
                 // Wait up to 1 second for the event to occur
-                response = EventWaitCall.create().timeout("1").token(token).remote(remoteUrl).call();
+                response = EventWaitCall.create().timeout(1).token(token).remote(remoteUrl).call();
                 Logger.logInfoMessage("EventWaitCall %s", response.toJSONString());
                 events = response.getArray("events");
                 if (events.size() > 0) {
@@ -50,7 +50,7 @@ public class WaitForBlock {
         } finally {
             if (token != null) {
                 // Unregister the event listener
-                response = EventRegisterCall.create().token(token).remove("true").remote(remoteUrl).call();
+                response = EventRegisterCall.create().token(token).remove(true).remote(remoteUrl).call();
                 Logger.logInfoMessage("EventRegisterCall remove %s", response.toJSONString());
             }
         }

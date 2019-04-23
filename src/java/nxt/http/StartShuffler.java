@@ -41,7 +41,7 @@ public final class StartShuffler extends APIServlet.APIRequestHandler {
         byte[] shufflingFullHash = ParameterParser.getBytes(req, "shufflingFullHash", true);
         String secretPhrase = ParameterParser.getSecretPhrase(req, true);
         byte[] recipientPublicKey = ParameterParser.getPublicKey(req, "recipient");
-        long feeRateNQTPerFXT = ParameterParser.getLong(req, "feeRateNQTPerFXT", 1, Constants.MAX_BALANCE_NQT, true);
+        long feeRateNQTPerFXT = ParameterParser.getLong(req, "feeRateNQTPerFXT", 0, Constants.MAX_BALANCE_NQT, true);
         ChildChain childChain = ParameterParser.getChildChain(req);
         try {
             Shuffler shuffler = Shuffler.addOrGetShuffler(childChain, secretPhrase, recipientPublicKey,

@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class GetLastExchangesCall extends APICall.Builder<GetLastExchangesCall> {
@@ -10,21 +9,11 @@ public class GetLastExchangesCall extends APICall.Builder<GetLastExchangesCall> 
     }
 
     public static GetLastExchangesCall create(int chain) {
-        GetLastExchangesCall instance = new GetLastExchangesCall();
-        instance.param("chain", chain);
-        return instance;
+        return new GetLastExchangesCall().param("chain", chain);
     }
 
     public GetLastExchangesCall requireLastBlock(String requireLastBlock) {
         return param("requireLastBlock", requireLastBlock);
-    }
-
-    public GetLastExchangesCall chain(String chain) {
-        return param("chain", chain);
-    }
-
-    public GetLastExchangesCall chain(int chain) {
-        return param("chain", chain);
     }
 
     public GetLastExchangesCall includeCurrencyInfo(boolean includeCurrencyInfo) {

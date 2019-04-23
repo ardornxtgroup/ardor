@@ -77,6 +77,24 @@ var NRS = (function(NRS, $, undefined) {
 		}
 	});
 
+	$(".is-shared-secret").on("change", function() {
+		var $pieceBox = $(this).closest("form").find('div[data-modal-ui-element="multi_piece_modal_ui_element"]');
+		var $secretPhraseInput = $(this).closest("form").find('.secret-phrase-input');
+		if ($(this).is(":checked")) {
+			$pieceBox.find("input").prop("disabled", false);
+			$pieceBox.find("input").val("");
+			$secretPhraseInput.prop("readonly", true);
+			$(this).closest("form").find(".piece_entry_group").fadeIn();
+			$(this).closest(".form-group").css("margin-bottom", "5px");
+		} else {
+			$pieceBox.find("input").prop("disabled", true);
+			$pieceBox.find("input").val("");
+			$secretPhraseInput.prop("readonly", false);
+			$(this).closest("form").find(".piece_entry_group").hide();
+			$(this).closest(".form-group").css("margin-bottom", "");
+		}
+	});
+
 	$(".add_note_to_self").on("change", function() {
 		if ($(this).is(":checked")) {
 			$(this).closest("form").find(".optional_note").fadeIn();
@@ -210,11 +228,12 @@ var NRS = (function(NRS, $, undefined) {
 		$(this).find("input[name=converted_account_id]").val("");
 
 		//Hide/Reset any possible error messages
+		$(this).find('.secret-phrase-input').prop("readonly", false);
 		$(this).find(".callout-danger:not(.never_hide, .remote_warning), .error_message, .account_info").html("").hide();
 		$(this).find(".advanced").hide();
 		$(this).find(".recipient_public_key").hide();
 		$(this).find(".recipient_contract_reference_selector").hide();
-		$(this).find(".optional_message, .optional_note, .optional_do_not_sign, .optional_public_key").hide();
+		$(this).find(".optional_message, .optional_note, .optional_do_not_sign, .optional_public_key, .piece_entry_group").hide();
 		$(this).find(".advanced_info a").text($.t("advanced"));
 		$(this).find(".advanced_extend").each(function(index, obj) {
 			var normalSize = $(obj).data("normal");

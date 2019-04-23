@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class CanDeleteCurrencyCall extends APICall.Builder<CanDeleteCurrencyCall> {

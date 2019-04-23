@@ -1,8 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.Override;
-import java.lang.String;
 import nxt.http.APICall;
 
 public class EventWaitCall extends APICall.Builder<EventWaitCall> {
@@ -14,7 +12,7 @@ public class EventWaitCall extends APICall.Builder<EventWaitCall> {
         return new EventWaitCall();
     }
 
-    public EventWaitCall timeout(String timeout) {
+    public EventWaitCall timeout(long timeout) {
         return param("timeout", timeout);
     }
 

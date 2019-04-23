@@ -26,16 +26,16 @@ var NRS = (function(NRS, $, undefined) {
         if (_password) {
             $("#account_details_modal_account_display").show();
             $("#account_details_modal_passphrase_display").show();
-            if (NRS.isWindowPrintSupported()) {
-                $("#account_details_modal_paper_wallet_link").prop("disabled", false);
-            }
+            $("#account_details_modal_paperwallet_create").show();
+            $("#account_details_modal_paperwallet_na").empty();
         } else {
             NRS.generateQRCode("#account_details_modal_account_qr_code", NRS.accountRS);
             $("#account_details_modal_account_display").hide();
             $("#account_details_modal_passphrase_display").hide();
-            $("#account_details_modal_passphrase_qr_code").html($.t("passphrase_not_available"));
-            $("#account_details_modal_paper_wallet_na").html($.t("passphrase_not_available"));
-        }
+			$("#account_details_modal_paperwallet_create").hide();
+			$("#account_details_modal_passphrase_qr_code").html($.t("passphrase_not_available"));
+			$("#account_details_modal_paperwallet_na").html($.t("passphrase_not_available"));
+		}
 		$("#account_details_modal_balance").show();
 
         var accountBalanceWarning = $("#account_balance_warning");
@@ -122,9 +122,49 @@ var NRS = (function(NRS, $, undefined) {
         NRS.generateQRCode("#account_details_modal_passphrase_qr_code", _password);
     });
 
-    $("#account_details_modal_paper_wallet_link").on("click", function() {
-        NRS.printPaperWallet(_password);
-    });
+	$("#create_paper_wallet_modal").on("show.bs.modal", function () {
+		var $modal = $(this);
+		var $enableSecretSharing = $modal.find("input[name=enableSecretSharing]");
+		var $totalPieces = $modal.find("input[name=totalPieces]");
+		var $requiredPieces = $modal.find("input[name=requiredPieces]");
+		if ($totalPieces.val() === "") {
+			$enableSecretSharing.prop("checked", true);
+			$totalPieces.val("3");
+			$requiredPieces.val("2");
+		}
+	 });
 
-    return NRS;
+	NRS.forms.createPaperWallet = function ($modal) {
+		// Since we don't want to submit the passphrase in the form data since this exposes it in too many layers
+		// we cannot control. We implement this hack, if this modal originates from the account details modal the
+		// _password will be available. Otherwise we assume that the passphrase was just generated from the login page.
+		var passphrase = (_password ? _password : $("#account_phrase_generator_panel").find(".step_2 textarea").val());
+		var data = NRS.getFormData($modal.find("form:first"));
+		var isSecretSharingEnabled = data.enableSecretSharing;
+		if (isSecretSharingEnabled) {
+			var n = parseInt(data.totalPieces);
+			var k = parseInt(data.requiredPieces);
+			if (n > 0 && n < 10 && k > 0 && k < n) {
+				NRS.printPaperWallet(passphrase, n, k);
+				return { stop: true };
+			} else {
+				return { error: $.t("number_of_pieces") };
+			}
+		}
+		NRS.printPaperWallet(passphrase);
+		return { stop: true };
+	};
+
+	$("input[name=enableSecretSharing]").on("change", function () {
+		var $form = $(this).closest("form");
+		if ($(this).is(":checked")) {
+			$form.find("input[name=totalPieces]").prop("disabled", false);
+			$form.find("input[name=requiredPieces]").prop("disabled", false);
+		} else {
+			$form.find("input[name=totalPieces]").prop("disabled", true);
+			$form.find("input[name=requiredPieces]").prop("disabled", true);
+		}
+	});
+
+	return NRS;
 }(NRS || {}, jQuery));

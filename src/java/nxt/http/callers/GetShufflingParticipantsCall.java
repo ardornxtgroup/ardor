@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class GetShufflingParticipantsCall extends APICall.Builder<GetShufflingParticipantsCall> {
@@ -10,21 +9,11 @@ public class GetShufflingParticipantsCall extends APICall.Builder<GetShufflingPa
     }
 
     public static GetShufflingParticipantsCall create(int chain) {
-        GetShufflingParticipantsCall instance = new GetShufflingParticipantsCall();
-        instance.param("chain", chain);
-        return instance;
+        return new GetShufflingParticipantsCall().param("chain", chain);
     }
 
     public GetShufflingParticipantsCall requireLastBlock(String requireLastBlock) {
         return param("requireLastBlock", requireLastBlock);
-    }
-
-    public GetShufflingParticipantsCall chain(String chain) {
-        return param("chain", chain);
-    }
-
-    public GetShufflingParticipantsCall chain(int chain) {
-        return param("chain", chain);
     }
 
     public GetShufflingParticipantsCall requireBlock(String requireBlock) {

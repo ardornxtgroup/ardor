@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class GetAllOpenAskOrdersCall extends APICall.Builder<GetAllOpenAskOrdersCall> {
@@ -10,21 +9,11 @@ public class GetAllOpenAskOrdersCall extends APICall.Builder<GetAllOpenAskOrders
     }
 
     public static GetAllOpenAskOrdersCall create(int chain) {
-        GetAllOpenAskOrdersCall instance = new GetAllOpenAskOrdersCall();
-        instance.param("chain", chain);
-        return instance;
+        return new GetAllOpenAskOrdersCall().param("chain", chain);
     }
 
     public GetAllOpenAskOrdersCall requireLastBlock(String requireLastBlock) {
         return param("requireLastBlock", requireLastBlock);
-    }
-
-    public GetAllOpenAskOrdersCall chain(String chain) {
-        return param("chain", chain);
-    }
-
-    public GetAllOpenAskOrdersCall chain(int chain) {
-        return param("chain", chain);
     }
 
     public GetAllOpenAskOrdersCall firstIndex(int firstIndex) {

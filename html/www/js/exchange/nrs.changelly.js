@@ -141,7 +141,7 @@ var NRS = (function(NRS, $) {
                 var rate = new Big(result.result).div(new Big(result.amount)).toFixed(8);
                 var symbol;
                 if (op === "sell") {
-                    rate = NRS.invert(rate);
+                    rate = NRS.getInverse(rate);
                     symbol = result.from;
                 } else {
                     rate = new Big(rate).toFixed(8);
@@ -448,7 +448,7 @@ var NRS = (function(NRS, $) {
             apiCall("getMinAmount", { from: from, to: to }, function (getMinAmountResponse) {
                 $("#changelly_sell_min").val(getMinAmountResponse.result);
                 apiCall("getExchangeAmount", { from: from, to: to, amount: getMinAmountResponse.result }, function (response) {
-                    $("#changelly_sell_rate").val(NRS.invert(new Big(response.result).div(new Big(getMinAmountResponse.result)).toFixed(8)));
+                    $("#changelly_sell_rate").val(NRS.getInverse(new Big(response.result).div(new Big(getMinAmountResponse.result)).toFixed(8)));
                 })
             })
         }

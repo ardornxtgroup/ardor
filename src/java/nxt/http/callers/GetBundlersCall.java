@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class GetBundlersCall extends APICall.Builder<GetBundlersCall> {
@@ -10,21 +9,7 @@ public class GetBundlersCall extends APICall.Builder<GetBundlersCall> {
     }
 
     public static GetBundlersCall create(int chain) {
-        GetBundlersCall instance = new GetBundlersCall();
-        instance.param("chain", chain);
-        return instance;
-    }
-
-    public GetBundlersCall chain(String chain) {
-        return param("chain", chain);
-    }
-
-    public GetBundlersCall chain(int chain) {
-        return param("chain", chain);
-    }
-
-    public GetBundlersCall secretPhrase(String secretPhrase) {
-        return param("secretPhrase", secretPhrase);
+        return new GetBundlersCall().param("chain", chain);
     }
 
     public GetBundlersCall account(String account) {

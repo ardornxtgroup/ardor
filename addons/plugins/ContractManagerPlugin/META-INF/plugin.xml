@@ -1,7 +1,7 @@
 <idea-plugin>
   <name>Ardor Contract Manager</name>
-  <description>Manage Ardor contracts using the contracts manager utility</description>
-  <version>2.2.2</version>
+  <description>Upload,Reference,Delete,List,Verify lightweight contracts using the contracts manager utility</description>
+  <version>2.2.3</version>
   <vendor url="https://www.jelurida.com">Jelurida Swiss</vendor>
   <resource-bundle>com.jelurida.contract.manager.plugin.ContractManagerBundle</resource-bundle>
   

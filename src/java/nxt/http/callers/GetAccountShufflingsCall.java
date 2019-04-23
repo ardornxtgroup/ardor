@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class GetAccountShufflingsCall extends APICall.Builder<GetAccountShufflingsCall> {
@@ -10,21 +9,11 @@ public class GetAccountShufflingsCall extends APICall.Builder<GetAccountShufflin
     }
 
     public static GetAccountShufflingsCall create(int chain) {
-        GetAccountShufflingsCall instance = new GetAccountShufflingsCall();
-        instance.param("chain", chain);
-        return instance;
+        return new GetAccountShufflingsCall().param("chain", chain);
     }
 
     public GetAccountShufflingsCall requireLastBlock(String requireLastBlock) {
         return param("requireLastBlock", requireLastBlock);
-    }
-
-    public GetAccountShufflingsCall chain(String chain) {
-        return param("chain", chain);
-    }
-
-    public GetAccountShufflingsCall chain(int chain) {
-        return param("chain", chain);
     }
 
     public GetAccountShufflingsCall firstIndex(int firstIndex) {

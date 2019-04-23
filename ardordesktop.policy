@@ -68,8 +68,8 @@ grant codeBase "file:ardor-tests.jar" {
     permission java.security.AllPermission;
 };
 
-// Test class in installation
-grant codeBase "file:javafxlib/*" {
+// JavaFX classes
+grant codeBase "file:javafx-sdk/lib/*" {
     permission java.security.AllPermission;
 };
 

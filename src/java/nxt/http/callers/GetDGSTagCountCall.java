@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class GetDGSTagCountCall extends APICall.Builder<GetDGSTagCountCall> {
@@ -10,21 +9,11 @@ public class GetDGSTagCountCall extends APICall.Builder<GetDGSTagCountCall> {
     }
 
     public static GetDGSTagCountCall create(int chain) {
-        GetDGSTagCountCall instance = new GetDGSTagCountCall();
-        instance.param("chain", chain);
-        return instance;
+        return new GetDGSTagCountCall().param("chain", chain);
     }
 
     public GetDGSTagCountCall requireLastBlock(String requireLastBlock) {
         return param("requireLastBlock", requireLastBlock);
-    }
-
-    public GetDGSTagCountCall chain(String chain) {
-        return param("chain", chain);
-    }
-
-    public GetDGSTagCountCall chain(int chain) {
-        return param("chain", chain);
     }
 
     public GetDGSTagCountCall inStockOnly(String inStockOnly) {

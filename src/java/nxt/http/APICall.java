@@ -99,7 +99,7 @@ public class APICall {
         public T remote(URL url) {
             isRemote = url != null;
             remoteUrl = url;
-            return (T)this;
+            return (T) this;
         }
 
         public boolean isRemoteOnly() {
@@ -108,7 +108,7 @@ public class APICall {
 
         public T setParamValidation(boolean isEnabled) {
             isValidationEnabled = isEnabled;
-            return (T)this;
+            return (T) this;
         }
 
         public T param(String key, String value) {
@@ -127,9 +127,9 @@ public class APICall {
                 throw new IllegalArgumentException(String.format("Empty values parameter %s for requesttype %s", key, requestType));
             }
             params.put(key, values);
-            return (T)this;
+            return (T) this;
         }
-        
+
         public T param(String key, boolean value) {
             return param(key, "" + value);
         }
@@ -144,8 +144,7 @@ public class APICall {
 
         public T param(String key, int... intArray) {
             String[] stringArray = Arrays.stream(intArray).boxed().map(i -> Integer.toString(i)).toArray(String[]::new);
-            param(key, stringArray);
-            return (T)this;
+            return param(key, stringArray);
         }
 
         public T param(String key, long value) {
@@ -154,8 +153,7 @@ public class APICall {
 
         public T param(String key, long... longArray) {
             String[] unsignedLongs = Arrays.stream(longArray).boxed().map(l -> Long.toString(l)).toArray(String[]::new);
-            param(key, unsignedLongs);
-            return (T)this;
+            return param(key, unsignedLongs);
         }
 
         public T unsignedLongParam(String key, long value) {
@@ -164,8 +162,7 @@ public class APICall {
 
         public T unsignedLongParam(String key, long... longArray) {
             String[] unsignedLongs = Arrays.stream(longArray).boxed().map(Long::toUnsignedString).toArray(String[]::new);
-            param(key, unsignedLongs);
-            return (T)this;
+            return param(key, unsignedLongs);
         }
 
         public T param(String key, byte[] value) {
@@ -174,7 +171,7 @@ public class APICall {
 
         public T param(String key, byte[][] value) {
             String[] stringArray = new String[value.length];
-            for (int i=0; i<value.length; i++) {
+            for (int i = 0; i < value.length; i++) {
                 stringArray[i] = Convert.toHexString(value[i]);
             }
             return param(key, stringArray);
@@ -182,6 +179,18 @@ public class APICall {
 
         public T secretPhrase(String value) {
             return param("secretPhrase", value);
+        }
+
+        public T sharedPiece(String... sharedPiece) {
+            return param("sharedPiece", sharedPiece);
+        }
+
+        public T sharedPieceAccount(String value) {
+            return param("sharedPieceAccount", value);
+        }
+
+        public T chain(String chain) {
+            return param("chain", chain);
         }
 
         public T chain(int chainId) {
@@ -198,6 +207,10 @@ public class APICall {
 
         public T recipient(long id) {
             return param("recipient", Long.toUnsignedString(id));
+        }
+
+        public T recipient(String recipient) {
+            return param("recipient", recipient);
         }
 
         public String getParam(String key) {
@@ -221,7 +234,7 @@ public class APICall {
                 throw new IllegalArgumentException(String.format("Invalid file parameter %s for request type %s", key, requestType));
             }
             parts.put(key, new PartImpl(b));
-            return (T)this;
+            return (T) this;
         }
 
         public APICall build() {
@@ -353,7 +366,7 @@ public class APICall {
         if (isRemote) {
             return invokeRemote();
         } else {
-            return AccessController.doPrivileged((PrivilegedAction<JSONObject>)this::invokeLocal);
+            return AccessController.doPrivileged((PrivilegedAction<JSONObject>) this::invokeLocal);
         }
     }
 
@@ -399,7 +412,7 @@ public class APICall {
             }
             byte[] postDataBytes = postData.toString().getBytes(StandardCharsets.UTF_8);
 
-            HttpURLConnection connection = (HttpURLConnection)remoteUrl.openConnection();
+            HttpURLConnection connection = (HttpURLConnection) remoteUrl.openConnection();
             connection.setRequestMethod("POST");
             connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
             connection.setRequestProperty("Content-Length", String.valueOf(postDataBytes.length));
@@ -420,19 +433,32 @@ public class APICall {
         try {
             InputStream inputStream = getRemoteInputStream();
             try (Reader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
-                return (JSONObject)JSONValue.parseWithException(reader); // Parse the response into Json object
+                return (JSONObject) JSONValue.parseWithException(reader); // Parse the response into Json object
             }
+        } catch (IllegalStateException e) {
+            throw e;
         } catch (Exception e) {
-            if (e instanceof IllegalStateException) {
-                throw (IllegalStateException)e;
-            } else {
-                throw new IllegalStateException(e);
-            }
+            throw new IllegalStateException(e);
         }
     }
 
     private InputStream getLocalInputStream() {
-        Logger.logDebugMessage("%s: request %s", params.get("requestType"), params);
+        if (Logger.isInfoEnabled()) {
+            String paramsStr = params.entrySet().stream().map(e -> {
+                if (API.SENSITIVE_PARAMS.contains(e.getKey())) {
+                    return e.getKey() + "={hidden}";
+                } else {
+                    if (e.getValue().size() == 1) {
+                        return e.getKey() + "=" + e.getValue().get(0);
+                    } else {
+                        return e.getKey() + "=" + e.getValue().toString();
+                    }
+                }
+            }).collect(Collectors.joining("&"));
+            Logger.logInfoMessage("%s: request %s", params.get("requestType"), paramsStr);
+        } else {
+            Logger.logInfoMessage("%s", params.get("requestType"));
+        }
         HttpServletRequest req = new MockedRequest(params, parts);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         HttpServletResponse resp = new MockedResponse(out);
@@ -441,7 +467,7 @@ public class APICall {
             apiServlet.doPost(req, resp);
             return new ByteArrayInputStream(out.toByteArray());
         } catch (IOException e) {
-             throw new IllegalStateException();
+            throw new IllegalStateException(e);
         }
     }
 

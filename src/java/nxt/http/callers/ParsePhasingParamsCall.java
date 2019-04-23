@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class ParsePhasingParamsCall extends APICall.Builder<ParsePhasingParamsCall> {
@@ -22,15 +21,7 @@ public class ParsePhasingParamsCall extends APICall.Builder<ParsePhasingParamsCa
         return param("phasingRecipientPropertyName", phasingRecipientPropertyName);
     }
 
-    public ParsePhasingParamsCall chain(String chain) {
-        return param("chain", chain);
-    }
-
-    public ParsePhasingParamsCall chain(int chain) {
-        return param("chain", chain);
-    }
-
-    public ParsePhasingParamsCall phasingQuorum(String phasingQuorum) {
+    public ParsePhasingParamsCall phasingQuorum(long phasingQuorum) {
         return param("phasingQuorum", phasingQuorum);
     }
 
@@ -63,25 +54,28 @@ public class ParsePhasingParamsCall extends APICall.Builder<ParsePhasingParamsCa
         return param("phasingHolding", phasingHolding);
     }
 
+    public ParsePhasingParamsCall phasingHolding(long phasingHolding) {
+        return unsignedLongParam("phasingHolding", phasingHolding);
+    }
+
     public ParsePhasingParamsCall phasingRecipientPropertySetter(
             String phasingRecipientPropertySetter) {
         return param("phasingRecipientPropertySetter", phasingRecipientPropertySetter);
     }
 
-    public ParsePhasingParamsCall phasingHashedSecretAlgorithm(
-            String phasingHashedSecretAlgorithm) {
+    public ParsePhasingParamsCall phasingHashedSecretAlgorithm(byte phasingHashedSecretAlgorithm) {
         return param("phasingHashedSecretAlgorithm", phasingHashedSecretAlgorithm);
     }
 
-    public ParsePhasingParamsCall phasingMinBalance(String phasingMinBalance) {
+    public ParsePhasingParamsCall phasingMinBalance(long phasingMinBalance) {
         return param("phasingMinBalance", phasingMinBalance);
     }
 
-    public ParsePhasingParamsCall phasingMinBalanceModel(String phasingMinBalanceModel) {
+    public ParsePhasingParamsCall phasingMinBalanceModel(byte phasingMinBalanceModel) {
         return param("phasingMinBalanceModel", phasingMinBalanceModel);
     }
 
-    public ParsePhasingParamsCall phasingVotingModel(String phasingVotingModel) {
+    public ParsePhasingParamsCall phasingVotingModel(byte phasingVotingModel) {
         return param("phasingVotingModel", phasingVotingModel);
     }
 

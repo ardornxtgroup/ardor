@@ -38,7 +38,7 @@ public class ChildDbVersion extends DbVersion {
                 apply("CREATE TABLE IF NOT EXISTS transaction (db_id IDENTITY, id BIGINT NOT NULL, "
                         + "deadline SMALLINT NOT NULL, recipient_id BIGINT, transaction_index SMALLINT NOT NULL, "
                         + "amount BIGINT NOT NULL, fee BIGINT NOT NULL, full_hash BINARY(32) NOT NULL, "
-                        + "height INT NOT NULL, block_id BIGINT NOT NULL, FOREIGN KEY (block_id) REFERENCES PUBLIC.block (id) ON DELETE CASCADE, "
+                        + "height INT NOT NULL, block_id BIGINT NOT NULL, "
                         + "signature BINARY(64) NOT NULL, timestamp INT NOT NULL, type TINYINT NOT NULL, subtype TINYINT NOT NULL, "
                         + "sender_id BIGINT NOT NULL, block_timestamp INT NOT NULL, referenced_transaction_chain_id INT, referenced_transaction_full_hash BINARY(32), "
                         + "referenced_transaction_id BIGINT, phased BOOLEAN NOT NULL DEFAULT FALSE, fxt_transaction_id BIGINT NOT NULL, "
@@ -458,6 +458,29 @@ public class ChildDbVersion extends DbVersion {
             case 153:
                 apply("CREATE INDEX IF NOT EXISTS shuffling_data_height_idx ON shuffling_data (height)");
             case 154:
+                try (Connection con = db.getConnection(schema);
+                     Statement stmt = con.createStatement();
+                     ResultSet rs = stmt.executeQuery("SELECT CONSTRAINT_NAME, TABLE_NAME FROM INFORMATION_SCHEMA.CONSTRAINTS "
+                             + "WHERE TABLE_SCHEMA='" + schema + "' AND TABLE_NAME IN ('TRANSACTION') AND COLUMN_LIST='BLOCK_ID'")) {
+                    List<String> tables = new ArrayList<>();
+                    List<String> constraints = new ArrayList<>();
+                    while (rs.next()) {
+                        tables.add(rs.getString("TABLE_NAME"));
+                        constraints.add(rs.getString("CONSTRAINT_NAME"));
+                    }
+                    for (int i = 0; i < tables.size(); i++) {
+                        stmt.executeUpdate("ALTER TABLE " + tables.get(i) + " DROP CONSTRAINT " + constraints.get(i));
+                    }
+                    apply(null);
+                } catch (SQLException e) {
+                    throw new RuntimeException(e.toString(), e);
+                }
+            case 155:
+                apply("CREATE INDEX IF NOT EXISTS transaction_block_id_idx ON transaction (block_id)");
+            case 156:
+                apply("DELETE FROM tagged_data WHERE id IN (SELECT id FROM tagged_data GROUP BY id HAVING count(*) > 1) "
+                        + "AND db_id NOT IN (SELECT min(db_id) AS db_id FROM tagged_data GROUP BY id HAVING count(*) > 1)");
+            case 157:
                 return;
             default:
                 throw new RuntimeException("Child chain " + schema + " database inconsistent with code, at update " + nextUpdate

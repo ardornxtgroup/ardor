@@ -61,7 +61,7 @@ echo generate jar files
 ../jar.sh
 ../jar-tests.sh
 echo package installer Jar
-../installer/build-installer.sh ../${PACKAGE}
+OSTYPE=linux-gnu ../installer/build-installer.sh ../${PACKAGE}
 #echo create installer exe
 #../installer/build-exe.bat ${PACKAGE}
 echo create installer zip
@@ -70,7 +70,7 @@ zip -q -X -r ${PACKAGE}.zip ardor -x \*/.idea/\* \*/.gitignore \*/.git/\* \*/\*.
 rm -rf ardor
 
 echo creating full changelog
-echo "${PACKAGE}:" > changelog-full.txt
+echo "${PACKAGE}, released `date +%Y-%m-%d`:" > changelog-full.txt
 echo >> changelog-full.txt
 cat changelogs/${CHANGELOG} >> changelog-full.txt
 echo >> changelog-full.txt

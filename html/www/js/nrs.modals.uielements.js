@@ -181,5 +181,59 @@ var NRS = (function(NRS, $) {
         $(this).closest(".form_group_multi_accounts_ue").remove();
     });
 
+	//multi_piece_modal_ui_element
+	$body.on('click', '.modal div[data-modal-ui-element="multi_piece_modal_ui_element"] .add-piece-btn', function() {
+    	var $pieceBox = $(this).closest('div[data-modal-ui-element="multi_piece_modal_ui_element"]');
+        var $clone = $pieceBox.find(".form_group_multi_piece").first().clone();
+        $clone.find("input").val("");
+        $pieceBox.find(".multi_piece_list").append($clone);
+    });
+
+    $body.on('click', '.modal div[data-modal-ui-element="multi_piece_modal_ui_element"] .remove-piece-btn', function(e) {
+    	e.preventDefault();
+    	var $pieceBox = $(this).closest('div[data-modal-ui-element="multi_piece_modal_ui_element"]');
+    	if ($pieceBox.find(".form_group_multi_piece").length == 1) {
+            return;
+        }
+        $(this).closest(".form_group_multi_piece").remove();
+    });
+
+	$body.on('click', '.modal div[data-modal-ui-element="multi_piece_modal_ui_element"] .combine-pieces-btn', function() {
+		var $pieces = $(this).closest("form").find('.piece-selector-input');
+
+		// Load the pieces from multiple fields
+		var pieceData = $pieces.map(function() {
+			return $(this).val();
+		}).get();
+
+		// Remove duplicate entries
+		pieceData = pieceData.filter(function (x, i, a) {
+			return a.indexOf(x) == i && x !== "";
+		});
+		try {
+			var secretPhrase = sss.combineSecret(pieceData);
+		} catch(e) {
+			$(this).closest(".modal").find(".error_message").html($.t(e.message)).show();
+			return;
+		}
+		var $secretPhraseInput = $(this).closest("form").find('.secret-phrase-input');
+		var rsAccount = NRS.getAccountId(secretPhrase, true);
+		if (rsAccount != NRS.accountRS) {
+			$(this).closest(".modal").find(".error_message").html($.t("error_passphrase_incorrect_v2", { account: rsAccount })).show();
+			return;
+		}
+		$(this).closest(".modal").find(".error_message").html("").hide();
+		$.growl($.t("secret_phrase_reproduced"));
+		$secretPhraseInput.val(secretPhrase);
+	});
+
+	$body.on('click', '.modal div[data-modal-ui-element="multi_piece_modal_ui_element"] .scan-qr-code', function() {
+		var $elem = $(this);
+		var data = $elem.data();
+		NRS.scanQRCode(data.reader, function(text) {
+			$elem.closest(".input-group").find("input").val(text);
+		});
+	});
+
 	return NRS;
 }(NRS || {}, jQuery));

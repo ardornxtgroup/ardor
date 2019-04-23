@@ -116,6 +116,26 @@ var NRS = (function(NRS, $) {
 		}
 	}
 
+	NRS.processNoteToSelf = function(data) {
+		if (data.add_note_to_self && data.note_to_self) {
+			if (data.isVoucher) {
+				throw { message: $.t("cannot_add_self_note_to_voucher") };
+			}
+			if (data.doNotSign) {
+				data.messageToEncryptToSelf = data.note_to_self;
+			} else {
+				var encrypted = NRS.encryptNote(data.note_to_self, {
+					"publicKey": converters.hexStringToByteArray(NRS.generatePublicKey(data.secretPhrase))
+				}, data.secretPhrase);
+				data.encryptToSelfMessageData = encrypted.message;
+				data.encryptToSelfMessageNonce = encrypted.nonce;
+			}
+			data.messageToEncryptToSelfIsText = "true";
+		}
+		delete data.note_to_self;
+		delete data.add_note_to_self;
+	};
+
 	NRS.addMessageData = function(data, requestType) {
 		if (requestType == "sendMessage") {
 			data.add_message = true;
@@ -195,29 +215,8 @@ var NRS = (function(NRS, $) {
 		} else {
 			delete data.message;
 		}
-
-		if (data.add_note_to_self && data.note_to_self) {
-			try {
-				if (data.doNotSign) {
-                    data.messageToEncryptToSelf = data.note_to_self;
-                } else {
-                    encrypted = NRS.encryptNote(data.note_to_self, {
-                        "publicKey": converters.hexStringToByteArray(NRS.generatePublicKey(data.secretPhrase))
-                    }, data.secretPhrase);
-
-                    data.encryptToSelfMessageData = encrypted.message;
-                    data.encryptToSelfMessageNonce = encrypted.nonce;
-                }
-				data.messageToEncryptToSelfIsText = "true";
-				delete data.note_to_self;
-			} catch (err) {
-				throw err;
-			}
-		} else {
-			delete data.note_to_self;
-		}
+		NRS.processNoteToSelf(data);
 		delete data.add_message;
-		delete data.add_note_to_self;
 		return data;
 	};
 
@@ -263,16 +262,11 @@ var NRS = (function(NRS, $) {
 
 		var successMessage = getSuccessMessage(requestTypeKey);
 		var errorMessage = getErrorMessage(requestTypeKey);
-
 		var data = null;
-
-		var formFunction = NRS["forms"][requestType];
 		var formErrorFunction = NRS["forms"][requestType + "Error"];
-
 		if (typeof formErrorFunction != "function") {
 			formErrorFunction = false;
 		}
-
 		var originalRequestType = requestType;
         if (NRS.isRequireBlockchain(requestType)) {
 			if (NRS.downloadingBlockchain && NRS.settings.transact_during_download === "0" && !NRS.state.apiProxy) {
@@ -339,6 +333,7 @@ var NRS = (function(NRS, $) {
 			return;
 		}
 
+		var formFunction = NRS["forms"][requestType];
 		if (typeof formFunction == "function") {
 			var output = formFunction($modal, $btn);
 
@@ -762,8 +757,6 @@ var NRS = (function(NRS, $) {
 			$modal.modal("hide");
 		}
 	};
-
-
 
     function updateFee(modal, transaction, formFeeCalculationFunction) {
     	var feeNQT = transaction.feeNQT;

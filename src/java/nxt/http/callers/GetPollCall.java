@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class GetPollCall extends APICall.Builder<GetPollCall> {
@@ -10,21 +9,11 @@ public class GetPollCall extends APICall.Builder<GetPollCall> {
     }
 
     public static GetPollCall create(int chain) {
-        GetPollCall instance = new GetPollCall();
-        instance.param("chain", chain);
-        return instance;
+        return new GetPollCall().param("chain", chain);
     }
 
     public GetPollCall requireLastBlock(String requireLastBlock) {
         return param("requireLastBlock", requireLastBlock);
-    }
-
-    public GetPollCall chain(String chain) {
-        return param("chain", chain);
-    }
-
-    public GetPollCall chain(int chain) {
-        return param("chain", chain);
     }
 
     public GetPollCall poll(String poll) {

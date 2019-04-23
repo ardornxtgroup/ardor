@@ -30,6 +30,7 @@ import nxt.blockchain.FxtChain;
 import nxt.blockchain.Transaction;
 import nxt.blockchain.TransactionProcessor;
 import nxt.blockchain.TransactionType;
+import nxt.configuration.SubSystem;
 import nxt.db.DbIterator;
 import nxt.http.APICall;
 import nxt.http.APIServlet;
@@ -44,7 +45,6 @@ import nxt.messaging.PrunablePlainMessageAppendix;
 import nxt.util.Convert;
 import nxt.util.Logger;
 import nxt.util.ResourceLookup;
-import nxt.util.ThreadPool;
 import nxt.voting.PhasingAppendix;
 import nxt.voting.PhasingPollHome;
 import nxt.voting.VoteWeighting;
@@ -184,7 +184,7 @@ public final class ContractRunner implements AddOn, ContractProvider {
         apiRequests.put("triggerContractByVoucher", new ContractRunnerAPIs.TriggerContractByVoucherAPI(this, "voucher", new APITag[]{APITag.ADDONS}, "contractName"));
         apiRequests.put("uploadContractRunnerConfiguration", new ContractRunnerAPIs.UploadContractRunnerConfigurationAPI(this, "config", new APITag[]{APITag.ADDONS}, "adminPassword"));
 
-        if (!Nxt.getServerStatus().isDatabaseReady()) {
+        if (!Nxt.getServerStatus().isDatabaseReady() || !Nxt.isEnabled(SubSystem.ADDONS)) {
             // For some utilities it is enough that we register the API even if Nxt itself is not initialized
             return;
         }
@@ -200,7 +200,7 @@ public final class ContractRunner implements AddOn, ContractProvider {
         } catch (Throwable t) {
             String message = t.toString();
             config = new NullContractRunnerConfig(message);
-            Logger.logErrorMessage(message);
+            Logger.logErrorMessage(message, t);
             return;
         }
         // Register listeners for contract activation
@@ -209,14 +209,6 @@ public final class ContractRunner implements AddOn, ContractProvider {
         Nxt.getTransactionProcessor().addListener(this::processReleasedPhased, TransactionProcessor.Event.RELEASE_PHASED_TRANSACTION);
         ContractReference.addListener(this::contractAdded, ContractReference.Event.SET_CONTRACT_REFERENCE);
         ContractReference.addListener(this::contractDeleted, ContractReference.Event.DELETE_CONTRACT_REFERENCE);
-        ThreadPool.runBeforeStart(() -> {
-            Block lastBlock = Nxt.getBlockchain().getLastBlock();
-            if (lastBlock.getFxtTransactions().size() > 0 && lastBlock.getHeight() > 1) {
-                Logger.logInfoMessage("ContractRunner popOff last block at height " + lastBlock.getHeight());
-                Nxt.getBlockchainProcessor().popOffTo(lastBlock.getHeight() - 1);
-                Nxt.getTransactionProcessor().processLater(lastBlock.getFxtTransactions());
-            }
-        }, true);
         Logger.logInfoMessage("ContractRunner Started");
     }
 

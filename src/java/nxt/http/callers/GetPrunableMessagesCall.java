@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class GetPrunableMessagesCall extends APICall.Builder<GetPrunableMessagesCall> {
@@ -10,9 +9,7 @@ public class GetPrunableMessagesCall extends APICall.Builder<GetPrunableMessages
     }
 
     public static GetPrunableMessagesCall create(int chain) {
-        GetPrunableMessagesCall instance = new GetPrunableMessagesCall();
-        instance.param("chain", chain);
-        return instance;
+        return new GetPrunableMessagesCall().param("chain", chain);
     }
 
     public GetPrunableMessagesCall requireLastBlock(String requireLastBlock) {
@@ -23,24 +20,12 @@ public class GetPrunableMessagesCall extends APICall.Builder<GetPrunableMessages
         return param("otherAccount", otherAccount);
     }
 
-    public GetPrunableMessagesCall chain(String chain) {
-        return param("chain", chain);
-    }
-
-    public GetPrunableMessagesCall chain(int chain) {
-        return param("chain", chain);
-    }
-
     public GetPrunableMessagesCall firstIndex(int firstIndex) {
         return param("firstIndex", firstIndex);
     }
 
     public GetPrunableMessagesCall lastIndex(int lastIndex) {
         return param("lastIndex", lastIndex);
-    }
-
-    public GetPrunableMessagesCall secretPhrase(String secretPhrase) {
-        return param("secretPhrase", secretPhrase);
     }
 
     public GetPrunableMessagesCall account(String account) {

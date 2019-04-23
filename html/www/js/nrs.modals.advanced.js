@@ -49,8 +49,7 @@ var NRS = (function(NRS, $, undefined) {
             }
             var unsignedTransactionJson = $("#raw_transaction_modal_transaction_json");
             var jsonStr = JSON.stringify(transaction.transactionJSON, null, 2);
-            unsignedTransactionJson.html(jsonStr);
-            hljs.highlightBlock(unsignedTransactionJson[0]);
+            unsignedTransactionJson.val(jsonStr);
             var downloadLink = $("#raw_transaction_modal_transaction_json_download");
             if (window.URL && NRS.isFileReaderSupported()) {
                 var jsonAsBlob = new Blob([jsonStr], {type: 'text/plain'});
@@ -199,48 +198,95 @@ var NRS = (function(NRS, $, undefined) {
         $("#voucher_submit_btn").prop("disabled", false);
     });
 
+    var encryptToSelfAttachmentTemplate = {
+        "version.EncryptToSelfMessage": 1,
+        "encryptToSelfMessage": {
+            "data": "",
+            "nonce": "",
+            "isText": true,
+            "isCompressed": true
+        }
+    };
+
     NRS.forms.loadVoucher = function($modal, $btn) {
+        var data = NRS.getFormData($modal.find("form:first"));
+        if (data.voucher == "") {
+            return { error: $.t("no_voucher") };
+        }
+        var voucherJson = JSON.parse(data.voucher);
+        delete data.voucher;
+        var transactionJSON = voucherJson.transactionJSON;
+        transactionJSON.timestamp = NRS.toEpochTime();
+        transactionJSON.deadline = parseInt(data.deadline);
+        delete data.deadline;
+        var rc = {};
+        try {
+            NRS.processNoteToSelf(data);
+        } catch (e) {
+            rc.error = e.message;
+            return rc;
+        }
+        if (data.encryptToSelfMessageData) {
+            var attachment = $.extend({}, encryptToSelfAttachmentTemplate);
+            attachment.encryptToSelfMessage.data = data.encryptToSelfMessageData;
+            attachment.encryptToSelfMessage.nonce = data.encryptToSelfMessageNonce;
+            Object.assign(transactionJSON.attachment, attachment);
+        }
+        transactionJSON.feeNQT = NRS.convertToNQT($("#load_voucher_fee").val());
+        data.unsignedTransactionJSON = JSON.stringify(transactionJSON);
         if ($btn.attr("id") == "voucher_submit_btn") {
-            var data = NRS.getFormData($modal.find("form:first"));
-            if (data.voucher == "") {
-                return { error: $.t("no_voucher") };
+            if (data.doNotBroadcast) {
+                data.broadcast = false;
+                delete data.doNotBroadcast;
+            } else {
+                data.broadcast = true;
             }
-            var voucherJson = JSON.parse(data.voucher);
-            delete data.voucher;
-            var transactionJSON = voucherJson.transactionJSON;
-            transactionJSON.timestamp = NRS.toEpochTime();
-            transactionJSON.deadline = parseInt(data.deadline);
-            delete data.deadline;
-            data.unsignedTransactionJSON = JSON.stringify(transactionJSON);
-            var rc = {};
             NRS.sendRequest("signTransaction", {
                 unsignedTransactionJSON: data.unsignedTransactionJSON,
-                secretPhrase: data.secretPhrase
+                secretPhrase: data.secretPhrase,
+                broadcast: data.broadcast
             }, function (signResponse) {
                 if (NRS.isErrorResponse(signResponse)) {
                     rc.error = NRS.getErrorMessage(signResponse);
                     return;
                 }
-                NRS.broadcastTransactionBytes(signResponse.transactionBytes, function (broadcastResponse) {
-                    if (NRS.isErrorResponse(broadcastResponse)) {
-                        rc.error = NRS.getErrorMessage(broadcastResponse);
-                    }
-                }, signResponse, {});
+                if (data.broadcast) {
+                    NRS.broadcastTransactionBytes(signResponse.transactionBytes, function (broadcastResponse) {
+                        if (NRS.isErrorResponse(broadcastResponse)) {
+                            rc.error = NRS.getErrorMessage(broadcastResponse);
+                            return;
+                        }
+                        if (broadcastResponse.fullHash) {
+                            NRS.addUnconfirmedTransaction(broadcastResponse.fullHash, function() {
+                                NRS.forms.loadVoucherComplete();
+                            });
+                        }
+                    }, signResponse, {});
+                } else {
+                    NRS.showRawTransactionModal(signResponse);
+                }
+                rc.stop = true;
             }, {isAsync: false});
-            if (rc.error) {
-                return rc;
-            } else {
-                return {stop: true};
-            }
         } else if ($btn.hasClass("btn-calculate-fee")) {
-            return {stop: true, keepOpen: true, errorMessage: $.t("voucher_fee_calculation")};
+            NRS.sendRequest("calculateFee", {
+                transactionJSON: data.unsignedTransactionJSON
+            }, function (calculateFeeResponse) {
+                if (NRS.isErrorResponse(calculateFeeResponse)) {
+                    rc.error = NRS.getErrorMessage(calculateFeeResponse);
+                    return;
+                }
+                var feeNQT = calculateFeeResponse.feeNQT;
+                var $feeField = $("#" + $modal.attr('id').replace('_modal', '') + "_fee");
+                $feeField.val(NRS.convertToNXT(feeNQT));
+                rc.stop = true;
+                rc.keepOpen = true;
+            }, {isAsync: false})
         }
+        return rc;
     };
 
-    NRS.forms.loadVoucherComplete = function (response) {
-        if (response.fullhash) {
-            $.growl($.t("voucher_processed"));
-        }
+    NRS.forms.loadVoucherComplete = function() {
+        $.growl($.t("voucher_processed"));
     };
 
     $(".qr_code_reader_link").click(function(e) {
@@ -352,7 +398,7 @@ var NRS = (function(NRS, $, undefined) {
 		};
 		NRS.initModalUIElement($modal, '.phasing_finish_height_group', 'block_height_modal_ui_element', context);
 		context.phasingType = "mandatory_approval";
-		$elems = NRS.initModalUIElement($modal, '.mandatory_approval_finish_height_group', 'block_height_modal_ui_element', context);
+		NRS.initModalUIElement($modal, '.mandatory_approval_finish_height_group', 'block_height_modal_ui_element', context);
 
 		context = {
 			labelText: "Amount",
@@ -362,7 +408,7 @@ var NRS = (function(NRS, $, undefined) {
 			addonText: NRS.getActiveChainName(),
 			addonI18n: "nxt_unit"
 		};
-		$elems = NRS.initModalUIElement($modal, '.approve_transaction_amount_nxt', 'simple_input_with_addon_modal_ui_element', context);
+		var $elems = NRS.initModalUIElement($modal, '.approve_transaction_amount_nxt', 'simple_input_with_addon_modal_ui_element', context);
 		$elems.find('input').prop("disabled", true);
 
 		context = {
@@ -394,6 +440,15 @@ var NRS = (function(NRS, $, undefined) {
 			inputName: "phasingWhitelisted"
 		};
 		$elems = NRS.initModalUIElement($modal, '.add_approval_whitelist_group', 'multi_accounts_modal_ui_element', context);
+		$elems.find('input').prop("disabled", true);
+
+		context = {
+			labelText: "PIECES",
+			labelI18n: "pieces",
+			helpI18n: "pieces_requested_help",
+			inputName: "piece"
+		};
+		$elems = NRS.initModalUIElement($modal, '.piece_entry_group', 'multi_piece_modal_ui_element', context);
 		$elems.find('input').prop("disabled", true);
 
 		context = {
@@ -680,8 +735,8 @@ var NRS = (function(NRS, $, undefined) {
 			var output = {};
 			var secretPhrase = (NRS.rememberPassword ? _password : data.secretPhrase);
 			var isOffline = $(".mobile-offline").val();
-            var accountId = NRS.getAccountId(secretPhrase);
-            if (accountId == NRS.account || isOffline) {
+            var accountId = NRS.getAccountId(secretPhrase, true);
+            if (accountId == NRS.accountRS || isOffline) {
 				try {
 					var signature = NRS.signBytes(data.unsignedTransactionBytes, converters.stringToHexString(secretPhrase));
 					updateSignature(signature);

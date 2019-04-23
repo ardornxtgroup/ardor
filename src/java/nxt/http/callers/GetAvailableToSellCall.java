@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class GetAvailableToSellCall extends APICall.Builder<GetAvailableToSellCall> {
@@ -10,21 +9,11 @@ public class GetAvailableToSellCall extends APICall.Builder<GetAvailableToSellCa
     }
 
     public static GetAvailableToSellCall create(int chain) {
-        GetAvailableToSellCall instance = new GetAvailableToSellCall();
-        instance.param("chain", chain);
-        return instance;
+        return new GetAvailableToSellCall().param("chain", chain);
     }
 
     public GetAvailableToSellCall requireLastBlock(String requireLastBlock) {
         return param("requireLastBlock", requireLastBlock);
-    }
-
-    public GetAvailableToSellCall chain(String chain) {
-        return param("chain", chain);
-    }
-
-    public GetAvailableToSellCall chain(int chain) {
-        return param("chain", chain);
     }
 
     public GetAvailableToSellCall unitsQNT(long unitsQNT) {

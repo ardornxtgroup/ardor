@@ -282,6 +282,7 @@ public final class GetConstants extends APIServlet.APIRequestHandler {
                 });
                 response.put("chainProperties", chainPropertiesJSON);
                 response.put("initialBaseTarget", Long.toUnsignedString(Constants.INITIAL_BASE_TARGET));
+                response.put("secretPhraseWords", Constants.COMPRESSED_SECRET_PHRASE_WORDS);
                 CONSTANTS = JSON.prepare(response);
             } catch (Exception e) {
                 Logger.logErrorMessage(e.toString(), e);

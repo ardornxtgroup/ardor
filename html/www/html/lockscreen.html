@@ -27,24 +27,23 @@
                 <div id="login_error" style="max-width:400px;min-width:400px;display:none">
                     <div class="callout callout-danger"></div>
                 </div>
-
-                <div id="account_data_reader" style="display:none;margin:auto;width:384px;height:384px;"></div>
-				<table style="width:100%;height:100%;">
-				<tr><td style="text-align:center;vertical-align:middle">
-                <div class="lockscreen-widget btn-group" data-toggle="buttons" id="loginButtons">
-                    <label class="lockscreen-widget btn btn-primary btn-lg btn-lockscreen active" data-login-type="account" data-reader="account_data_reader">
-                        <input type="radio" name="loginButtons"><i class="fa fa-male"></i>
-                    </label>
-                    <label class="lockscreen-widget btn btn-primary btn-lg btn-lockscreen" data-login-type="password" data-reader="account_data_reader">
-                        <input type="radio" name="loginButtons"><i class="fa fa-key"></i>
-                    </label>
-                    <label class="lockscreen-widget btn btn-primary btn-lg btn-lockscreen scan-qr-code" data-login-type="scan" data-reader="account_data_reader">
-                        <input type="radio" name="loginButtons"><i class="fa fa-qrcode"></i>
-                    </label>
-                </div>
-				</td></tr>
+                <table style="width:100%;height:100%;">
+                    <tr><td style="text-align:center;vertical-align:middle">
+                        <div id="account_data_reader" style="display:none;margin:auto;margin-bottom:8px;width:384px;height:384px;"></div>
+                        <div class="lockscreen-widget btn-group" data-toggle="buttons" id="loginButtons">
+                            <label class="lockscreen-widget btn btn-primary btn-lg btn-lockscreen active" data-login-type="account" data-reader="account_data_reader">
+                                <input type="radio" name="loginButtons"><i class="fa fa-male"></i>
+                            </label>
+                            <label class="lockscreen-widget btn btn-primary btn-lg btn-lockscreen" data-login-type="password" data-reader="account_data_reader">
+                                <input type="radio" name="loginButtons"><i class="fa fa-key"></i>
+                            </label>
+                            <label class="lockscreen-widget btn btn-primary btn-lg btn-lockscreen scan-qr-code" data-login-type="scan" data-reader="account_data_reader">
+                                <input type="radio" name="loginButtons"><i class="fa fa-qrcode"></i>
+                            </label>
+                        </div>
+                    </td></tr>
 				</table>
-				<table style="width:100%;height:100%;">
+                <table style="width:100%;height:100%;">
 				<tr><td style="text-align:center;vertical-align:middle">
                 <div class="lockscreen-item">
                     <div class="lockscreen-credentials">
@@ -218,7 +217,7 @@
                                 <p data-i18n="your_account_is">Your public account address is:</p>
                                 <input id="step_2_account" style="width:100%;height:50px;margin-bottom:10px;padding:3px;" readonly></input>
                                 <div class="paper-wallet-link-container" style="display: none;">
-                                    <a href="#" id="generator_paper_wallet_link" data-i18n="print_paper_wallet">Print Paper Wallet</a>
+                                    <a href="#" data-toggle="modal" data-dismiss="modal" data-target="#create_paper_wallet_modal" data-i18n="create_paper_wallet">Create Paper Wallet</a>
                                 </div>
                                 <p></p>
                                 <div class="callout callout-danger">

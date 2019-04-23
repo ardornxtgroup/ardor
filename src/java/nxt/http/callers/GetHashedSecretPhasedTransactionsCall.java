@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class GetHashedSecretPhasedTransactionsCall extends APICall.Builder<GetHashedSecretPhasedTransactionsCall> {
@@ -22,7 +21,7 @@ public class GetHashedSecretPhasedTransactionsCall extends APICall.Builder<GetHa
     }
 
     public GetHashedSecretPhasedTransactionsCall phasingHashedSecretAlgorithm(
-            String phasingHashedSecretAlgorithm) {
+            byte phasingHashedSecretAlgorithm) {
         return param("phasingHashedSecretAlgorithm", phasingHashedSecretAlgorithm);
     }
 

@@ -48,28 +48,24 @@ public class JDKToolsWrapper {
      * Javac 8 - [wrote RegularFileObject[C:\Users\riker\AppData\Local\Temp\src\com\jelurida\ardor\contracts\ForgingReward.class]]
      * Javac 10 - [wrote DirectoryFileObject[C:\Users\riker\AppData\Local\Temp\src:com/jelurida/ardor/contracts/ForgingReward.class]]
      */
-    private static final Pattern JAVAC_8_CLASS_COMPILATION_EVENT = Pattern.compile("^\\[wrote RegularFileObject\\[(.*)\\]\\]");
-    private static final Pattern JAVAC_10_CLASS_COMPILATION_EVENT = Pattern.compile("^\\[wrote DirectoryFileObject\\[(.*):([^\\\\].*)\\]\\]");
-    private static final Pattern JAVAC_11_CLASS_COMPILATION_EVENT = Pattern.compile("^\\[wrote (.*)\\]");
+    private static final Pattern JAVAC_8_CLASS_COMPILATION_EVENT = Pattern.compile("^\\[wrote RegularFileObject\\[(.*)]]");
+    private static final Pattern JAVAC_10_CLASS_COMPILATION_EVENT = Pattern.compile("^\\[wrote DirectoryFileObject\\[(.*):([^\\\\].*)]]");
+    private static final Pattern JAVAC_11_CLASS_COMPILATION_EVENT = Pattern.compile("^\\[wrote (.*)]");
 
     enum OPTION {
-        SOURCE('s', "source", true, "path to source code file to verify", false, (OPTION)null),
-        JAVAC('j', "javac", true, "javac options (space separated, surround with quotes)", false, (OPTION)null);
+        SOURCE('s', "source", true, "path to source code file to verify"),
+        JAVAC('j', "javac", true, "javac options (space separated, surround with quotes)");
 
         private final char opt;
         private final String longOpt;
         private boolean hasArgs;
         private String description;
-        private boolean isAction;
-        private OPTION[] dependencies;
 
-        OPTION(char opt, String longOpt, boolean hasArgs, String description, boolean isAction, OPTION... dependencies) {
+        OPTION(char opt, String longOpt, boolean hasArgs, String description) {
             this.opt = opt;
             this.longOpt = longOpt;
             this.hasArgs = hasArgs;
             this.description = description;
-            this.isAction = isAction;
-            this.dependencies = dependencies;
         }
 
         public String getOpt() {
@@ -88,13 +84,6 @@ public class JDKToolsWrapper {
             return description;
         }
 
-        public boolean isAction() {
-            return isAction;
-        }
-
-        public OPTION[] getDependencies() {
-            return dependencies;
-        }
     }
 
     public static void main(String[] args) {
@@ -129,7 +118,7 @@ public class JDKToolsWrapper {
         compiledClasses.keySet().forEach(c -> System.out.printf("Class %s bytes size %d", c, compiledClasses.getOrDefault(c, new byte[0]).length));
     }
 
-    public static Map<String, byte[]> compile(String source, String javacOptions, Path outputPath) {
+    static Map<String, byte[]> compile(String source, String javacOptions, Path outputPath) {
         SecurityManager sm = System.getSecurityManager();
         if (sm != null) {
             sm.checkPermission(new BlockchainPermission("tools"));
@@ -237,7 +226,7 @@ public class JDKToolsWrapper {
      * @param classBytes the byte array representing the class bytes
      * @return the javac -g command line options
      */
-    public static String javap(byte[] classBytes) {
+    static String javap(byte[] classBytes) {
         SecurityManager sm = System.getSecurityManager();
         if (sm != null) {
             sm.checkPermission(new BlockchainPermission("tools"));

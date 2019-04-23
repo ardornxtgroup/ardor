@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="iso-8859-1"  ?>
+<installation version="5.0">
+    <properties>
+        <property file="conf/nxt-default.properties" prefix="runtime"/>
+    </properties>
+    <info>
+        <appname>Ardor</appname>
+        <appversion>@{runtime.nxt.version}</appversion>
+        <url>https://www.jelurida.com/</url>
+        <run-privileged condition="izpack.windowsinstall"/>
+    </info>
+
+    <listeners>
+        <listener classname="SummaryLoggerInstallerListener" stage="install"/>
+        <listener classname="nxt.installer.InstallListener" stage="install"/>
+    </listeners>
+
+    <guiprefs height="700" resizable="yes" width="870">
+        <!-- GUI adaption for more information see "Modifying the GUI" in the documentation -->
+        <modifier key="langDisplayType" value="default"/>
+        <modifier key="layoutAnchor" value="CENTER"/>
+        <modifier key="headingPanelCounter" value="progressbar"/>
+        <modifier key="headingPanelCounterPos" value="inNavigationPanel"/>
+        <modifier key="allYGap" value="4"/>
+        <modifier key="paragraphYGap" value="10"/>
+        <modifier key="filler1YGap" value="5"/>
+        <modifier key="filler3XGap" value="10"/>
+    </guiprefs>
+
+    <locale>
+        <langpack iso3="eng"/>
+        <langpack iso3="fra"/>
+        <langpack iso3="deu"/>
+        <langpack iso3="ita"/>
+        <langpack iso3="jpn"/>
+        <langpack iso3="spa"/>
+        <langpack iso3="dan"/>
+        <langpack iso3="ell"/>
+        <langpack iso3="cat"/>
+        <langpack iso3="nld"/>
+        <langpack iso3="fin"/>
+        <langpack iso3="swe"/>
+        <langpack iso3="prt"/>
+        <langpack iso3="pol"/>
+        <langpack iso3="rus"/>
+        <langpack iso3="ukr"/>
+        <langpack iso3="hun"/>
+        <langpack iso3="slk"/>
+        <langpack iso3="ron"/>
+        <langpack iso3="msa"/>
+        <langpack iso3="nor"/>
+        <langpack iso3="chn"/>
+        <langpack iso3="srp"/>
+        <langpack iso3="ces"/>
+        <langpack iso3="kor"/>
+        <langpack iso3="glg"/>
+    </locale>
+
+    <resources>
+        <res id="InfoPanel.info" src="changelogs/ardor-client-@{runtime.nxt.version}.changelog.txt" parse="yes"/>
+        <res id="LicencePanel.licence" src="LICENSE.txt"/>
+        <res id="Installer.image" src="html/www/img/installer_left_pane.png"/>
+        <res id="shortcutSpec.xml" src="../installer/shortcutSpec.xml"/>
+        <res id="Unix_shortcutSpec.xml" src="../installer/Unix_shortcutSpec.xml"/>
+        <res id="RegistrySpec.xml" src="../installer/RegistrySpec.xml"/>
+        <res id="installer.langsel.img" src="html/www/img/nxt_logo.png"/>
+	</resources>
+
+    <variables>
+        <variable name="$InstallerFrame.logfilePath" value="default"/>
+        <variable name="DesktopShortcutCheckboxEnabled" value="true"/>
+        <variable name="TargetPanel.dir.mac" value="/Applications/ardor.app"/>
+    </variables>
+
+    <panels>
+        <panel classname="CheckedHelloPanel" id="hellopanel"/>
+        <panel classname="LicencePanel"/>
+        <panel classname="InfoPanel"/>
+        <panel classname="TargetPanel"/>
+		<panel classname="PacksPanel"/>
+        <panel classname="nxt.installer.ConfigPanel"/>
+        <panel classname="ShortcutPanel" condition="!izpack.macinstall"/>
+        <panel classname="InstallPanel"/>
+        <panel classname="SimpleFinishPanel"/>
+    </panels>
+
+    <packs>
+        <pack name="dev.tools" required="no">
+			<description>Contract Developer Tools</description>
+            <file src="ardor-tests.jar" targetdir="${INSTALL_PATH}" override="true"/>
+			<file src="addons/project/intellij/Ardor.iml" targetdir="${INSTALL_PATH}" override="true"/>
+			<file src="addons/plugins/ContractManagerPlugin/ContractManagerPlugin.zip" targetdir="${INSTALL_PATH}" override="true"/>
+            <fileset dir="testlib" targetdir="${INSTALL_PATH}/testlib" override="true" excludes=".gitignore"/>
+            <fileset dir="addons" targetdir="${INSTALL_PATH}/addons" override="true" excludes=".gitignore"/>			
+            <fileset dir="addons/project/intellij/.idea" targetdir="${INSTALL_PATH}/.idea" override="true" excludes=".gitignore"/>
+		</pack>	
+
+        <pack name="server" required="yes" hidden="true">
+            <description>Common Server Files</description>
+            <file src="ardor.jar" targetdir="${INSTALL_PATH}" override="true"/>
+            <file src="README.txt" targetdir="${INSTALL_PATH}" override="true"/>
+            <file src="Ardor_Wallet.url" targetdir="${INSTALL_PATH}" override="true"/>
+            <file src="3RD-PARTY-LICENSES.txt" targetdir="${INSTALL_PATH}" override="true"/>
+            <file src="LICENSE.txt" targetdir="${INSTALL_PATH}" override="true"/>
+            <file src="JPL-Ardor.pdf" targetdir="${INSTALL_PATH}" override="true"/>
+            <file src="DEVELOPERS-GUIDE.md" targetdir="${INSTALL_PATH}" override="true"/>
+            <file src="OPERATORS-GUIDE.md" targetdir="${INSTALL_PATH}" override="true"/>
+            <file src="README.md" targetdir="${INSTALL_PATH}" override="true"/>
+            <file src="USERS-GUIDE.md" targetdir="${INSTALL_PATH}" override="true"/>
+            <file src="ardor.policy" targetdir="${INSTALL_PATH}" override="true"/>
+            <file src="ardordesktop.policy" targetdir="${INSTALL_PATH}" override="true"/>
+            <file src="contractManager.policy" targetdir="${INSTALL_PATH}" override="true"/>
+            <file src="conf/nxt-default.properties" targetdir="${INSTALL_PATH}/conf" override="true"/>
+            <file src="conf/logging-default.properties" targetdir="${INSTALL_PATH}/conf" override="true"/>
+            <fileset dir="conf/data" targetdir="${INSTALL_PATH}/conf/data" override="true"/>
+            <fileset dir="lib" targetdir="${INSTALL_PATH}/lib" override="true" excludes=".gitignore"/>
+            <fileset dir="changelogs" targetdir="${INSTALL_PATH}/changelogs" override="true" excludes=".gitignore"/>
+            <fileset dir="classes" targetdir="${INSTALL_PATH}/classes" override="true" excludes=".gitignore"/>
+            <fileset dir="html" targetdir="${INSTALL_PATH}/html" override="true" excludes=".gitignore"/>
+            <fileset dir="src" targetdir="${INSTALL_PATH}/src" override="true" excludes=".gitignore nxt-private.iml"/>
+            <fileset dir="contrib" targetdir="${INSTALL_PATH}/contrib" override="true" excludes=".gitignore"/>
+            <fileset dir="logs" targetdir="${INSTALL_PATH}/logs" override="true" excludes=".gitignore"/>
+            <updatecheck>
+                <include name="*.desktop" />
+                <include name="lib/**" />
+                <include name="classes/**" />
+                <include name="html/**" />
+                <exclude name="html/www/plugins/**" />
+            </updatecheck>
+        </pack>
+		
+        <pack name="server.unix" os="unix" required="yes" hidden="true">
+            <description>Unix Specific Resources</description>
+            <file src="run.sh" targetdir="${INSTALL_PATH}" override="true"/>
+            <executable targetfile="${INSTALL_PATH}/run.sh"/>
+            <file src="run-desktop.sh" targetdir="${INSTALL_PATH}" override="true"/>
+            <executable targetfile="${INSTALL_PATH}/run-desktop.sh"/>
+            <file src="start.sh" targetdir="${INSTALL_PATH}" override="true"/>
+            <executable targetfile="${INSTALL_PATH}/start.sh"/>
+            <file src="stop.sh" targetdir="${INSTALL_PATH}" override="true"/>
+            <executable targetfile="${INSTALL_PATH}/stop.sh"/>
+            <file src="mint.sh" targetdir="${INSTALL_PATH}" override="true"/>
+            <executable targetfile="${INSTALL_PATH}/mint.sh"/>
+            <file src="compile.sh" targetdir="${INSTALL_PATH}" override="true"/>
+            <executable targetfile="${INSTALL_PATH}/compile.sh"/>
+            <file src="jar.sh" targetdir="${INSTALL_PATH}" override="true"/>
+            <executable targetfile="${INSTALL_PATH}/jar.sh"/>
+            <file src="javadoc.sh" targetdir="${INSTALL_PATH}" override="true"/>
+            <executable targetfile="${INSTALL_PATH}/javadoc.sh"/>
+            <file src="package.sh" targetdir="${INSTALL_PATH}" override="true"/>
+            <executable targetfile="${INSTALL_PATH}/package.sh"/>
+            <file src="compact.sh" targetdir="${INSTALL_PATH}" override="true"/>
+            <executable targetfile="${INSTALL_PATH}/compact.sh"/>
+            <file src="sign.sh" targetdir="${INSTALL_PATH}" override="true"/>
+            <executable targetfile="${INSTALL_PATH}/sign.sh"/>
+            <file src="passphraseRecovery.sh" targetdir="${INSTALL_PATH}" override="true"/>
+            <file src="contractManager.sh" targetdir="${INSTALL_PATH}" override="true"/>
+            <file src="generateAPICalls.sh" targetdir="${INSTALL_PATH}" override="true"/>
+            <executable targetfile="${INSTALL_PATH}/passphraseRecovery.sh"/>
+        </pack>
+
+    </packs>
+</installation>

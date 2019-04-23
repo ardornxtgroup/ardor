@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class GetFundingMonitorCall extends APICall.Builder<GetFundingMonitorCall> {
@@ -10,9 +9,7 @@ public class GetFundingMonitorCall extends APICall.Builder<GetFundingMonitorCall
     }
 
     public static GetFundingMonitorCall create(int chain) {
-        GetFundingMonitorCall instance = new GetFundingMonitorCall();
-        instance.param("chain", chain);
-        return instance;
+        return new GetFundingMonitorCall().param("chain", chain);
     }
 
     public GetFundingMonitorCall includeMonitoredAccounts(boolean includeMonitoredAccounts) {
@@ -27,24 +24,12 @@ public class GetFundingMonitorCall extends APICall.Builder<GetFundingMonitorCall
         return unsignedLongParam("holding", holding);
     }
 
-    public GetFundingMonitorCall chain(String chain) {
-        return param("chain", chain);
-    }
-
-    public GetFundingMonitorCall chain(int chain) {
-        return param("chain", chain);
-    }
-
     public GetFundingMonitorCall holdingType(String holdingType) {
         return param("holdingType", holdingType);
     }
 
     public GetFundingMonitorCall property(String property) {
         return param("property", property);
-    }
-
-    public GetFundingMonitorCall secretPhrase(String secretPhrase) {
-        return param("secretPhrase", secretPhrase);
     }
 
     public GetFundingMonitorCall account(String account) {

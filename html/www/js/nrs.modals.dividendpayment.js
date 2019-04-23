@@ -86,7 +86,8 @@ var NRS = (function(NRS, $) {
         if (NRS.isControlKey(charCode) || e.ctrlKey || e.metaKey) {
             return;
         }
-        return NRS.validateDecimals(8-decimals, charCode, $(this).val(), e);
+        var caretPos = $(this)[0].selectionStart;
+        return NRS.validateDecimals(8-decimals, charCode, $(this).val(), caretPos, e);
    	});
 
     $("#dividend_payment_amount_per_share, #dividend_payment_height").on("blur", function() {

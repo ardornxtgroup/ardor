@@ -269,9 +269,9 @@ public final class FundingMonitor {
      * @param   interval            Fund interval
      * @param   secretPhrase        Fund account secret phrase
      * @param   feeRateNQTPerFXT    Fee rate to use for the child chain transactions created
-     * @return                      TRUE if the monitor was started
+     * @return                      The monitor, null if unable to start
      */
-    public static boolean startMonitor(Chain chain, HoldingType holdingType, long holdingId, String property,
+    public static FundingMonitor startMonitor(Chain chain, HoldingType holdingType, long holdingId, String property,
                                     long amount, long threshold, int interval, String secretPhrase, long feeRateNQTPerFXT) {
         //
         // Initialize monitor processing if it hasn't been done yet.  We do this now
@@ -310,7 +310,7 @@ public final class FundingMonitor {
                 if (monitors.contains(monitor)) {
                     Logger.logDebugMessage(String.format("%s monitor already started for account %s, property '%s', holding %s, chain %s",
                             holdingType.name(), monitor.accountName, property, Long.toUnsignedString(holdingId), chain.getName()));
-                    return false;
+                    return null;
                 }
                 accountList.forEach(account -> {
                     List<MonitoredAccount> activeList = accounts.computeIfAbsent(account.accountId, k -> new ArrayList<>());
@@ -328,7 +328,7 @@ public final class FundingMonitor {
         } finally {
             Nxt.getBlockchain().readUnlock();
         }
-        return true;
+        return monitor;
     }
 
     /**

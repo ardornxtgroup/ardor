@@ -275,9 +275,13 @@ public class AccountLedger {
         if (sm != null) {
             sm.checkPermission(new BlockchainPermission("ledger"));
         }
+        int count = 0;
         for (LedgerEntry ledgerEntry : pendingEntries) {
             accountLedgerTable.insert(ledgerEntry);
             listeners.notify(ledgerEntry, Event.ADD_ENTRY);
+            if (++count % Constants.BATCH_COMMIT_SIZE == 0) {
+                Db.db.commitTransaction();
+            }
         }
         pendingEntries.clear();
     }

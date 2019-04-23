@@ -496,7 +496,7 @@ public final class NetworkHandler implements Runnable {
             try {
                 cyclicBarrier.await(5, TimeUnit.SECONDS);
             } catch (BrokenBarrierException | InterruptedException | TimeoutException exc) {
-                throw new IllegalStateException("Thread interrupted while waiting for key event completion");
+                throw new IllegalStateException("Thread interrupted while waiting for key event completion", exc);
             }
             cyclicBarrier.reset();
             return key;
@@ -510,6 +510,7 @@ public final class NetworkHandler implements Runnable {
          */
         void update(int addOps, int removeOps) {
             if (peer.isDisconnectPending()) {
+                Logger.logDebugMessage("Disconnect pending");
                 return;
             }
             if (Thread.currentThread() == listenerThread) {
@@ -526,7 +527,7 @@ public final class NetworkHandler implements Runnable {
                     try {
                         cyclicBarrier.await(5, TimeUnit.SECONDS);
                     } catch (BrokenBarrierException | InterruptedException | TimeoutException exc) {
-                        throw new IllegalStateException("Thread interrupted while waiting for key event completion");
+                        throw new IllegalStateException("Thread interrupted while waiting for key event completion", exc);
                     }
                 }
             }
@@ -544,7 +545,7 @@ public final class NetworkHandler implements Runnable {
                 }
                 cyclicBarrier.await(100, TimeUnit.MILLISECONDS);
             } catch (BrokenBarrierException | InterruptedException | TimeoutException exc) {
-                Logger.logErrorMessage("Listener thread interrupted while waiting for key event completion");
+                Logger.logErrorMessage("Listener thread interrupted while waiting for key event completion", exc);
             }
         }
 
@@ -557,6 +558,7 @@ public final class NetworkHandler implements Runnable {
                 key.attach(peer);
                 peer.setKeyEvent(this);
             } catch (IOException exc) {
+                Logger.logDebugMessage("Failed to register channel", exc);
                 // Ignore - the channel has been closed
             }
         }
@@ -626,12 +628,11 @@ public final class NetworkHandler implements Runnable {
                 if (keyEvent != null) {
                     keyEvent.update(SelectionKey.OP_READ, SelectionKey.OP_CONNECT);
                 }
-                Peers.peersService.execute(() -> {
-                    peer.connectComplete(true);
-                    sendGetInfoMessage(peer);
-                });
+                peer.connectComplete(true);
+                sendGetInfoMessage(peer);
             }
         } catch (IOException exc) {
+            Logger.logDebugMessage("Outbound connect failed to complete", exc);
             Peers.peersService.execute(() -> peer.connectComplete(false));
         }
     }
@@ -663,8 +664,7 @@ public final class NetworkHandler implements Runnable {
                 } else if (connectionMap.get(remoteAddress.getAddress()) != null) {
                     channel.close();
                     Logger.logDebugMessage("Connection already established with " + hostAddress + ", disconnecting");
-                    peer.setDisconnectPending();
-                    Peers.peersService.execute(peer::disconnectPeer);
+                    peer.disconnectPeer();
                 } else {
                     channel.configureBlocking(false);
                     peer.setConnectionAddress(remoteAddress);
@@ -678,7 +678,7 @@ public final class NetworkHandler implements Runnable {
                     if (key == null) {
                         Logger.logErrorMessage("Unable to register socket channel for " + peer.getHost());
                     } else {
-                        Peers.peersService.execute(peer::setInbound);
+                        peer.setInbound();
                     }
                 }
             }
@@ -729,8 +729,7 @@ public final class NetworkHandler implements Runnable {
                             if (keyEvent != null) {
                                 keyEvent.update(0, SelectionKey.OP_READ | SelectionKey.OP_WRITE);
                             }
-                            peer.setDisconnectPending();
-                            Peers.peersService.execute(peer::disconnectPeer);
+                            peer.disconnectPeer();
                         }
                         break;
                     }
@@ -746,26 +745,10 @@ public final class NetworkHandler implements Runnable {
                     int msgLength = buffer.getInt();
                     int length = msgLength & 0x7fffffff;
                     if (!Arrays.equals(hdrBytes, MESSAGE_HEADER_MAGIC)) {
-                        Logger.logDebugMessage("Incorrect message header received from " + peer.getHost());
-                        Logger.logDebugMessage("  " + Arrays.toString(hdrBytes));
-                        KeyEvent keyEvent = peer.getKeyEvent();
-                        if (keyEvent != null) {
-                            keyEvent.update(0, SelectionKey.OP_READ | SelectionKey.OP_WRITE);
-                        }
-                        peer.setDisconnectPending();
-                        Peers.peersService.execute(peer::disconnectPeer);
-                        break;
+                        throw new IOException("Incorrect message header " + Arrays.toString(hdrBytes));
                     }
                     if (length < 1 || length > MAX_MESSAGE_SIZE + 32) {
-                        Logger.logDebugMessage("Message length " + length + " for message from " + peer.getHost()
-                                + " is not valid");
-                        KeyEvent keyEvent = peer.getKeyEvent();
-                        if (keyEvent != null) {
-                            keyEvent.update(0, SelectionKey.OP_READ | SelectionKey.OP_WRITE);
-                        }
-                        peer.setDisconnectPending();
-                        Peers.peersService.execute(peer::disconnectPeer);
-                        break;
+                        throw new IOException("Invalid message length " + length);
                     }
                     byte[] msgBytes = new byte[MESSAGE_HEADER_LENGTH + length];
                     buffer = ByteBuffer.wrap(msgBytes);
@@ -797,13 +780,7 @@ public final class NetworkHandler implements Runnable {
                 }
             }
         } catch (IOException exc) {
-            Logger.logDebugMessage(String.format("%s: Peer %s", exc.getMessage(), peer.getHost()));
-            KeyEvent keyEvent = peer.getKeyEvent();
-            if (keyEvent != null) {
-                keyEvent.update(0, SelectionKey.OP_READ | SelectionKey.OP_WRITE);
-            }
-            peer.setDisconnectPending();
-            Peers.peersService.execute(peer::disconnectPeer);
+            disconnectAndBlacklist(peer, exc);
         }
     }
 
@@ -888,14 +865,17 @@ public final class NetworkHandler implements Runnable {
                 peer.setOutputBuffer(null);
             }
         } catch (IOException exc) {
-            Logger.logDebugMessage(String.format("%s: Peer %s", exc.getMessage(), peer.getHost()));
-            KeyEvent keyEvent = peer.getKeyEvent();
-            if (keyEvent != null) {
-                keyEvent.update(0, SelectionKey.OP_READ | SelectionKey.OP_WRITE);
-            }
-            peer.setDisconnectPending();
-            Peers.peersService.execute(peer::disconnectPeer);
+            disconnectAndBlacklist(peer, exc);
         }
+    }
+
+    private static void disconnectAndBlacklist(PeerImpl peer, Exception exc) {
+        Logger.logDebugMessage(String.format("%s: Peer %s", exc.getMessage(), peer.getHost()));
+        KeyEvent keyEvent = peer.getKeyEvent();
+        if (keyEvent != null) {
+            keyEvent.update(0, SelectionKey.OP_READ | SelectionKey.OP_WRITE);
+        }
+        peer.blacklist(exc);
     }
 
     /**
@@ -906,6 +886,10 @@ public final class NetworkHandler implements Runnable {
     static void closeConnection(PeerImpl peer) {
         SocketChannel channel = peer.getChannel();
         if (channel == null) {
+            Logger.logDebugMessage("Channel already null when disconnecting " + peer.getHost());
+            if (peer.getConnectionAddress() != null && connectionMap.remove(peer.getConnectionAddress().getAddress()) != null) {
+                Logger.logDebugMessage("Removed stale connection from connection map");
+            }
             return;
         }
         try {
@@ -919,6 +903,7 @@ public final class NetworkHandler implements Runnable {
                 channel.close();
             }
         } catch (IOException exc) {
+            Logger.logDebugMessage("Error closing connection", exc);
             // Ignore since the channel is closed in any event
         }
     }

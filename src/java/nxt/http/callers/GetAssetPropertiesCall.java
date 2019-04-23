@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class GetAssetPropertiesCall extends APICall.Builder<GetAssetPropertiesCall> {
@@ -31,6 +30,10 @@ public class GetAssetPropertiesCall extends APICall.Builder<GetAssetPropertiesCa
 
     public GetAssetPropertiesCall setter(String setter) {
         return param("setter", setter);
+    }
+
+    public GetAssetPropertiesCall setter(long setter) {
+        return unsignedLongParam("setter", setter);
     }
 
     public GetAssetPropertiesCall asset(String asset) {

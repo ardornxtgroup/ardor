@@ -57,7 +57,7 @@ public class FxtDbVersion extends DbVersion {
                 apply("CREATE TABLE IF NOT EXISTS transaction_fxt (db_id IDENTITY, id BIGINT NOT NULL, "
                         + "deadline SMALLINT NOT NULL, recipient_id BIGINT, transaction_index SMALLINT NOT NULL, "
                         + "amount BIGINT NOT NULL, fee BIGINT NOT NULL, full_hash BINARY(32) NOT NULL, "
-                        + "height INT NOT NULL, block_id BIGINT NOT NULL, FOREIGN KEY (block_id) REFERENCES block (id) ON DELETE CASCADE, "
+                        + "height INT NOT NULL, block_id BIGINT NOT NULL, "
                         + "signature BINARY(64) NOT NULL, timestamp INT NOT NULL, type TINYINT NOT NULL, subtype TINYINT NOT NULL, "
                         + "sender_id BIGINT NOT NULL, block_timestamp INT NOT NULL, has_prunable_attachment BOOLEAN NOT NULL DEFAULT FALSE, "
                         + "has_prunable_message BOOLEAN NOT NULL DEFAULT FALSE, has_prunable_encrypted_message BOOLEAN NOT NULL DEFAULT FALSE, "
@@ -539,6 +539,26 @@ public class FxtDbVersion extends DbVersion {
                     apply(null);
                 });
             case 167:
+                try (Connection con = db.getConnection(schema);
+                     Statement stmt = con.createStatement();
+                     ResultSet rs = stmt.executeQuery("SELECT CONSTRAINT_NAME, TABLE_NAME FROM INFORMATION_SCHEMA.CONSTRAINTS "
+                             + "WHERE TABLE_SCHEMA='" + schema + "' AND TABLE_NAME IN ('TRANSACTION_FXT') AND COLUMN_LIST='BLOCK_ID'")) {
+                    List<String> tables = new ArrayList<>();
+                    List<String> constraints = new ArrayList<>();
+                    while (rs.next()) {
+                        tables.add(rs.getString("TABLE_NAME"));
+                        constraints.add(rs.getString("CONSTRAINT_NAME"));
+                    }
+                    for (int i = 0; i < tables.size(); i++) {
+                        stmt.executeUpdate("ALTER TABLE " + tables.get(i) + " DROP CONSTRAINT " + constraints.get(i));
+                    }
+                    apply(null);
+                } catch (SQLException e) {
+                    throw new RuntimeException(e.toString(), e);
+                }
+            case 168:
+                apply("CREATE INDEX IF NOT EXISTS transaction_fxt_block_id_idx ON transaction_fxt (block_id)");
+            case 169:
                 return;
             default:
                 throw new RuntimeException("Forging chain database inconsistent with code, at update " + nextUpdate

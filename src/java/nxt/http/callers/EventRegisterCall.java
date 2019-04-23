@@ -1,8 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.Override;
-import java.lang.String;
 import nxt.http.APICall;
 
 public class EventRegisterCall extends APICall.Builder<EventRegisterCall> {
@@ -14,7 +12,7 @@ public class EventRegisterCall extends APICall.Builder<EventRegisterCall> {
         return new EventRegisterCall();
     }
 
-    public EventRegisterCall add(String add) {
+    public EventRegisterCall add(boolean add) {
         return param("add", add);
     }
 
@@ -26,7 +24,7 @@ public class EventRegisterCall extends APICall.Builder<EventRegisterCall> {
         return unsignedLongParam("event", event);
     }
 
-    public EventRegisterCall remove(String remove) {
+    public EventRegisterCall remove(boolean remove) {
         return param("remove", remove);
     }
 

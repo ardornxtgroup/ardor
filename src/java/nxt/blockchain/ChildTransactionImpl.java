@@ -26,6 +26,7 @@ import nxt.account.PublicKeyAnnouncementAppendix;
 import nxt.ae.AssetControl;
 import nxt.crypto.Crypto;
 import nxt.db.DbUtils;
+import nxt.dbschema.Db;
 import nxt.messaging.EncryptToSelfMessageAppendix;
 import nxt.messaging.EncryptedMessageAppendix;
 import nxt.messaging.MessageAppendix;
@@ -448,6 +449,9 @@ public final class ChildTransactionImpl extends TransactionImpl implements Child
             pstmt.setShort(++i, getIndex());
             pstmt.setLong(++i, getFxtTransactionId());
             pstmt.executeUpdate();
+            if ((getIndex() + 1) % Constants.BATCH_COMMIT_SIZE == 0) {
+                Db.db.commitTransaction();
+            }
         }
     }
 

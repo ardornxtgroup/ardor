@@ -2294,6 +2294,7 @@ public abstract class NetworkMessage {
                 BlockBytes bytes = new BlockBytes(block);
                 if (getLength() + bytes.getLength() > NetworkHandler.MAX_MESSAGE_SIZE) {
                     ((ArrayList)blockBytes).trimToSize();
+                    Logger.logDebugMessage("Blocks message size exceeds " + NetworkHandler.MAX_MESSAGE_SIZE);
                     break;
                 }
                 blockBytes.add(bytes);
@@ -2746,6 +2747,7 @@ public abstract class NetworkMessage {
                 TransactionBytes bytes = new TransactionBytes(tx);
                 if (getLength() + bytes.getLength() > NetworkHandler.MAX_MESSAGE_SIZE) {
                     ((ArrayList)transactionBytes).trimToSize();
+                    Logger.logDebugMessage("Transactions message size exceeds " + NetworkHandler.MAX_MESSAGE_SIZE);
                     break;
                 }
                 transactionBytes.add(bytes);

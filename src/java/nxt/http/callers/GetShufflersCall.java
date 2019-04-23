@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class GetShufflersCall extends APICall.Builder<GetShufflersCall> {
@@ -15,10 +14,6 @@ public class GetShufflersCall extends APICall.Builder<GetShufflersCall> {
 
     public GetShufflersCall includeParticipantState(boolean includeParticipantState) {
         return param("includeParticipantState", includeParticipantState);
-    }
-
-    public GetShufflersCall secretPhrase(String secretPhrase) {
-        return param("secretPhrase", secretPhrase);
     }
 
     public GetShufflersCall account(String account) {

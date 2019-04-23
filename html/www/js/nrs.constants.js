@@ -74,9 +74,12 @@ var NRS = (function (NRS, $) {
         'UNKNOWN': 'unknown',
         'INITIAL_BASE_TARGET': 153722867,
         'TESTNET_ACCELERATION': 6,
-        'TESTNET_ACCELRATION_BLOCK': 455000,
+        'TESTNET_ACCELERATION_BLOCK': 455000,
         'SIGNATURE_POSITION': 69, // bytes before signature from TransactionImpl newTransactionBuilder()
-        'SIGNATURE_LENGTH': 64
+        'SIGNATURE_LENGTH': 64,
+        'SECRET_WORDS_HASH': "9e7c7a62a5c2bbc2b8d9a53c3b3ff2ef1c512939924704a2de584e27023c39b3",
+        'SECRET_WORDS': [],
+        'SECRET_WORDS_MAP': {}
     };
     
     var CHAIN_DISPLAY_TO_LOGIC_MAPPING = { "BITS": "BITSWIFT" };
@@ -145,12 +148,28 @@ var NRS = (function (NRS, $) {
             NRS.constants.ACCOUNT_MASK_LEN = NRS.constants.ACCOUNT_MASK_PREFIX.length;
             NRS.constants.INITIAL_BASE_TARGET = parseInt(response.initialBaseTarget);
             NRS.constants.LEASING_DELAY = parseInt(response.leasingDelay);
+            getSecretWords(response.secretPhraseWords);
             console.log("done loading server constants");
             if (resolve) {
                 resolve();
             }
         }
     };
+
+    function getSecretWords(compressedWords) {
+        var bytes = converters.hexStringToByteArray(compressedWords);
+        sha256 = CryptoJS.algo.SHA256.create();
+        sha256.update(converters.byteArrayToWordArrayEx(bytes));
+        var hash = converters.byteArrayToHexString(converters.wordArrayToByteArrayEx(sha256.finalize()));
+        if (hash != NRS.constants.SECRET_WORDS_HASH) {
+            throw "invalid secret words list";
+        }
+        var wordsStr = pako.inflate(bytes, { to: 'string' });
+        NRS.constants.SECRET_WORDS = wordsStr.split(",");
+        for (var i=0; i<NRS.constants.SECRET_WORDS.length; i++) {
+            NRS.constants.SECRET_WORDS_MAP[NRS.constants.SECRET_WORDS[i]] = i;
+        }
+    }
 
     NRS.loadServerConstants = function(resolve, isUnitTest) {
         function processConstants(response) {

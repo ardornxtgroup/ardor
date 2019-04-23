@@ -1032,7 +1032,8 @@ var NRS = (function (NRS, $) {
         var isQuantityField = /_quantity/i.test($(this).attr("id"));
         var decimals = currentAsset.decimals;
         var maxFractionLength = (isQuantityField ? decimals : NRS.getActiveChainDecimals());
-        NRS.validateDecimals(maxFractionLength, charCode, $(this).val(), e);
+        var caretPos = $(this)[0].selectionStart;
+        NRS.validateDecimals(maxFractionLength, charCode, $(this).val(), caretPos, e);
     });
 
     //calculate preview price (calculated on every keypress)

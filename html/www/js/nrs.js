@@ -66,7 +66,8 @@ var NRS = (function(NRS, $, undefined) {
         is_remote_node_ssl: true,
         validators_count: 3,
         bootstrap_nodes_count: 5,
-		chain: "2"
+		chain: "2",
+		camera_id: 0
     };
 	NRS.contacts = {};
 
@@ -477,7 +478,7 @@ var NRS = (function(NRS, $, undefined) {
 			}
 		} else {
 			if (NRS.account) {
-				NRS.getUnconfirmedTransactions(function(unconfirmedTransactions) {
+				NRS.loadUnconfirmedTransactions(function(unconfirmedTransactions) {
 					NRS.handleIncomingTransactions(unconfirmedTransactions, false);
 				});
 			}
@@ -1101,11 +1102,17 @@ var NRS = (function(NRS, $, undefined) {
 		}, function(response) {
             var connectedIndicator = $("#connected_indicator");
             if (response.peers && response.peers.length) {
+            	if (!NRS.peerConnect) {
+            		NRS.logConsole("Changing status from disconnected to connected");
+				}
 				NRS.peerConnect = true;
 				connectedIndicator.addClass("connected");
                 connectedIndicator.find("span").html($.t("Connected")).attr("data-i18n", "connected");
 				connectedIndicator.show();
 			} else {
+				if (NRS.peerConnect) {
+					NRS.logConsole("Changing status from connected to disconnected");
+				}
 				NRS.peerConnect = false;
 				connectedIndicator.removeClass("connected");
 				connectedIndicator.find("span").html($.t("Not Connected")).attr("data-i18n", "not_connected");
@@ -1148,7 +1155,7 @@ var NRS = (function(NRS, $, undefined) {
         });
     };
 
-    function getAccountBalances() {
+    NRS.getAccountBalances = function(callback) {
         // Currently there is no way to get balances for all chains, so we need to specify each chain separately
         var qs = [];
         for (var i = 1; i <= Object.keys(NRS.constants.CHAINS).length; i++) {
@@ -1159,7 +1166,10 @@ var NRS = (function(NRS, $, undefined) {
         NRS.sendRequest("getBalances", {
             "querystring": qs
         }, function (response) {
-            NRS.accountInfo["balances"] = response.balances;
+			NRS.accountInfo["balances"] = response.balances;
+			if (callback) {
+				callback();
+			}
         });
     }
 
@@ -1210,7 +1220,7 @@ var NRS = (function(NRS, $, undefined) {
                     $("#account_balance, #account_balance_sidebar").html(NRS.formatStyledAmount(balance.unconfirmedBalanceNQT));
                     NRS.accountInfo = $.extend({}, NRS.accountInfo, balance);
                 });
-                getAccountBalances();
+                NRS.getAccountBalances();
                 if (response.forgedBalanceFQT) {
                     $("#account_forged_balance").html(NRS.formatStyledAmount(response.forgedBalanceFQT));
                 } else {
@@ -1616,6 +1626,9 @@ var NRS = (function(NRS, $, undefined) {
 				var lessor = NRS.accountInfo.lessorsRS[i];
 				var lessorInfo = NRS.accountInfo.lessorsInfo[i];
 				var blocksLeft = lessorInfo.currentHeightTo - NRS.lastBlockHeight;
+				var blockTime = NRS.isTestNet ? 60 / NRS.constants.TESTNET_ACCELERATION : 60;
+				var timeLeftMs = 1000 * blockTime * blocksLeft;
+				var expirationTime = new Date(Date.now() + timeLeftMs).toLocaleString();
 				var blocksLeftTooltip = "From block " + lessorInfo.currentHeightFrom + " to block " + lessorInfo.currentHeightTo;
 				var nextLessee = "Not set";
 				var nextTooltip = "Next lessee not set";
@@ -1630,6 +1643,7 @@ var NRS = (function(NRS, $, undefined) {
 					"<td>" + NRS.getAccountLink({ lessorRS: lessor }, "lessor") + "</td>" +
 					"<td>" + NRS.escapeRespStr(lessorInfo.effectiveBalanceFXT) + "</td>" +
 					"<td><label>" + String(blocksLeft).escapeHTML() + " <i class='fa fa-question-circle show_popover' data-toggle='tooltip' title='" + blocksLeftTooltip + "' data-placement='right' style='color:#4CAA6E'></i></label></td>" +
+					"<td>" + expirationTime + "</td>" +
 					"<td><label>" + String(nextLessee).escapeHTML() + " <i class='fa fa-question-circle show_popover' data-toggle='tooltip' title='" + nextTooltip + "' data-placement='right' style='color:#4CAA6E'></i></label></td>" +
 				"</tr>";
 			}

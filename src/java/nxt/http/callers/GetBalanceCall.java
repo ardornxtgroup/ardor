@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class GetBalanceCall extends APICall.Builder<GetBalanceCall> {
@@ -10,21 +9,11 @@ public class GetBalanceCall extends APICall.Builder<GetBalanceCall> {
     }
 
     public static GetBalanceCall create(int chain) {
-        GetBalanceCall instance = new GetBalanceCall();
-        instance.param("chain", chain);
-        return instance;
+        return new GetBalanceCall().param("chain", chain);
     }
 
     public GetBalanceCall requireLastBlock(String requireLastBlock) {
         return param("requireLastBlock", requireLastBlock);
-    }
-
-    public GetBalanceCall chain(String chain) {
-        return param("chain", chain);
-    }
-
-    public GetBalanceCall chain(int chain) {
-        return param("chain", chain);
     }
 
     public GetBalanceCall account(String account) {

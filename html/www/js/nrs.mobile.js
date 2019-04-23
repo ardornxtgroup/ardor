@@ -61,6 +61,7 @@ var NRS = (function(NRS, $) {
         }
         $("#mobile_validators_count").val(NRS.mobileSettings.validators_count);
         $("#mobile_bootstrap_nodes_count").val(NRS.mobileSettings.bootstrap_nodes_count);
+        $("#mobile_camera_id").val(NRS.mobileSettings.camera_id);
     });
 
     NRS.forms.setMobileSettings = function() {
@@ -95,7 +96,11 @@ var NRS = (function(NRS, $) {
         if (count < 0 || count > 5) {
             return { error: $.t("bootstrap_nodes_count") + " " + $.t("is_not_in_the_range", { from: 0, to: 5 }) };
         }
-        NRS.mobileSettings.bootstrap_nodes_count = count;
+        var cameraId = $("#mobile_camera_id").val();
+        if (!$.isNumeric(cameraId)) {
+            return { error: $.t("camera_id") + " " + $.t("is_not_numeric") };
+        }
+        NRS.mobileSettings.camera_id = parseInt(cameraId);
         NRS.setJSONItem("mobile_settings", NRS.mobileSettings);
         return { reload: true, forceGet: false };
     };

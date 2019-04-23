@@ -19,6 +19,7 @@ package nxt;
 import nxt.addons.AddonsSuite;
 import nxt.blockchain.GeneratorTest;
 import nxt.http.PaymentAndMessagesSuite;
+import nxt.http.SecretSharingApiTest;
 import nxt.http.accountControl.AccountControlSuite;
 import nxt.http.accountproperties.AccountPropertiesSuite;
 import nxt.http.alias.CreateAliasTest;
@@ -50,7 +51,8 @@ import org.junit.runners.Suite;
         AccountPropertiesSuite.class,
         CreateAliasTest.class,
         ContractReferenceTest.class,
-        AddonsSuite.class
+        AddonsSuite.class,
+        SecretSharingApiTest.class
 })
 public class TestDbSuite extends SafeShutdownSuite {
 }

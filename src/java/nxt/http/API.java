@@ -73,9 +73,9 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
-import static nxt.http.JSONResponses.MISSING_ADMIN_PASSWORD;
 import static nxt.http.JSONResponses.INCORRECT_ADMIN_PASSWORD;
 import static nxt.http.JSONResponses.LOCKED_ADMIN_PASSWORD;
+import static nxt.http.JSONResponses.MISSING_ADMIN_PASSWORD;
 import static nxt.http.JSONResponses.NO_PASSWORD_IN_CONFIG;
 
 public final class API {
@@ -84,6 +84,7 @@ public final class API {
     public static final int TESTNET_API_SSLPORT = 26877;
     public static final int MIN_COMPRESS_SIZE = 256;
     private static final String[] DISABLED_HTTP_METHODS = {"TRACE", "HEAD"};
+    static Set<String> SENSITIVE_PARAMS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList("secretPhrase", "adminPassword", "sharedKey", "sharedPiece")));
 
     static final int openAPIPort;
     static final int openAPISSLPort;
@@ -107,6 +108,8 @@ public final class API {
     private static final BlockchainPermission API_PERMISSION = new BlockchainPermission("api");
     private static URI welcomePageUri;
     private static URI serverRootUri;
+    private static URI paperWalletUri;
+    private static volatile String paperWalletPage;
 
     static {
         List<String> disabled = new ArrayList<>(Nxt.getStringListProperty("nxt.disabledAPIs"));
@@ -206,6 +209,7 @@ public final class API {
             try {
                 welcomePageUri = new URI(enableSSL ? "https" : "http", null, localhost, enableSSL ? sslPort : port, "/index.html", null, null);
                 serverRootUri = new URI(enableSSL ? "https" : "http", null, localhost, enableSSL ? sslPort : port, "", null, null);
+                paperWalletUri = new URI(enableSSL ? "https" : "http", null, localhost, enableSSL ? sslPort : port, "/paperwallet", null, null);
             } catch (URISyntaxException e) {
                 Logger.logInfoMessage("Cannot resolve browser URI", e);
             }
@@ -262,6 +266,7 @@ public final class API {
             apiHandler.addServlet(APITestServlet.class, "/test-proxy");
 
             apiHandler.addServlet(DbShellServlet.class, "/dbshell");
+            apiHandler.addServlet(PaperWalletServlet.class, "/paperwallet");
 
             if (apiServerCORS) {
                 FilterHolder filterHolder = apiHandler.addFilter(CrossOriginFilter.class, "/*", null);
@@ -564,8 +569,24 @@ public final class API {
         return welcomePageUri;
     }
 
+    public static URI getPaperWalletUri() {
+        return paperWalletUri;
+    }
+
     public static URI getServerRootUri() {
         return serverRootUri;
+    }
+
+    public static void setPaperWalletPage(String page) {
+        paperWalletPage = page;
+    }
+
+    public static String getPaperWalletPage() {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("sensitiveInfo"));
+        }
+        return paperWalletPage;
     }
 
     private API() {} // never

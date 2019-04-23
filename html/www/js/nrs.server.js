@@ -329,6 +329,7 @@ var NRS = (function (NRS, $, undefined) {
                     extra.voucherSecretPhrase = secretPhrase;
                 }
             }
+            // Delete the secret phrase from the submitted data and only use it to sign the response locally
             delete data.secretPhrase;
 
             if (NRS.accountInfo && NRS.accountInfo.publicKey) {
@@ -413,8 +414,9 @@ var NRS = (function (NRS, $, undefined) {
         url += "?requestType=" + requestType;
 
         var currentRequestId = NRS.requestId++;
-        NRS.logConsole("Send request " + requestType + " to url " + url + " id=" + currentRequestId);
-
+        if (NRS.isLogConsole(10)) {
+            NRS.logConsole("Send request " + requestType + " to url " + url + " id=" + currentRequestId);
+        }
         $.ajax({
             url: url,
             crossDomain: true,
@@ -858,8 +860,8 @@ var NRS = (function (NRS, $, undefined) {
                 var numberOfSecrets = converters.byteArrayToSignedShort(byteArray, pos);
                 pos += 2;
                 if (numberOfSecrets < 0 || numberOfSecrets > 1
-                    || numberOfSecrets == 0 && (data.revealedSecretText !== "" || data.revealedSecret !== "")
-                        || numberOfSecrets == 1 && data.revealedSecretText === "" && data.revealedSecret === "") {
+                    || numberOfSecrets == 0 && (data.revealedSecretText && data.revealedSecretText !== "" || data.revealedSecret && data.revealedSecret !== "")
+                        || numberOfSecrets == 1 && (!data.revealedSecretText || data.revealedSecretText === "") && (!data.revealedSecret || data.revealedSecret === "")) {
                     return { fail: true, param: requestType + "NumberOfSecrets", actual: JSON.stringify(data), expected: numberOfSecrets };
                 }
                 // We only support one secret per phasing model
@@ -868,6 +870,8 @@ var NRS = (function (NRS, $, undefined) {
                 if (transaction.revealedSecretLength > 0) {
                     transaction.revealedSecret = converters.byteArrayToHexString(byteArray.slice(pos, pos + transaction.revealedSecretLength));
                     pos += transaction.revealedSecretLength;
+                } else {
+                    transaction.revealedSecret = "";
                 }
                 if (transaction.revealedSecret !== data.revealedSecret &&
                     transaction.revealedSecret !== converters.byteArrayToHexString(NRS.getUtf8Bytes(data.revealedSecretText))) {
@@ -1777,7 +1781,7 @@ var NRS = (function (NRS, $, undefined) {
                 if (!response.errorDescription) {
                     response.errorDescription = (response.errorMessage ? response.errorMessage : "Unknown error occurred.");
                 }
-                    callback(response, originalData);
+                callback(response, originalData);
             } else if (response.error) {
                 response.errorCode = 1;
                 response.errorDescription = response.error;

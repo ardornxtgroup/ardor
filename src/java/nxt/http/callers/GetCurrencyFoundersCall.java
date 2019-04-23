@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class GetCurrencyFoundersCall extends APICall.Builder<GetCurrencyFoundersCall> {
@@ -10,21 +9,11 @@ public class GetCurrencyFoundersCall extends APICall.Builder<GetCurrencyFounders
     }
 
     public static GetCurrencyFoundersCall create(int chain) {
-        GetCurrencyFoundersCall instance = new GetCurrencyFoundersCall();
-        instance.param("chain", chain);
-        return instance;
+        return new GetCurrencyFoundersCall().param("chain", chain);
     }
 
     public GetCurrencyFoundersCall requireLastBlock(String requireLastBlock) {
         return param("requireLastBlock", requireLastBlock);
-    }
-
-    public GetCurrencyFoundersCall chain(String chain) {
-        return param("chain", chain);
-    }
-
-    public GetCurrencyFoundersCall chain(int chain) {
-        return param("chain", chain);
     }
 
     public GetCurrencyFoundersCall firstIndex(int firstIndex) {

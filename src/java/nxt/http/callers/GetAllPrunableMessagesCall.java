@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class GetAllPrunableMessagesCall extends APICall.Builder<GetAllPrunableMessagesCall> {
@@ -10,21 +9,11 @@ public class GetAllPrunableMessagesCall extends APICall.Builder<GetAllPrunableMe
     }
 
     public static GetAllPrunableMessagesCall create(int chain) {
-        GetAllPrunableMessagesCall instance = new GetAllPrunableMessagesCall();
-        instance.param("chain", chain);
-        return instance;
+        return new GetAllPrunableMessagesCall().param("chain", chain);
     }
 
     public GetAllPrunableMessagesCall requireLastBlock(String requireLastBlock) {
         return param("requireLastBlock", requireLastBlock);
-    }
-
-    public GetAllPrunableMessagesCall chain(String chain) {
-        return param("chain", chain);
-    }
-
-    public GetAllPrunableMessagesCall chain(int chain) {
-        return param("chain", chain);
     }
 
     public GetAllPrunableMessagesCall firstIndex(int firstIndex) {

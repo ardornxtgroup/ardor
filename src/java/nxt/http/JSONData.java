@@ -1165,8 +1165,9 @@ public final class JSONData {
         return response;
     }
 
-    static JSONObject accountMonitor(FundingMonitor monitor, boolean includeMonitoredAccounts) {
+    public static JSONObject accountMonitor(FundingMonitor monitor, boolean includeMonitoredAccounts) {
         JSONObject json = new JSONObject();
+        json.put("chain", monitor.getChain().getId());
         json.put("holdingType", monitor.getHoldingType().getCode());
         json.put("account", Long.toUnsignedString(monitor.getAccountId()));
         json.put("accountRS", monitor.getAccountName());
@@ -1185,7 +1186,7 @@ public final class JSONData {
         return json;
     }
 
-    static JSONObject monitoredAccount(FundingMonitor.MonitoredAccount account) {
+    public static JSONObject monitoredAccount(FundingMonitor.MonitoredAccount account) {
         JSONObject json = new JSONObject();
         json.put("account", Long.toUnsignedString(account.getAccountId()));
         json.put("accountRS", account.getAccountName());
@@ -1275,7 +1276,7 @@ public final class JSONData {
         return json;
     }
 
-    static JSONObject bundler(Bundler bundler) {
+    public static JSONObject bundler(Bundler bundler) {
         JSONObject json = new JSONObject();
         putAccount(json, "bundler", bundler.getAccountId());
         json.put("chain", bundler.getChildChain().getId());

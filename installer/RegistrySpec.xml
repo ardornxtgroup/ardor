@@ -14,11 +14,11 @@
         <value name="UninstallString"
                keypath="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$UNINSTALL_NAME"
                root="HKLM"
-               string="&quot;$INSTALL_PATH\jre\bin\javaw.exe&quot; -jar &quot;$INSTALL_PATH\uninstaller\uninstaller.jar&quot;"/>
+               string="&quot;$INSTALL_PATH\jdk\bin\javaw.exe&quot; -jar &quot;$INSTALL_PATH\uninstaller\uninstaller.jar&quot;"/>
         <value name="UninstallString"
                keypath="SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\$UNINSTALL_NAME"
                root="HKLM"
-               string="&quot;$INSTALL_PATH\jre\bin\javaw.exe&quot; -jar &quot;$INSTALL_PATH\uninstaller\uninstaller.jar&quot;"/>
+               string="&quot;$INSTALL_PATH\jdk\bin\javaw.exe&quot; -jar &quot;$INSTALL_PATH\uninstaller\uninstaller.jar&quot;"/>
         <value name="DisplayIcon"
                keypath="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$UNINSTALL_NAME"
                root="HKLM"
@@ -26,7 +26,7 @@
         <value name="HelpLink"
                keypath="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$UNINSTALL_NAME"
                root="HKLM"
-               string="https://nxtforum.org/nxt-helpdesk"/>
+               string="https://www.jelurida.com/support"/>
         <value name="URLInfoAbout"
                keypath="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$UNINSTALL_NAME"
                root="HKLM"
@@ -34,7 +34,7 @@
        <value name="Publisher"
                keypath="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$UNINSTALL_NAME"
                root="HKLM"
-               string="jelurida.com"/>
+               string="Jelurida"/>
        <value name="Version"
                keypath="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$UNINSTALL_NAME"
                root="HKLM"

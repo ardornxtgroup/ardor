@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class GetUnconfirmedTransactionIdsCall extends APICall.Builder<GetUnconfirmedTransactionIdsCall> {
@@ -10,21 +9,11 @@ public class GetUnconfirmedTransactionIdsCall extends APICall.Builder<GetUnconfi
     }
 
     public static GetUnconfirmedTransactionIdsCall create(int chain) {
-        GetUnconfirmedTransactionIdsCall instance = new GetUnconfirmedTransactionIdsCall();
-        instance.param("chain", chain);
-        return instance;
+        return new GetUnconfirmedTransactionIdsCall().param("chain", chain);
     }
 
     public GetUnconfirmedTransactionIdsCall requireLastBlock(String requireLastBlock) {
         return param("requireLastBlock", requireLastBlock);
-    }
-
-    public GetUnconfirmedTransactionIdsCall chain(String chain) {
-        return param("chain", chain);
-    }
-
-    public GetUnconfirmedTransactionIdsCall chain(int chain) {
-        return param("chain", chain);
     }
 
     public GetUnconfirmedTransactionIdsCall firstIndex(int firstIndex) {

@@ -90,9 +90,7 @@ var NRS = (function(NRS, $) {
 
 		var $loading = $("#account_phrase_generator_loading");
 		var $loaded = $("#account_phrase_generator_loaded");
-		if (NRS.isWindowPrintSupported()) {
-            $(".paper-wallet-link-container").show();
-		}
+		$(".paper-wallet-link-container").show();
 
 		//noinspection JSUnresolvedVariable
 		if (window.crypto || window.msCrypto) {
@@ -123,7 +121,7 @@ var NRS = (function(NRS, $) {
 
     $("#generator_paper_wallet_link").click(function(e) {
         e.preventDefault();
-        NRS.printPaperWallet($("#account_phrase_generator_panel").find(".step_2 textarea").val());
+        NRS.printPaperWallet($("#account_phrase_generator_panel").find(".step_2 textarea").val(), 3, 2);
     });
 
 	NRS.verifyGeneratedPassphrase = function() {

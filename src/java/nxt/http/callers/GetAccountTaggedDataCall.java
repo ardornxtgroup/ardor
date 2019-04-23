@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class GetAccountTaggedDataCall extends APICall.Builder<GetAccountTaggedDataCall> {
@@ -10,21 +9,11 @@ public class GetAccountTaggedDataCall extends APICall.Builder<GetAccountTaggedDa
     }
 
     public static GetAccountTaggedDataCall create(int chain) {
-        GetAccountTaggedDataCall instance = new GetAccountTaggedDataCall();
-        instance.param("chain", chain);
-        return instance;
+        return new GetAccountTaggedDataCall().param("chain", chain);
     }
 
     public GetAccountTaggedDataCall requireLastBlock(String requireLastBlock) {
         return param("requireLastBlock", requireLastBlock);
-    }
-
-    public GetAccountTaggedDataCall chain(String chain) {
-        return param("chain", chain);
-    }
-
-    public GetAccountTaggedDataCall chain(int chain) {
-        return param("chain", chain);
     }
 
     public GetAccountTaggedDataCall firstIndex(int firstIndex) {

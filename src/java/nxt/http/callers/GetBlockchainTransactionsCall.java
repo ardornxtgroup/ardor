@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class GetBlockchainTransactionsCall extends APICall.Builder<GetBlockchainTransactionsCall> {
@@ -10,21 +9,11 @@ public class GetBlockchainTransactionsCall extends APICall.Builder<GetBlockchain
     }
 
     public static GetBlockchainTransactionsCall create(int chain) {
-        GetBlockchainTransactionsCall instance = new GetBlockchainTransactionsCall();
-        instance.param("chain", chain);
-        return instance;
+        return new GetBlockchainTransactionsCall().param("chain", chain);
     }
 
     public GetBlockchainTransactionsCall requireLastBlock(String requireLastBlock) {
         return param("requireLastBlock", requireLastBlock);
-    }
-
-    public GetBlockchainTransactionsCall chain(String chain) {
-        return param("chain", chain);
-    }
-
-    public GetBlockchainTransactionsCall chain(int chain) {
-        return param("chain", chain);
     }
 
     public GetBlockchainTransactionsCall includeExpiredPrunable(boolean includeExpiredPrunable) {

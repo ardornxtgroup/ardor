@@ -88,7 +88,7 @@ public abstract class VersionedEntityDbTable<T> extends EntityDbTable<T> {
              PreparedStatement pstmtSelectToDelete = con.prepareStatement("SELECT DISTINCT " + dbKeyFactory.getPKColumns()
                      + " FROM " + schemaTable + " WHERE height > ?");
              PreparedStatement pstmtDelete = con.prepareStatement("DELETE FROM " + schemaTable
-                     + " WHERE height > ?");
+                     + " WHERE height > ? LIMIT " + Constants.BATCH_COMMIT_SIZE);
              PreparedStatement pstmtSetLatest = con.prepareStatement("UPDATE " + schemaTable
                      + " SET latest = TRUE " + dbKeyFactory.getPKClause() + " AND height ="
                      + " (SELECT MAX(height) FROM " + schemaTable + dbKeyFactory.getPKClause() + ")")) {
@@ -99,24 +99,21 @@ public abstract class VersionedEntityDbTable<T> extends EntityDbTable<T> {
                     dbKeys.add(dbKeyFactory.newKey(rs));
                 }
             }
-            /*
-            if (dbKeys.size() > 0 && Logger.isDebugEnabled()) {
-                Logger.logDebugMessage(String.format("rollback table %s found %d records to update to latest", table, dbKeys.size()));
-            }
-            */
             pstmtDelete.setInt(1, height);
-            int deletedRecordsCount = pstmtDelete.executeUpdate();
-            /*
-            if (deletedRecordsCount > 0 && Logger.isDebugEnabled()) {
-                Logger.logDebugMessage(String.format("rollback table %s deleting %d records", table, deletedRecordsCount));
-            }
-            */
+            int count;
+            do {
+                count = pstmtDelete.executeUpdate();
+                db.commitTransaction();
+            } while (count >= Constants.BATCH_COMMIT_SIZE);
+            count = 0;
             for (DbKey dbKey : dbKeys) {
                 int i = 1;
                 i = dbKey.setPK(pstmtSetLatest, i);
                 i = dbKey.setPK(pstmtSetLatest, i);
                 pstmtSetLatest.executeUpdate();
-                //Db.getCache(schemaTable).remove(dbKey);
+                if (++count % Constants.BATCH_COMMIT_SIZE == 0) {
+                    db.commitTransaction();
+                }
             }
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
@@ -133,7 +130,7 @@ public abstract class VersionedEntityDbTable<T> extends EntityDbTable<T> {
              PreparedStatement pstmtDelete = con.prepareStatement("DELETE FROM " + schemaTable + dbKeyFactory.getPKClause()
                      + " AND height < ? AND height >= 0 LIMIT " + Constants.BATCH_COMMIT_SIZE);
              PreparedStatement pstmtDeleteDeleted = con.prepareStatement("DELETE FROM " + schemaTable + " WHERE height < ? AND height >= 0 AND latest = FALSE "
-                     + " AND (" + dbKeyFactory.getPKColumns() + ") NOT IN (SELECT (" + dbKeyFactory.getPKColumns() + ") FROM "
+                     + " AND (" + dbKeyFactory.getPKColumns() + ") NOT IN (SELECT " + dbKeyFactory.getPKColumns() + " FROM "
                      + schemaTable + " WHERE height >= ?) LIMIT " + Constants.BATCH_COMMIT_SIZE)) {
             pstmtSelect.setInt(1, height);
             try (ResultSet rs = pstmtSelect.executeQuery()) {

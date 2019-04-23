@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class EncryptToCall extends APICall.Builder<EncryptToCall> {
@@ -17,23 +16,11 @@ public class EncryptToCall extends APICall.Builder<EncryptToCall> {
         return param("compressMessageToEncrypt", compressMessageToEncrypt);
     }
 
-    public EncryptToCall recipient(String recipient) {
-        return param("recipient", recipient);
-    }
-
-    public EncryptToCall recipient(long recipient) {
-        return unsignedLongParam("recipient", recipient);
-    }
-
     public EncryptToCall messageToEncryptIsText(boolean messageToEncryptIsText) {
         return param("messageToEncryptIsText", messageToEncryptIsText);
     }
 
     public EncryptToCall messageToEncrypt(String messageToEncrypt) {
         return param("messageToEncrypt", messageToEncrypt);
-    }
-
-    public EncryptToCall secretPhrase(String secretPhrase) {
-        return param("secretPhrase", secretPhrase);
     }
 }

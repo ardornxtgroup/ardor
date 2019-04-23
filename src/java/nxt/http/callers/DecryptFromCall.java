@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class DecryptFromCall extends APICall.Builder<DecryptFromCall> {
@@ -23,10 +22,6 @@ public class DecryptFromCall extends APICall.Builder<DecryptFromCall> {
 
     public DecryptFromCall uncompressDecryptedMessage(String uncompressDecryptedMessage) {
         return param("uncompressDecryptedMessage", uncompressDecryptedMessage);
-    }
-
-    public DecryptFromCall secretPhrase(String secretPhrase) {
-        return param("secretPhrase", secretPhrase);
     }
 
     public DecryptFromCall nonce(String nonce) {

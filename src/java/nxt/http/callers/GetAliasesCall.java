@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class GetAliasesCall extends APICall.Builder<GetAliasesCall> {
@@ -10,21 +9,11 @@ public class GetAliasesCall extends APICall.Builder<GetAliasesCall> {
     }
 
     public static GetAliasesCall create(int chain) {
-        GetAliasesCall instance = new GetAliasesCall();
-        instance.param("chain", chain);
-        return instance;
+        return new GetAliasesCall().param("chain", chain);
     }
 
     public GetAliasesCall requireLastBlock(String requireLastBlock) {
         return param("requireLastBlock", requireLastBlock);
-    }
-
-    public GetAliasesCall chain(String chain) {
-        return param("chain", chain);
-    }
-
-    public GetAliasesCall chain(int chain) {
-        return param("chain", chain);
     }
 
     public GetAliasesCall firstIndex(int firstIndex) {

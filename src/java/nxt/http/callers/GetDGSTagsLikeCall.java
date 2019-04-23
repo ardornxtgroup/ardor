@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class GetDGSTagsLikeCall extends APICall.Builder<GetDGSTagsLikeCall> {
@@ -10,21 +9,11 @@ public class GetDGSTagsLikeCall extends APICall.Builder<GetDGSTagsLikeCall> {
     }
 
     public static GetDGSTagsLikeCall create(int chain) {
-        GetDGSTagsLikeCall instance = new GetDGSTagsLikeCall();
-        instance.param("chain", chain);
-        return instance;
+        return new GetDGSTagsLikeCall().param("chain", chain);
     }
 
     public GetDGSTagsLikeCall requireLastBlock(String requireLastBlock) {
         return param("requireLastBlock", requireLastBlock);
-    }
-
-    public GetDGSTagsLikeCall chain(String chain) {
-        return param("chain", chain);
-    }
-
-    public GetDGSTagsLikeCall chain(int chain) {
-        return param("chain", chain);
     }
 
     public GetDGSTagsLikeCall firstIndex(int firstIndex) {

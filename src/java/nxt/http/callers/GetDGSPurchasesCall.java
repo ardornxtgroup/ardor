@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class GetDGSPurchasesCall extends APICall.Builder<GetDGSPurchasesCall> {
@@ -10,9 +9,7 @@ public class GetDGSPurchasesCall extends APICall.Builder<GetDGSPurchasesCall> {
     }
 
     public static GetDGSPurchasesCall create(int chain) {
-        GetDGSPurchasesCall instance = new GetDGSPurchasesCall();
-        instance.param("chain", chain);
-        return instance;
+        return new GetDGSPurchasesCall().param("chain", chain);
     }
 
     public GetDGSPurchasesCall requireLastBlock(String requireLastBlock) {
@@ -21,14 +18,6 @@ public class GetDGSPurchasesCall extends APICall.Builder<GetDGSPurchasesCall> {
 
     public GetDGSPurchasesCall seller(String seller) {
         return param("seller", seller);
-    }
-
-    public GetDGSPurchasesCall chain(String chain) {
-        return param("chain", chain);
-    }
-
-    public GetDGSPurchasesCall chain(int chain) {
-        return param("chain", chain);
     }
 
     public GetDGSPurchasesCall firstIndex(int firstIndex) {

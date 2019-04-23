@@ -215,13 +215,14 @@ var NRS = (function(NRS, $, undefined) {
 	};
 
 	NRS.setUnconfirmedNotifications = function() {
-        var count;
-        if (NRS.unconfirmedTransactions.length > NRS.itemsPerPage) {
-            count = String(NRS.itemsPerPage) + "+";
+        var countStr;
+		var count = NRS.getUnconfirmedTransactionsCount();
+		if (count > NRS.itemsPerPage) {
+            countStr = String(NRS.itemsPerPage) + "+";
         } else {
-            count = String(NRS.unconfirmedTransactions.length);
+            countStr = String(count);
         }
-        $('#unconfirmed_notification_counter').html(count);
+        $('#unconfirmed_notification_counter').html(countStr);
 		$('#unconfirmed_notification_menu').show();
 	};
 

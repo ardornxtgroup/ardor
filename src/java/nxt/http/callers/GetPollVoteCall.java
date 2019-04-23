@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class GetPollVoteCall extends APICall.Builder<GetPollVoteCall> {
@@ -10,21 +9,11 @@ public class GetPollVoteCall extends APICall.Builder<GetPollVoteCall> {
     }
 
     public static GetPollVoteCall create(int chain) {
-        GetPollVoteCall instance = new GetPollVoteCall();
-        instance.param("chain", chain);
-        return instance;
+        return new GetPollVoteCall().param("chain", chain);
     }
 
     public GetPollVoteCall requireLastBlock(String requireLastBlock) {
         return param("requireLastBlock", requireLastBlock);
-    }
-
-    public GetPollVoteCall chain(String chain) {
-        return param("chain", chain);
-    }
-
-    public GetPollVoteCall chain(int chain) {
-        return param("chain", chain);
     }
 
     public GetPollVoteCall includeWeights(boolean includeWeights) {

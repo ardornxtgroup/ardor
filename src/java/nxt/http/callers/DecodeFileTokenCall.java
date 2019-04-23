@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class DecodeFileTokenCall extends APICall.Builder<DecodeFileTokenCall> {
@@ -17,7 +16,7 @@ public class DecodeFileTokenCall extends APICall.Builder<DecodeFileTokenCall> {
         return param("token", token);
     }
 
-    public APICall.Builder file(byte[] b) {
+    public DecodeFileTokenCall file(byte[] b) {
         return parts("file", b);
     }
 }

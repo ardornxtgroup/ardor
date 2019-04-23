@@ -92,6 +92,7 @@ public abstract class BlockchainTest extends AbstractBlockchainTest {
                 properties.setProperty("nxt.deleteFinishedShufflings", "false");
                 properties.setProperty("nxt.disableAdminPassword", "true");
                 properties.setProperty("nxt.testDbDir", "./nxt_unit_test_db/nxt");
+                properties.setProperty("nxt.secretPhrasePieces.ARDOR-XK4R-7VJU-6EQG-7R335", "1:9999:3:2:0:2:01d8ce9df0a2bbc29140a56211262d9449d501508b1c5547e5");
 
                 additionalProperties.forEach(properties::setProperty);
                 AbstractForgingTest.init(properties);

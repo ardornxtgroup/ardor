@@ -21,6 +21,7 @@ import nxt.Nxt;
 import nxt.NxtException;
 import nxt.account.Account;
 import nxt.account.AccountLedger;
+import nxt.dbschema.Db;
 import nxt.util.Convert;
 import nxt.util.JSON;
 import nxt.util.Logger;
@@ -129,10 +130,14 @@ public final class ChildBlockFxtTransactionType extends FxtTransactionType {
     @Override
     protected boolean applyAttachmentUnconfirmed(FxtTransactionImpl transaction, Account senderAccount) {
         TransactionProcessorImpl transactionProcessor = TransactionProcessorImpl.getInstance();
+        int count = 0;
         for (byte[] hash : ((ChildBlockFxtTransactionImpl)transaction).getChildTransactionFullHashes()) {
             UnconfirmedTransaction unconfirmedTransaction = transactionProcessor.getUnconfirmedTransaction(Convert.fullHashToId(hash));
             if (unconfirmedTransaction != null) {
                 unconfirmedTransaction.setBundled();
+                if (++count % Constants.BATCH_COMMIT_SIZE == 0) {
+                    Db.db.commitTransaction();
+                }
             }
         }
         // child transactions applyAttachmentUnconfirmed called when they are accepted in the unconfirmed pool
@@ -146,12 +151,17 @@ public final class ChildBlockFxtTransactionType extends FxtTransactionType {
         for (ChildTransactionImpl childTransaction : transaction.getSortedChildTransactions()) {
             childTransaction.apply();
             totalFee = Math.addExact(totalFee, childTransaction.getFee());
+            if ((childTransaction.getIndex() + 1) % Constants.BATCH_COMMIT_SIZE == 0) {
+                Db.db.commitTransaction();
+            }
         }
         ChildChain childChain = ChildChain.getChildChain(attachment.getChainId());
         senderAccount.addToBalanceAndUnconfirmedBalance(childChain, getLedgerEvent(), AccountLedger.newEventId(transaction), totalFee);
+        /*
         Logger.logDebugMessage(String.format("Bundler %s received %f %s child transaction fees and paid %f %s forging fees",
                 Long.toUnsignedString(senderAccount.getId()), (float)totalFee/childChain.ONE_COIN, childChain.getName(),
                 (float)transaction.getFee()/Constants.ONE_FXT, FxtChain.FXT_NAME));
+        */
     }
 
     @Override

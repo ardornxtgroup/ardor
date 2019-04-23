@@ -254,7 +254,8 @@ var ATS = (function(ATS, $, undefined) {
             processData: processData
         })
         .done(function(result) {
-            var resultStr = JSON.stringify(JSON.parse(result), null, 4);
+            var json = $.type(result) === 'string' ? JSON.parse(result) : result;
+            var resultStr = JSON.stringify(json, null, 4);
             var code_elem = form.getElementsByClassName("result")[0];
             code_elem.textContent = resultStr;
             hljs.highlightBlock(code_elem);

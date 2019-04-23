@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class GetDGSGoodCall extends APICall.Builder<GetDGSGoodCall> {
@@ -10,21 +9,11 @@ public class GetDGSGoodCall extends APICall.Builder<GetDGSGoodCall> {
     }
 
     public static GetDGSGoodCall create(int chain) {
-        GetDGSGoodCall instance = new GetDGSGoodCall();
-        instance.param("chain", chain);
-        return instance;
+        return new GetDGSGoodCall().param("chain", chain);
     }
 
     public GetDGSGoodCall requireLastBlock(String requireLastBlock) {
         return param("requireLastBlock", requireLastBlock);
-    }
-
-    public GetDGSGoodCall chain(String chain) {
-        return param("chain", chain);
-    }
-
-    public GetDGSGoodCall chain(int chain) {
-        return param("chain", chain);
     }
 
     public GetDGSGoodCall includeCounts(boolean includeCounts) {

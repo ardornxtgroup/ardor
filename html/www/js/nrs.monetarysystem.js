@@ -774,7 +774,8 @@ var NRS = (function (NRS, $, undefined) {
         }
         var isUnitsField = /_units/i.test($(this).attr("id"));
         var maxFractionLength = (isUnitsField ? decimals : NRS.getActiveChainDecimals());
-        return NRS.validateDecimals(maxFractionLength, charCode, $(this).val(), e);
+        var caretPos = $(this)[0].selectionStart;
+        return NRS.validateDecimals(maxFractionLength, charCode, $(this).val(), caretPos, e);
     });
 
     var unitFields = $(".currency_units");
@@ -787,7 +788,8 @@ var NRS = (function (NRS, $, undefined) {
         }
         var isUnitsField = /_units/i.test($(this).attr("id"));
         var maxFractionLength = (isUnitsField ? decimals : NRS.getActiveChainDecimals());
-        return NRS.validateDecimals(maxFractionLength, charCode, $(this).val(), e);
+        var caretPos = $(this)[0].selectionStart;
+        return NRS.validateDecimals(maxFractionLength, charCode, $(this).val(), caretPos, e);
     });
 
     unitFields.on("change", function() {
@@ -1474,7 +1476,8 @@ var NRS = (function (NRS, $, undefined) {
         if (NRS.isControlKey(charCode) || e.ctrlKey || e.metaKey) {
             return;
         }
-        return NRS.validateDecimals(NRS.getActiveChainDecimals(), charCode, $(this).val(), e);
+        var caretPos = $(this)[0].selectionStart;
+        return NRS.validateDecimals(NRS.getActiveChainDecimals(), charCode, $(this).val(), caretPos, e);
     });
 
     reserveCurrencyAmount.blur(function () {
@@ -1534,7 +1537,8 @@ var NRS = (function (NRS, $, undefined) {
         if (NRS.isControlKey(charCode) || e.ctrlKey || e.metaKey) {
             return;
         }
-        return NRS.validateDecimals(decimals, charCode, $(this).val(), e);
+        var caretPos = $(this)[0].selectionStart;
+        return NRS.validateDecimals(decimals, charCode, $(this).val(), caretPos, e);
     });
 
     /* Respect decimal positions on claiming a currency */

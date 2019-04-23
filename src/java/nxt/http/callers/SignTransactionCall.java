@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class SignTransactionCall extends APICall.Builder<SignTransactionCall> {
@@ -27,10 +26,6 @@ public class SignTransactionCall extends APICall.Builder<SignTransactionCall> {
 
     public SignTransactionCall unsignedTransactionJSON(String unsignedTransactionJSON) {
         return param("unsignedTransactionJSON", unsignedTransactionJSON);
-    }
-
-    public SignTransactionCall secretPhrase(String secretPhrase) {
-        return param("secretPhrase", secretPhrase);
     }
 
     public SignTransactionCall prunableAttachmentJSON(String prunableAttachmentJSON) {

@@ -142,13 +142,13 @@ var NRS = (function(NRS, $) {
                             if (parseFloat(data.rate) == 0) {
                                 rate = "N/A";
                             } else {
-                                rate = NRS.invert(data.rate);
+                                rate = NRS.getInverse(data.rate);
                             }
                             if (parseFloat(data.quotedRate) == 0) {
                                 quotedRate = "N/A";
                                 diff = "N/A";
                             } else {
-                                quotedRate = NRS.invert(data.quotedRate);
+                                quotedRate = NRS.getInverse(data.quotedRate);
                                 diff = -100 * (quotedRate - rate) / rate;
                             }
                         } else {
@@ -757,7 +757,7 @@ var NRS = (function(NRS, $) {
                     return;
                 }
                 modal.find(".error_message").html("").hide();
-                rate.val(NRS.invert(data.success.quotedRate));
+                rate.val(NRS.getInverse(data.success.quotedRate));
                 fee.val(data.success.minerFee);
                 depositAmount.val(parseFloat(data.success.depositAmount));
                 depositAddress.html(data.success.deposit);

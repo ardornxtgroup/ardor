@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class GetExpectedAssetTransfersCall extends APICall.Builder<GetExpectedAssetTransfersCall> {
@@ -10,21 +9,11 @@ public class GetExpectedAssetTransfersCall extends APICall.Builder<GetExpectedAs
     }
 
     public static GetExpectedAssetTransfersCall create(int chain) {
-        GetExpectedAssetTransfersCall instance = new GetExpectedAssetTransfersCall();
-        instance.param("chain", chain);
-        return instance;
+        return new GetExpectedAssetTransfersCall().param("chain", chain);
     }
 
     public GetExpectedAssetTransfersCall requireLastBlock(String requireLastBlock) {
         return param("requireLastBlock", requireLastBlock);
-    }
-
-    public GetExpectedAssetTransfersCall chain(String chain) {
-        return param("chain", chain);
-    }
-
-    public GetExpectedAssetTransfersCall chain(int chain) {
-        return param("chain", chain);
     }
 
     public GetExpectedAssetTransfersCall includeAssetInfo(boolean includeAssetInfo) {

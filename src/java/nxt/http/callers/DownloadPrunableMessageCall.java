@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class DownloadPrunableMessageCall extends APICall.Builder<DownloadPrunableMessageCall> {
@@ -10,9 +9,7 @@ public class DownloadPrunableMessageCall extends APICall.Builder<DownloadPrunabl
     }
 
     public static DownloadPrunableMessageCall create(int chain) {
-        DownloadPrunableMessageCall instance = new DownloadPrunableMessageCall();
-        instance.param("chain", chain);
-        return instance;
+        return new DownloadPrunableMessageCall().param("chain", chain);
     }
 
     public DownloadPrunableMessageCall requireLastBlock(String requireLastBlock) {
@@ -21,14 +18,6 @@ public class DownloadPrunableMessageCall extends APICall.Builder<DownloadPrunabl
 
     public DownloadPrunableMessageCall sharedKey(String sharedKey) {
         return param("sharedKey", sharedKey);
-    }
-
-    public DownloadPrunableMessageCall chain(String chain) {
-        return param("chain", chain);
-    }
-
-    public DownloadPrunableMessageCall chain(int chain) {
-        return param("chain", chain);
     }
 
     public DownloadPrunableMessageCall save(String save) {
@@ -45,10 +34,6 @@ public class DownloadPrunableMessageCall extends APICall.Builder<DownloadPrunabl
 
     public DownloadPrunableMessageCall transactionFullHash(byte[] transactionFullHash) {
         return param("transactionFullHash", transactionFullHash);
-    }
-
-    public DownloadPrunableMessageCall secretPhrase(String secretPhrase) {
-        return param("secretPhrase", secretPhrase);
     }
 
     public DownloadPrunableMessageCall requireBlock(String requireBlock) {

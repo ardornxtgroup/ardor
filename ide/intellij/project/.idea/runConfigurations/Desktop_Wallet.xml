@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Desktop Wallet" type="Application" factoryName="Application" singleton="true">
+    <option name="ALTERNATIVE_JRE_PATH" value="$PROJECT_DIR$/jdk" />
+    <option name="MAIN_CLASS_NAME" value="nxt.Nxt" />
+    <module name="nxt" />
+    <option name="VM_PARAMETERS" value="-Dnxt.runtime.mode=desktop" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

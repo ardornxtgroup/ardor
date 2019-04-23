@@ -663,10 +663,9 @@ public class ContractManager {
             JA events;
             // Wait for the next event. The while loop is not necessary but serves as a good practice in order not to
             // keep and Http request open for a long time.
-            //noinspection ConditionalBreakInInfiniteLoop
             while (true) {
                 // Wait up to 1 second for the event to occur
-                response = EventWaitCall.create().timeout("1").token(token).remote(getUrl()).call();
+                response = EventWaitCall.create().timeout(1).token(token).remote(getUrl()).call();
                 events = response.getArray("events");
                 if (events.size() > 0) {
                     // If the event occurred stop waiting
@@ -680,7 +679,7 @@ public class ContractManager {
         } finally {
             if (token != null) {
                 // Unregister the event listener
-                JO response = EventRegisterCall.create().token(token).remove("true").remote(getUrl()).call();
+                JO response = EventRegisterCall.create().token(token).remove(true).remote(getUrl()).call();
                 Logger.logInfoMessage("EventRegisterCall remove %s", response.toJSONString());
             }
         }

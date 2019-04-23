@@ -135,6 +135,7 @@ var NRS = (function(NRS, $) {
 		$(this).find(".user_info_modal_content table tbody").empty();
 		$(this).find(".user_info_modal_content:not(.data-loading,.data-never-loading)").addClass("data-loading");
 		$(this).find("ul.nav li.active").removeClass("active");
+		$(this).find("#user_modal_account_properties_page_type input").first().click();
 		$("#user_info_transactions").addClass("active");
 		NRS.userInfoModal.user = 0;
 	});
@@ -474,6 +475,40 @@ var NRS = (function(NRS, $) {
         infoModalAssetsTable.find("tbody").empty().append(rows);
 		NRS.dataLoadFinished(infoModalAssetsTable);
 	};
+
+	NRS.userInfoModal.account_properties = function() {
+		var params = {
+			"firstIndex": 0,
+			"lastIndex": 100
+		};
+		var type = $("#user_modal_account_properties_page_type").find(".active").data("type");
+		var columnName = type === "incoming" ? "setter" : "recipient";
+		if (type == "incoming") {
+            params.recipient = NRS.userInfoModal.user;
+        } else {
+            params.setter = NRS.userInfoModal.user;
+        }
+		
+		var onClickAction = 'NRS.resetModalTablesOnAccountSwitch()';
+		NRS.sendRequest("getAccountProperties", params,
+			function(response) {
+				var rows = "";
+				response.properties.forEach(
+					function (propertiesJson) {
+						rows += "<tr>" +
+							"<td>" + NRS.getAccountLink(propertiesJson, columnName, undefined, undefined, undefined, undefined, onClickAction) + "</td>" +
+							"<td>" + NRS.escapeRespStr(propertiesJson.property) + "</td>" +
+							"<td>" + NRS.escapeRespStr(propertiesJson.value) + "</td>" +							
+						"</tr>";
+					}
+				);
+				var infoModalAccountPropertiesTable = $("#user_info_modal_account_properties_table");
+				infoModalAccountPropertiesTable.find("tbody").empty().append(rows);
+				infoModalAccountPropertiesTable.find('th').first().text($.t(columnName));
+				NRS.dataLoadFinished(infoModalAccountPropertiesTable);
+			}
+		);
+	}
 
 	return NRS;
 }(NRS || {}, jQuery));

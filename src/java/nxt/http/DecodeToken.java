@@ -17,11 +17,12 @@
 package nxt.http;
 
 import nxt.account.Token;
+import nxt.util.JSON;
+import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
 
-import static nxt.http.JSONResponses.INCORRECT_WEBSITE;
 import static nxt.http.JSONResponses.MISSING_TOKEN;
 import static nxt.http.JSONResponses.MISSING_WEBSITE;
 
@@ -51,7 +52,10 @@ public final class DecodeToken extends APIServlet.APIRequestHandler {
             return JSONData.token(token);
 
         } catch (RuntimeException e) {
-            return INCORRECT_WEBSITE;
+            JSONObject response = new JSONObject();
+            response.put("errorCode", 4);
+            response.put("errorDescription", e.toString());
+            return JSON.prepare(response);
         }
     }
 

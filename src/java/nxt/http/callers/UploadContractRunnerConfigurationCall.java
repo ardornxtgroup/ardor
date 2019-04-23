@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class UploadContractRunnerConfigurationCall extends APICall.Builder<UploadContractRunnerConfigurationCall> {
@@ -25,7 +24,7 @@ public class UploadContractRunnerConfigurationCall extends APICall.Builder<Uploa
         return param("adminPassword", adminPassword);
     }
 
-    public APICall.Builder config(byte[] b) {
+    public UploadContractRunnerConfigurationCall config(byte[] b) {
         return parts("config", b);
     }
 }

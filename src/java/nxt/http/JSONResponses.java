@@ -46,7 +46,6 @@ public final class JSONResponses {
     public static final JSONStreamAware MISSING_HALLMARK = missing("hallmark");
     public static final JSONStreamAware INCORRECT_HALLMARK = incorrect("hallmark");
     public static final JSONStreamAware MISSING_WEBSITE = missing("website");
-    public static final JSONStreamAware INCORRECT_WEBSITE = incorrect("website");
     public static final JSONStreamAware MISSING_TOKEN = missing("token");
     public static final JSONStreamAware INCORRECT_TOKEN = incorrect("token");
     public static final JSONStreamAware MISSING_ACCOUNT = missing("account");

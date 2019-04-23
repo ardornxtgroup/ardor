@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class TriggerContractByVoucherCall extends APICall.Builder<TriggerContractByVoucherCall> {
@@ -25,11 +24,7 @@ public class TriggerContractByVoucherCall extends APICall.Builder<TriggerContrac
         return param("requireBlock", requireBlock);
     }
 
-    public TriggerContractByVoucherCall adminPassword(String adminPassword) {
-        return param("adminPassword", adminPassword);
-    }
-
-    public APICall.Builder voucher(byte[] b) {
+    public TriggerContractByVoucherCall voucher(byte[] b) {
         return parts("voucher", b);
     }
 }

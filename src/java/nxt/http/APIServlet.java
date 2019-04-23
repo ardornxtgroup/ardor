@@ -78,6 +78,12 @@ public final class APIServlet extends HttpServlet {
                 parameters.add("requireBlock");
                 parameters.add("requireLastBlock");
             }
+            if (parameters.contains("secretPhrase") && ! (this instanceof CreateTransaction) && ! (this instanceof SplitSecret)) {
+                parameters.add("sharedPieceAccount");
+                parameters.add("sharedPiece");
+                parameters.add("sharedPiece");
+                parameters.add("sharedPiece");
+            }
             this.parameters = Collections.unmodifiableList(parameters);
             this.apiTags = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(apiTags)));
             this.fileParameter = fileParameter;

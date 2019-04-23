@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class GetExpectedAssetDeletesCall extends APICall.Builder<GetExpectedAssetDeletesCall> {
@@ -10,21 +9,11 @@ public class GetExpectedAssetDeletesCall extends APICall.Builder<GetExpectedAsse
     }
 
     public static GetExpectedAssetDeletesCall create(int chain) {
-        GetExpectedAssetDeletesCall instance = new GetExpectedAssetDeletesCall();
-        instance.param("chain", chain);
-        return instance;
+        return new GetExpectedAssetDeletesCall().param("chain", chain);
     }
 
     public GetExpectedAssetDeletesCall requireLastBlock(String requireLastBlock) {
         return param("requireLastBlock", requireLastBlock);
-    }
-
-    public GetExpectedAssetDeletesCall chain(String chain) {
-        return param("chain", chain);
-    }
-
-    public GetExpectedAssetDeletesCall chain(int chain) {
-        return param("chain", chain);
     }
 
     public GetExpectedAssetDeletesCall includeAssetInfo(boolean includeAssetInfo) {

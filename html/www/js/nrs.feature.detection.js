@@ -231,7 +231,7 @@ var NRS = (function (NRS) {
     };
 
     NRS.isWindowPrintSupported = function() {
-        return !isDesktopApplication && !isMobileDevice;
+        return !isDesktopApplication && !isMobileDevice && navigator.userAgent.indexOf("Firefox") == -1;
     };
     
     NRS.getAdminPassword = function() {
@@ -253,6 +253,10 @@ var NRS = (function (NRS) {
     };
 
     NRS.isAnimationAllowed = function() {
+        return !isDesktopApplication;
+    };
+
+    NRS.isCameraAccessSupported = function() {
         return !isDesktopApplication;
     };
 

@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class GetCoinExchangeOrdersCall extends APICall.Builder<GetCoinExchangeOrdersCall> {
@@ -10,21 +9,11 @@ public class GetCoinExchangeOrdersCall extends APICall.Builder<GetCoinExchangeOr
     }
 
     public static GetCoinExchangeOrdersCall create(int chain) {
-        GetCoinExchangeOrdersCall instance = new GetCoinExchangeOrdersCall();
-        instance.param("chain", chain);
-        return instance;
+        return new GetCoinExchangeOrdersCall().param("chain", chain);
     }
 
     public GetCoinExchangeOrdersCall requireLastBlock(String requireLastBlock) {
         return param("requireLastBlock", requireLastBlock);
-    }
-
-    public GetCoinExchangeOrdersCall chain(String chain) {
-        return param("chain", chain);
-    }
-
-    public GetCoinExchangeOrdersCall chain(int chain) {
-        return param("chain", chain);
     }
 
     public GetCoinExchangeOrdersCall firstIndex(int firstIndex) {

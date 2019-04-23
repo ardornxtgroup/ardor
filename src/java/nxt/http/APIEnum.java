@@ -312,7 +312,9 @@ public enum APIEnum {
     GET_ASSET_PROPERTIES("getAssetProperties", GetAssetProperties.instance),
     SET_ASSET_PROPERTY("setAssetProperty", SetAssetProperty.instance),
     DELETE_ASSET_PROPERTY("deleteAssetProperty", DeleteAssetProperty.instance),
-    GET_HASHED_SECRET_PHASED_TRANSACTIONS("getHashedSecretPhasedTransactions", GetHashedSecretPhasedTransactions.instance);
+    GET_HASHED_SECRET_PHASED_TRANSACTIONS("getHashedSecretPhasedTransactions", GetHashedSecretPhasedTransactions.instance),
+    SPLIT_SECRET("splitSecret", SplitSecret.instance),
+    COMBINE_SECRET("combineSecret", CombineSecret.instance);
 
     private static final Map<String, APIEnum> apiByName = new HashMap<>();
 

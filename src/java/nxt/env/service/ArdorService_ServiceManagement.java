@@ -46,7 +46,7 @@ public class ArdorService_ServiceManagement {
         }
         return new String[]{
                 "Ardor Server", // Long name
-                "Manages the Ardor cryptographic currency protocol", // Description
+                "Manages the Ardor Blockchain Protocol", // Description
                 "true", // IsAutomatic
                 "true", // IsAcceptStop
                 "", // failure exe

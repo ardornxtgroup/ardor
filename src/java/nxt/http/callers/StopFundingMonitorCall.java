@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class StopFundingMonitorCall extends APICall.Builder<StopFundingMonitorCall> {
@@ -10,9 +9,7 @@ public class StopFundingMonitorCall extends APICall.Builder<StopFundingMonitorCa
     }
 
     public static StopFundingMonitorCall create(int chain) {
-        StopFundingMonitorCall instance = new StopFundingMonitorCall();
-        instance.param("chain", chain);
-        return instance;
+        return new StopFundingMonitorCall().param("chain", chain);
     }
 
     public StopFundingMonitorCall holding(String holding) {
@@ -23,24 +20,12 @@ public class StopFundingMonitorCall extends APICall.Builder<StopFundingMonitorCa
         return unsignedLongParam("holding", holding);
     }
 
-    public StopFundingMonitorCall chain(String chain) {
-        return param("chain", chain);
-    }
-
-    public StopFundingMonitorCall chain(int chain) {
-        return param("chain", chain);
-    }
-
     public StopFundingMonitorCall holdingType(String holdingType) {
         return param("holdingType", holdingType);
     }
 
     public StopFundingMonitorCall property(String property) {
         return param("property", property);
-    }
-
-    public StopFundingMonitorCall secretPhrase(String secretPhrase) {
-        return param("secretPhrase", secretPhrase);
     }
 
     public StopFundingMonitorCall account(String account) {

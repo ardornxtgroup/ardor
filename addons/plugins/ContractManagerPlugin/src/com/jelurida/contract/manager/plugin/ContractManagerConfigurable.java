@@ -293,15 +293,8 @@ public class ContractManagerConfigurable extends SettingsEditor<ApplicationConfi
 
         // Set the contract manager command line
         myCommonProgramParameters.setProgramParameters("--" + action + " " + params);
-
-        if ("verify".equals(cmActionSelection.getSelectedItem())) {
-            if (myCommonProgramParameters.getVMParameters() == null || myCommonProgramParameters.getVMParameters().equals("")) {
-                myCommonProgramParameters.setVMParameters(VM_PARAMS_SECURITY_POLICY);
-            }
-        } else {
-            if (myCommonProgramParameters.getVMParameters() != null && myCommonProgramParameters.getVMParameters().equals(VM_PARAMS_SECURITY_POLICY)) {
-                myCommonProgramParameters.setVMParameters("");
-            }
+        if (myCommonProgramParameters.getVMParameters() == null || myCommonProgramParameters.getVMParameters().equals("")) {
+            myCommonProgramParameters.setVMParameters(VM_PARAMS_SECURITY_POLICY);
         }
     }
 

@@ -1,9 +1,15 @@
 #!/bin/sh
 
-PATHSEP=":" 
+if [ -x jdk/bin/java ]; then
+    JAVA=./jdk/bin/java
+else
+    JAVA=java
+fi
+
+PATHSEP=":"
 if [ "$OSTYPE" = "cygwin" ] ; then
 PATHSEP=";" 
 fi
 
-java -cp "classes${PATHSEP}lib/*${PATHSEP}conf" nxt.http.APICallGenerator
+${JAVA} -cp "classes${PATHSEP}lib/*${PATHSEP}conf" nxt.http.APICallGenerator
 

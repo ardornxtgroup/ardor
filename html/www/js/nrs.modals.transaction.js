@@ -354,7 +354,7 @@ var NRS = (function (NRS, $, undefined) {
                             fieldsToDecrypt.encryptedMessage = $.t("encrypted_message");
                         }
                         if (transaction.attachment.encryptToSelfMessage && NRS.account == transaction.sender) {
-                            fieldsToDecrypt.encryptToSelfMessage = $.t("note_to_self");
+                            fieldsToDecrypt.encryptToSelfMessage = $.t("note_to_self_initial_caps");
                         }
                         var options = {
                             "noPadding": true,
@@ -1448,7 +1448,7 @@ var NRS = (function (NRS, $, undefined) {
                             transactionInfoOutputBottom.append("<div style='height:5px'></div>");
                         }
                         if (transaction.attachment.encryptToSelfMessage && NRS.account == transaction.sender) {
-                            fieldsToDecrypt.encryptToSelfMessage = $.t("note_to_self");
+                            fieldsToDecrypt.encryptToSelfMessage = $.t("note_to_self_initial_caps");
                             if (!account) {
                                 account = transaction.sender;
                             }

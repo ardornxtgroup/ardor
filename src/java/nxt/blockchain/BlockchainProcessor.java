@@ -135,6 +135,11 @@ public interface BlockchainProcessor extends Observable<Block,BlockchainProcesso
             super("Lower cumulative difficulty", block);
         }
 
+        @Override
+        public String getMessage() {
+            return "Lower cumulative difficulty block " + super.block.getStringId();
+        }
+
     }
 
 }

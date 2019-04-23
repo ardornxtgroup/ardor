@@ -16,8 +16,8 @@
 
 <div id="recipient_modal_template">
     <div class="form-group">
+        <div id="{{name}}_account_id_reader" class="input-group scan-qr-code-reader" style="display:none;width:384px;height:384px;"></div>
         <label for="{{name}}_recipient" data-i18n="recipient">RECIPIENT</label>
-        <div id="{{name}}_account_id_reader" class="scan-qr-code-reader" style="display:none;margin:auto;width:384px;height:384px;"></div>
         <button type="button" data-reader="{{name}}_account_id_reader" data-result="{{name}}_recipient" class="scan-qr-code btn btn-default btn-xs">
             <i class="fa fa-qrcode"></i>
         </button>
@@ -79,15 +79,21 @@
 
 <div id="secret_phrase_modal_template">
     <div class="form-group secret_phrase">
+        <div id="{{name}}_secret_phrase_reader" class="input-group scan-qr-code-reader" style="display:none;width:384px;height:384px;"></div>
         <label for="{{name}}_password" data-i18n="passphrase">PASSPHRASE</label>
-        <div id="{{name}}_secret_phrase_reader" class="scan-qr-code-reader" style="display:none;margin:auto;width:384px;height:384px;"></div>
         <button id="{{name}}_secret_phrase_scan" type="button" data-reader="{{name}}_secret_phrase_reader" data-result="{{name}}_password" class="scan-qr-code btn btn-default btn-xs ">
             <i class="fa fa-qrcode"></i>
         </button>
-        <input type="password" name="secretPhrase" id="{{name}}_password" class="form-control" placeholder="" tabindex="111">
-    </div>
-    <div class="form-group is_voucher">
-        <input type="checkbox" name="isVoucher" id="{{name}}_is_voucher" value="0" tabindex="142"/> <label for="{{name}}_is_voucher" style="font-weight:normal;" data-i18n="voucher">Voucher</label>
+        <input type="password" name="secretPhrase" id="{{name}}_password" class="form-control secret-phrase-input" placeholder="" tabindex="111">
+        <div class="form-group">
+            <div class="shared-secret-container">
+                <input type="checkbox" id="{{name}}_is_shared_secret" class="is-shared-secret" value="0" tabindex="144"/> <label for="{{name}}_is_shared_secret" style="font-weight:normal;margin-bottom:0;"> <span data-i18n="shared_secret">SHARED SECRET</span></label>
+            </div>
+            <div class="form-group piece_entry_group" data-modal-ui-element="multi_piece_modal_ui_element"></div>
+            <div class="is_voucher">
+                <input type="checkbox" name="isVoucher" id="{{name}}_is_voucher" value="0" tabindex="143"/> <label for="{{name}}_is_voucher" style="font-weight:normal;" data-i18n="voucher">Voucher</label>
+            </div>
+        </div>
     </div>
 </div>
 

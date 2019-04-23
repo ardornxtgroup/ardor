@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class SearchTaggedDataCall extends APICall.Builder<SearchTaggedDataCall> {
@@ -10,21 +9,11 @@ public class SearchTaggedDataCall extends APICall.Builder<SearchTaggedDataCall> 
     }
 
     public static SearchTaggedDataCall create(int chain) {
-        SearchTaggedDataCall instance = new SearchTaggedDataCall();
-        instance.param("chain", chain);
-        return instance;
+        return new SearchTaggedDataCall().param("chain", chain);
     }
 
     public SearchTaggedDataCall requireLastBlock(String requireLastBlock) {
         return param("requireLastBlock", requireLastBlock);
-    }
-
-    public SearchTaggedDataCall chain(String chain) {
-        return param("chain", chain);
-    }
-
-    public SearchTaggedDataCall chain(int chain) {
-        return param("chain", chain);
     }
 
     public SearchTaggedDataCall firstIndex(int firstIndex) {

@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class DetectMimeTypeCall extends APICall.Builder<DetectMimeTypeCall> {
@@ -25,7 +24,7 @@ public class DetectMimeTypeCall extends APICall.Builder<DetectMimeTypeCall> {
         return param("isText", isText);
     }
 
-    public APICall.Builder file(byte[] b) {
+    public DetectMimeTypeCall file(byte[] b) {
         return parts("file", b);
     }
 }

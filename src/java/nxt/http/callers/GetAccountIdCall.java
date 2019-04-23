@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class GetAccountIdCall extends APICall.Builder<GetAccountIdCall> {
@@ -19,9 +18,5 @@ public class GetAccountIdCall extends APICall.Builder<GetAccountIdCall> {
 
     public GetAccountIdCall publicKey(byte[] publicKey) {
         return param("publicKey", publicKey);
-    }
-
-    public GetAccountIdCall secretPhrase(String secretPhrase) {
-        return param("secretPhrase", secretPhrase);
     }
 }

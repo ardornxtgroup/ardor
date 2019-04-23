@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class GetAssetDividendsCall extends APICall.Builder<GetAssetDividendsCall> {
@@ -10,21 +9,11 @@ public class GetAssetDividendsCall extends APICall.Builder<GetAssetDividendsCall
     }
 
     public static GetAssetDividendsCall create(int chain) {
-        GetAssetDividendsCall instance = new GetAssetDividendsCall();
-        instance.param("chain", chain);
-        return instance;
+        return new GetAssetDividendsCall().param("chain", chain);
     }
 
     public GetAssetDividendsCall requireLastBlock(String requireLastBlock) {
         return param("requireLastBlock", requireLastBlock);
-    }
-
-    public GetAssetDividendsCall chain(String chain) {
-        return param("chain", chain);
-    }
-
-    public GetAssetDividendsCall chain(int chain) {
-        return param("chain", chain);
     }
 
     public GetAssetDividendsCall firstIndex(int firstIndex) {

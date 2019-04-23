@@ -286,6 +286,8 @@ public class APITestServlet extends HttpServlet {
             buf.append("style='width:100%;min-width:200px;'/></td>\n");
             buf.append("</tr>\n");
         }
+        int paramIndex = 0;
+        String prevParam = null;
         for (String parameter : parameters) {
             buf.append("<tr class='api-call-input-tr'>\n");
             buf.append("<td>").append(parameter).append(":</td>\n");
@@ -295,7 +297,14 @@ public class APITestServlet extends HttpServlet {
                 buf.append("<td><input type='").append(isPassword(parameter, requestHandler) ? "password" : "text").append("' ");
             }
             buf.append("name='").append(parameter).append("' ");
-            String value = Convert.emptyToNull(req.getParameter(parameter));
+            if (parameter.equals(prevParam)) {
+                paramIndex++;
+            } else {
+                paramIndex = 0;
+            }
+            prevParam = parameter;
+            String[] parameterValues = req.getParameterValues(parameter);
+            String value = Convert.emptyToNull(parameterValues != null && paramIndex < parameterValues.length ? parameterValues[paramIndex] : null);
             if (value != null) {
                 buf.append("value='").append(value.replace("'", "&quot;")).append("' ");
             }

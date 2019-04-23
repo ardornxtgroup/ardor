@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class TriggerContractByTransactionCall extends APICall.Builder<TriggerContractByTransactionCall> {
@@ -10,21 +9,11 @@ public class TriggerContractByTransactionCall extends APICall.Builder<TriggerCon
     }
 
     public static TriggerContractByTransactionCall create(int chain) {
-        TriggerContractByTransactionCall instance = new TriggerContractByTransactionCall();
-        instance.param("chain", chain);
-        return instance;
+        return new TriggerContractByTransactionCall().param("chain", chain);
     }
 
     public TriggerContractByTransactionCall requireLastBlock(String requireLastBlock) {
         return param("requireLastBlock", requireLastBlock);
-    }
-
-    public TriggerContractByTransactionCall chain(String chain) {
-        return param("chain", chain);
-    }
-
-    public TriggerContractByTransactionCall chain(int chain) {
-        return param("chain", chain);
     }
 
     public TriggerContractByTransactionCall apply(String apply) {

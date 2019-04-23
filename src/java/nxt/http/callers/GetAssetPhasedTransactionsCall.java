@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class GetAssetPhasedTransactionsCall extends APICall.Builder<GetAssetPhasedTransactionsCall> {
@@ -10,21 +9,11 @@ public class GetAssetPhasedTransactionsCall extends APICall.Builder<GetAssetPhas
     }
 
     public static GetAssetPhasedTransactionsCall create(int chain) {
-        GetAssetPhasedTransactionsCall instance = new GetAssetPhasedTransactionsCall();
-        instance.param("chain", chain);
-        return instance;
+        return new GetAssetPhasedTransactionsCall().param("chain", chain);
     }
 
     public GetAssetPhasedTransactionsCall requireLastBlock(String requireLastBlock) {
         return param("requireLastBlock", requireLastBlock);
-    }
-
-    public GetAssetPhasedTransactionsCall chain(String chain) {
-        return param("chain", chain);
-    }
-
-    public GetAssetPhasedTransactionsCall chain(int chain) {
-        return param("chain", chain);
     }
 
     public GetAssetPhasedTransactionsCall firstIndex(int firstIndex) {

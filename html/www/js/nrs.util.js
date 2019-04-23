@@ -152,7 +152,7 @@ var NRS = (function (NRS, $, undefined) {
     NRS.baseTargetPercent = function(block) {
         if (block) {
             var percent = Math.round(block.baseTarget / NRS.constants.INITIAL_BASE_TARGET * 100);
-            if (NRS.isTestNet && block.height > NRS.constants.TESTNET_ACCELRATION_BLOCK) {
+            if (NRS.isTestNet && block.height > NRS.constants.TESTNET_ACCELERATION_BLOCK) {
                 return Math.round(percent / NRS.constants.TESTNET_ACCELERATION); // Reflect change of block time to 10 seconds on testnet
             } else {
                 return percent;
@@ -247,7 +247,7 @@ var NRS = (function (NRS, $, undefined) {
         return converters.byteArrayToBigInteger(transactionBytes, 0).toString().escapeHTML();
     };
 
-    NRS.getAccountLink = function (object, accountKey, accountRef, title, showAccountRS, clazz) {
+    NRS.getAccountLink = function (object, accountKey, accountRef, title, showAccountRS, clazz, onClickAction) {
         var accountRS;
         if (typeof object[accountKey + "RS"] != "undefined") {
             accountRS = object[accountKey + "RS"];
@@ -273,7 +273,8 @@ var NRS = (function (NRS, $, undefined) {
                 }
             }
         }
-        return "<a href='#' data-user='" + String(accountRS).escapeHTML() +
+        var onClickHandler = onClickAction ? "onclick='" + onClickAction + "'" : "";
+        return "<a href='#' " + onClickHandler + " data-user='" + String(accountRS).escapeHTML() +
             "' class='show_account_modal_action user-info" + clazz + "'>" + accountTitle + "</a>";
     };
 
@@ -468,23 +469,23 @@ var NRS = (function (NRS, $, undefined) {
 	};
 
     NRS.dataLoadFinished = function ($el, fadeIn) {
-		var $parent = $el.parent();
+		var $ancestor = $el.parents('.data-container');
 
 		if (fadeIn) {
-			$parent.hide();
+			$ancestor.hide();
 		}
 
-		$parent.removeClass("data-loading");
+		$ancestor.removeClass("data-loading");
 
-		var extra = $parent.data("extra");
+		var extra = $ancestor.data("extra");
 
 		var empty = false;
 
 		if ($el.is("table")) {
 			if ($el.find("tbody tr").length > 0) {
-				$parent.removeClass("data-empty");
-				if ($parent.data("no-padding")) {
-					$parent.parent().addClass("no-padding");
+				$ancestor.removeClass("data-empty");
+				if ($ancestor.data("no-padding")) {
+					$ancestor.parent().addClass("no-padding");
 				}
 
 				if (extra) {
@@ -500,20 +501,20 @@ var NRS = (function (NRS, $, undefined) {
 		}
 
 		if (empty) {
-			$parent.addClass("data-empty");
-			if ($parent.data("no-padding")) {
-				$parent.parent().removeClass("no-padding");
+			$ancestor.addClass("data-empty");
+			if ($ancestor.data("no-padding")) {
+				$ancestor.parent().removeClass("no-padding");
 			}
 			if (extra) {
 				$(extra).hide();
 			}
 		} else {
-			$parent.removeClass("data-empty");
+			$ancestor.removeClass("data-empty");
 		}
 
 		if (fadeIn) {
-            $parent.stop(true, true).fadeIn(400, function () {
-				$parent.show();
+            $ancestor.stop(true, true).fadeIn(400, function () {
+				$ancestor.show();
 			});
 		}
 	};
@@ -587,31 +588,16 @@ var NRS = (function (NRS, $, undefined) {
     NRS.getSelectedText = function () {
 		var t = "";
 		if (window.getSelection) {
+		    // TODO works only for webkit browsers, always returns empty string on Edge and Firefox
 			t = window.getSelection().toString();
 		} else if (document.getSelection) {
-			t = document.getSelection().toString();
+			// Never used?
+		    t = document.getSelection().toString();
 		} else if (document.selection) {
-			t = document.selection.createRange().text;
+            // Never used?
+		    t = document.selection.createRange().text;
 		}
 		return t;
-	};
-
-    NRS.getUnconfirmedTransactionsFromCache = function (chain, type, subtype) {
-		if (!NRS.unconfirmedTransactions.length) {
-			return false;
-		}
-		var unconfirmedTransactions = [];
-		for (var i = 0; i < NRS.unconfirmedTransactions.length; i++) {
-			var unconfirmedTransaction = NRS.unconfirmedTransactions[i];
-            if (chain == unconfirmedTransaction.chain && type == unconfirmedTransaction.type && (subtype == unconfirmedTransaction.subtype || subtype == -1)) {
-                unconfirmedTransactions.push(unconfirmedTransaction);
-            }
-		}
-        return unconfirmedTransactions;
-	};
-
-    NRS.hasTransactionUpdates = function (transactions) {
-		return ((transactions && transactions.length) || NRS.unconfirmedTransactionsChange);
 	};
 
     NRS.showMore = function ($el) {
@@ -1324,28 +1310,96 @@ var NRS = (function (NRS, $, undefined) {
         return new NxtAddress(NRS);
     };
 
-    NRS.printPaperWallet = function(passphrase) {
-        var $pageHeader = $("<h2 data-i18n='nxt_ardor_paper_wallet'>NXT and Ardor Paper Wallet</h2>");
-        var $passphraseHeader = $("<h3 data-i18n='passphrase'>Passphrase</h3>");
-        var $passphraseText = $("<div></div>");
+    NRS.resetModalTablesOnAccountSwitch = function() {
+        $(".user_info_modal_content").hide();
+        $("ul.nav li.active").removeClass("active");
+        $("#user_info_transactions").addClass("active");
+        setTimeout(function() {
+            $(".user_info_modal_content:not(#user_info_modal_transactions) table tbody").empty();
+            $(".user_info_modal_content:not(.data-loading,.data-never-loading,#user_info_modal_transactions)").addClass("data-loading");
+        }, 100); 
+    };
+
+    function print($frame) {
+        if (NRS.isWindowPrintSupported()) {
+            // Always prints a single blank page on firefox 65.0.1/ Windows 10/Multiple printers (tried many things, no idea), works on Chrome and Edge
+            window.frames['paperWalletFrame'].focus();
+            window.frames['paperWalletFrame'].print();
+            $(".printFrame").remove();
+        } else {
+            if (window.java) {
+                // Open the paper wallet in a new tab using Java FX
+                java.renderPaperWallet("<html lang=''>" + $frame.html() + "</html>");
+                $(".printFrame").remove();
+            } else {
+                // Open the paper wallet in a new tab
+                var win = window.open("", "_blank");
+                win.document.body.innerHTML = $frame.html();
+                win.focus();
+                $(".printFrame").remove();
+            }
+        }
+    }
+
+    NRS.printPaperWallet = function(passphrase, n, k) {
+        var $pageHeader = $("<h2>" + $.t('nxt_ardor_paper_wallet') + "</h2>");
+        var $passphraseHeader = $("<h3>" + $.t('passphrase') + "</h3>");
+        var $passphraseText = $("<div style='font-size: 14px; font-family: monospace; word-break: break-all;'></div>");
         $passphraseText.text(passphrase);
         var passphraseImg = NRS.generateQRCode(null, passphrase, 2, 4);
-        $(passphraseImg).load(function() {
-            var account = NRS.getAccountId(passphrase, true);
-            var $accountHeader = $("<h3 data-i18n='account'>Account</h3>");
-            var $accountText = $("<div></div>");
-            $accountText.html(account);
-            var accountImg = NRS.generateQRCode(null, account, 2, 4);
-            $(accountImg).load(function() {
-                $("<iframe>", { name: "paperWalletFrame", class: "printFrame"}).appendTo("body").contents().find("body")
-                    .append($pageHeader).append($passphraseHeader).append($passphraseText).append(passphraseImg).append($accountHeader).append($accountText).append(accountImg);
-                window.frames['paperWalletFrame'].focus();
-                window.frames['paperWalletFrame'].print();
-                setTimeout(function () {
-                    $(".printFrame").remove();
-                }, 1000);
-            });
+        var passphraseImgLoaded = new Promise(function (resolve) {
+            $(passphraseImg).load(resolve);
         });
+        var account = NRS.getAccountId(passphrase, true);
+        var $accountHeader = $("<h3>" + $.t('account') + "</h3>");
+        var $accountText = $("<div></div>");
+        $accountText.html(account);
+        var accountImg = NRS.generateQRCode(null, account, 2, 4);
+        var accountImgLoaded = new Promise(function (resolve) {
+            $(accountImg).load(resolve);
+        });
+        var $frame = $("<iframe>", {
+            id: "paperWalletFrame",
+            name: "paperWalletFrame",
+            class: "printFrame"
+        }).appendTo("body").contents().find("body");
+
+        // Load the passphrase and account QR code images
+        var imageLoader = [ passphraseImgLoaded, accountImgLoaded ];
+        Promise.all(imageLoader).then(function() {
+
+            // Prepare the paper wallet first page
+            $frame.append($pageHeader).append($passphraseHeader).append($passphraseText).append(passphraseImg).append($accountHeader).append($accountText).append(accountImg);
+            if (!n) {
+                print($frame);
+                return;
+            }
+
+            // Split the passphrase and create one page per piece
+            var $pageBreak = "<p style='page-break-before: always'>";
+            var pieces = sss.splitSecret(passphrase, n, k);
+            var pieceImages = new Array(n);
+            var pieceCounter = 0;
+            for (var i=0; i<pieces.length; i++) {
+                var piece = pieces[i];
+                var loadPiece = function(i, piece) {
+                    // Piece QR code image is loaded, we can now render the page
+                    pieceImages[i] = NRS.generateQRCode(null, piece, 2, 4);
+                    $(pieceImages[i]).load(function() {
+                        var $pieceHeader = $("<h3><span>" + $.t("shared_secret") + "</span><span>&nbsp;" + (i + 1) +"</span></h3>");
+                        var $pieceText = $("<div style='font-size: 10px; font-family: monospace;'>" + piece + "</div><p>");
+                        $frame.append($pageBreak).append("<div><p>").append($pieceHeader).append($pieceText).append(pieceImages[i]).append("</div>");
+                        pieceCounter++;
+
+                        // If all piece images were loaded the paper wallet is ready to print
+                        if (pieceCounter == pieces.length) {
+                            print($frame);
+                        }
+                    });
+                };
+                loadPiece(i, piece);
+            }
+        })
     };
 
     NRS.calculateSecret = function(secretPhrase, nonce, blockId) {

@@ -16,20 +16,24 @@
 
 package nxt.http;
 
+import nxt.Constants;
 import nxt.NxtException;
+import nxt.blockchain.FxtChain;
 import nxt.blockchain.Transaction;
+import nxt.peer.Peers;
 import nxt.util.Convert;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
+import java.math.BigInteger;
 
 public final class CalculateFee extends APIServlet.APIRequestHandler {
 
     static final CalculateFee instance = new CalculateFee();
 
     private CalculateFee() {
-        super(new APITag[] {APITag.TRANSACTIONS}, "transactionJSON", "transactionBytes", "prunableAttachmentJSON");
+        super(new APITag[]{APITag.TRANSACTIONS}, "transactionJSON", "transactionBytes", "prunableAttachmentJSON");
     }
 
     @Override
@@ -43,7 +47,17 @@ public final class CalculateFee extends APIServlet.APIRequestHandler {
         try {
             Transaction.Builder builder = ParameterParser.parseTransaction(transactionJSON, transactionBytes, prunableAttachmentJSON);
             Transaction transaction = builder.build();
-            response.put("minimumFeeFQT", String.valueOf(transaction.getMinimumFeeFQT()));
+            long minFeeFQT = transaction.getMinimumFeeFQT();
+            response.put("minimumFeeFQT", String.valueOf(minFeeFQT));
+            if (transaction.getChain() == FxtChain.FXT) {
+                response.put("feeNQT", String.valueOf(minFeeFQT));
+            } else {
+                long feeRateNQTPerFXT = Peers.getBestBundlerRate(transaction.getChain(), minFeeFQT, Peers.getBestBundlerRateWhitelist());
+                BigInteger[] fee = BigInteger.valueOf(minFeeFQT).multiply(BigInteger.valueOf(feeRateNQTPerFXT))
+                        .divideAndRemainder(Constants.ONE_FXT_BIG_INTEGER);
+                long feeNQT = fee[0].longValueExact() + (fee[1].equals(BigInteger.ZERO) ? 0 : 1);
+                response.put("feeNQT", String.valueOf(feeNQT));
+            }
         } catch (NxtException.NotValidException e) {
             JSONData.putException(response, e, "Incorrect transaction json or bytes");
         }

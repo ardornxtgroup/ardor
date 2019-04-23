@@ -16,6 +16,7 @@
 
 package nxt.blockchain;
 
+import nxt.Constants;
 import nxt.NxtException;
 import nxt.db.Table;
 import nxt.dbschema.Db;
@@ -147,6 +148,7 @@ public final class TransactionHome {
             throw new RuntimeException("Invalid chain");
         }
         List<byte[]> list = new ArrayList<>();
+        BlockchainImpl.getInstance().readLock();
         try (Connection con = transactionTable.getConnection();
              PreparedStatement pstmt = con.prepareStatement("SELECT full_hash FROM " + transactionTable.getSchemaTable()
                      + " WHERE fxt_transaction_id = ? ORDER BY fxt_transaction_id, transaction_index")) {
@@ -158,6 +160,8 @@ public final class TransactionHome {
             }
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
+        } finally {
+            BlockchainImpl.getInstance().readUnlock();
         }
         return list;
     }
@@ -167,6 +171,7 @@ public final class TransactionHome {
             throw new RuntimeException("Invalid chain");
         }
         List<ChildTransactionImpl> list = new ArrayList<>();
+        BlockchainImpl.getInstance().readLock();
         try (Connection con = transactionTable.getConnection();
              PreparedStatement pstmt = con.prepareStatement("SELECT * FROM " + transactionTable.getSchemaTable()
                      + " WHERE fxt_transaction_id = ? ORDER BY fxt_transaction_id, transaction_index")) {
@@ -181,6 +186,8 @@ public final class TransactionHome {
         } catch (NxtException.ValidationException e) {
             throw new RuntimeException("Transaction already in database for fxtTransactionId = " + Long.toUnsignedString(fxtTransactionId)
                     + " does not pass validation!", e);
+        } finally {
+            BlockchainImpl.getInstance().readUnlock();
         }
         return list;
     }
@@ -195,6 +202,7 @@ public final class TransactionHome {
 
     static List<FxtTransactionImpl> findBlockTransactions(Connection con, long blockId) {
         List<FxtTransactionImpl> list = new ArrayList<>();
+        BlockchainImpl.getInstance().readLock();
         try (PreparedStatement pstmt = con.prepareStatement("SELECT * FROM transaction_fxt"
                 + " WHERE block_id = ? ORDER BY transaction_index")) {
             pstmt.setLong(1, blockId);
@@ -209,8 +217,30 @@ public final class TransactionHome {
         } catch (NxtException.ValidationException e) {
             throw new RuntimeException("Transaction already in database for block_id = " + Long.toUnsignedString(blockId)
                     + " does not pass validation!", e);
+        } finally {
+            BlockchainImpl.getInstance().readUnlock();
         }
         return list;
+    }
+
+    static void deleteBlockTransactions(long blockId) {
+        FxtChain.FXT.getTransactionHome().deleteTransactions(blockId);
+        ChildChain.getAll().forEach(childChain -> childChain.getTransactionHome().deleteTransactions(blockId));
+    }
+
+    private void deleteTransactions(long blockId) {
+        try (Connection con = transactionTable.getConnection();
+             PreparedStatement pstmt = con.prepareStatement("DELETE FROM " + transactionTable.getSchemaTable()
+                     + " WHERE block_id = ? LIMIT " + Constants.BATCH_COMMIT_SIZE)) {
+            pstmt.setLong(1, blockId);
+            int count;
+            do {
+                count = pstmt.executeUpdate();
+                Db.db.commitTransaction();
+            } while (count >= Constants.BATCH_COMMIT_SIZE);
+        } catch (SQLException e) {
+            throw new RuntimeException(e.toString(), e);
+        }
     }
 
     List<PrunableTransaction> findPrunableTransactions(Connection con, int minTimestamp, int maxTimestamp) {

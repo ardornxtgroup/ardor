@@ -43,6 +43,7 @@ public final class BlockDb {
     }
 
     static BlockImpl findBlock(long blockId, boolean loadTransactions) {
+        BlockchainImpl.getInstance().readLock();
         try (Connection con = getConnection();
              PreparedStatement pstmt = con.prepareStatement("SELECT * FROM block WHERE id = ?")) {
             pstmt.setLong(1, blockId);
@@ -55,6 +56,8 @@ public final class BlockDb {
             }
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
+        } finally {
+            BlockchainImpl.getInstance().readUnlock();
         }
     }
 
@@ -90,6 +93,7 @@ public final class BlockDb {
     }
 
     public static BlockImpl findBlockAtHeight(int height) {
+        BlockchainImpl.getInstance().readLock();
         try (Connection con = getConnection();
              PreparedStatement pstmt = con.prepareStatement("SELECT * FROM block WHERE height = ?")) {
             pstmt.setInt(1, height);
@@ -104,10 +108,13 @@ public final class BlockDb {
             }
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
+        } finally {
+            BlockchainImpl.getInstance().readUnlock();
         }
     }
 
     static BlockImpl findLastBlock() {
+        BlockchainImpl.getInstance().readLock();
         try (Connection con = getConnection();
              PreparedStatement pstmt = con.prepareStatement("SELECT * FROM block ORDER BY timestamp DESC LIMIT 1")) {
             BlockImpl block = null;
@@ -119,10 +126,13 @@ public final class BlockDb {
             return block;
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
+        } finally {
+            BlockchainImpl.getInstance().readUnlock();
         }
     }
 
     static BlockImpl findLastBlock(int timestamp) {
+        BlockchainImpl.getInstance().readLock();
         try (Connection con = getConnection();
              PreparedStatement pstmt = con.prepareStatement("SELECT * FROM block WHERE timestamp <= ? ORDER BY timestamp DESC LIMIT 1")) {
             pstmt.setInt(1, timestamp);
@@ -135,6 +145,8 @@ public final class BlockDb {
             return block;
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
+        } finally {
+            BlockchainImpl.getInstance().readUnlock();
         }
     }
 
@@ -242,7 +254,6 @@ public final class BlockDb {
         BlockDb.deleteBlocksFrom(blockId);
     }
 
-    // relying on cascade triggers in the database to delete the transactions for all deleted blocks
     static BlockImpl deleteBlocksFrom(long blockId) {
         if (!Db.db.isInTransaction()) {
             BlockImpl lastBlock;
@@ -259,7 +270,7 @@ public final class BlockDb {
             return lastBlock;
         }
         try (Connection con = getConnection();
-             PreparedStatement pstmtSelect = con.prepareStatement("SELECT db_id FROM block WHERE timestamp >= "
+             PreparedStatement pstmtSelect = con.prepareStatement("SELECT db_id, id FROM block WHERE timestamp >= "
                      + "IFNULL ((SELECT timestamp FROM block WHERE id = ?), " + Integer.MAX_VALUE + ") ORDER BY timestamp DESC");
              PreparedStatement pstmtDelete = con.prepareStatement("DELETE FROM block WHERE db_id = ?")) {
             try {
@@ -267,6 +278,7 @@ public final class BlockDb {
                 try (ResultSet rs = pstmtSelect.executeQuery()) {
                     Db.db.commitTransaction();
                     while (rs.next()) {
+                        TransactionHome.deleteBlockTransactions(rs.getLong("id"));
         	            pstmtDelete.setLong(1, rs.getLong("db_id"));
             	        pstmtDelete.executeUpdate();
                         Db.db.commitTransaction();

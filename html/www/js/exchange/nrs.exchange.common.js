@@ -19,13 +19,6 @@
  */
 var NRS = (function(NRS, $) {
 
-    NRS.invert = function(rate) {
-        var bigRate = new Big(rate);
-        var bigOne = new Big(1);
-        var result = bigOne.div(bigRate);
-        return result.toFixed(8);
-    };
-
     NRS.getCoins = function(exchange) {
         var coins = [];
         for (var i=0; i<3; i++) {

@@ -73,9 +73,6 @@ public class ChildToParentExchange extends AbstractContract {
         if (context.notSameRecipient()) {
             return context.getResponse();
         }
-        if (context.isSameChain(2)) {
-            return context.getResponse(); // Ignore IGNIS transaction since these are handled by processBlock()
-        }
         // Read the contract configuration
         int maxAmountNXT = context.getParams(Params.class).maxAmountNXT();
         long chainAmountNQT = context.getAmountNQT();
@@ -181,11 +178,7 @@ public class ChildToParentExchange extends AbstractContract {
                 returnAmountNQT += BigInteger.valueOf(Math.subtractExact(amountNQT, Math.subtractExact(childTotal, childAmountNQT))).
                         multiply(BigInteger.valueOf(parentPerChildRate)).
                         divide(BigInteger.valueOf(oneCoin)).longValue();
-                if (returnAmountNQT <= oneCoin) {
-                    returnAmountNQT = amountNQT;
-                    returnChain = chain;
-                    break;
-                }
+                break;
             }
 
             // Return the amount to pay in Ardor

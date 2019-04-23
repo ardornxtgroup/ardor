@@ -19,25 +19,28 @@
  */
 var NRS = (function(NRS, $, undefined) {
 
-	NRS.lastTransactions = "";
-	NRS.unconfirmedTransactions = [];
-	NRS.unconfirmedTransactionIds = "";
-	NRS.unconfirmedTransactionsChange = true;
+	var lastTransactions = ""; // latest confirmed transactions used for duplicate checks
+	var unconfirmedTransactions = []; // current view of the unconfirmed transactions data
+	var unconfirmedTransactionIds = ""; // concatenated list of unconfirmed transaction ids
+	var unconfirmedTransactionsChange = true; // flag that there is a change in the list of unconfirmed transactions
 
+	/**
+	 * Notification of possible new transactions
+	 * @param transactions contains both confirmed and unconfirmed transactions
+	 * @param confirmedTransactionIds dual use, if there is no new block "false", otherwise lists new transactions in the block
+	 */
 	NRS.handleIncomingTransactions = function(transactions, confirmedTransactionIds) {
-		var oldBlock = (confirmedTransactionIds === false); //we pass false instead of an [] in case there is no new block..
-
+		var isNewBlock = (confirmedTransactionIds !== false); // we pass false instead of an [] in case there is no new block
 		if (typeof confirmedTransactionIds != "object") {
 			confirmedTransactionIds = [];
 		}
-
 		if (confirmedTransactionIds.length) {
-			NRS.lastTransactions = confirmedTransactionIds.toString();
+			lastTransactions = confirmedTransactionIds.toString();
 		}
-
-		if (confirmedTransactionIds.length || NRS.unconfirmedTransactionsChange) {
+		if (confirmedTransactionIds.length || unconfirmedTransactionsChange) {
 			transactions.sort(NRS.sortArray);
 		}
+
 		//Bug with popovers staying permanent when being open
 		$('div.popover').hide();
 		$('.td_transaction_phasing div.show_popover').popover('hide');
@@ -45,87 +48,87 @@ var NRS = (function(NRS, $, undefined) {
 		//always refresh peers and unconfirmed transactions..
 		if (NRS.currentPage == "peers") {
 			NRS.incoming.peers();
-		} else if (NRS.currentPage == "transactions"
-            && $('#transactions_type_navi').find('li.active a').attr('data-transaction-type') == "unconfirmed") {
+		} else if (NRS.currentPage == "transactions" && $('#transactions_type_navi').find('li.active a').attr('data-transaction-type') == "unconfirmed") {
 			NRS.incoming.transactions();
 		} else {
-			if (NRS.currentPage != 'messages' && (!oldBlock || NRS.unconfirmedTransactionsChange)) {
+			if (NRS.currentPage != 'messages' && (isNewBlock || unconfirmedTransactionsChange)) {
 				if (NRS.incoming[NRS.currentPage]) {
 					NRS.incoming[NRS.currentPage](transactions);
 				}
 			}
 		}
-		if (!oldBlock || NRS.unconfirmedTransactionsChange) {
+		if (isNewBlock || unconfirmedTransactionsChange) {
 			// always call incoming for messages to enable message notifications
 			NRS.incoming['messages'](transactions);
 			NRS.updateNotifications();
 			NRS.setPhasingNotifications();
-            NRS.setShufflingNotifications();
+			NRS.setShufflingNotifications();
+		}
+		if (isNewBlock) {
+			NRS.getAccountBalances(function() {
+				NRS.updateAccountBalances();
+			});
 		}
 	};
 
-	NRS.getUnconfirmedTransactions = function(callback) {
+	/**
+	 * Load unconfirmed transactions from the server, prepare them for presentation and update the various data structures
+	 * @param callback the callback to invoke
+	 */
+	NRS.loadUnconfirmedTransactions = function(callback) {
 		NRS.sendRequest("getUnconfirmedTransactions", {
 			"account": NRS.account,
             "firstIndex": 0,
             "lastIndex": NRS.itemsPerPage
 		}, function(response) {
 			if (response.unconfirmedTransactions && response.unconfirmedTransactions.length) {
-				var unconfirmedTransactions = [];
-				var unconfirmedTransactionIds = [];
+				var transactions = [];
+				var transactionIds = [];
 
 				response.unconfirmedTransactions.sort(function(x, y) {
-					if (x.timestamp < y.timestamp) {
-						return 1;
-					} else if (x.timestamp > y.timestamp) {
-						return -1;
-					} else {
-						return 0;
-					}
+					return y.timestamp - x.timestamp;
 				});
 
 				for (var i = 0; i < response.unconfirmedTransactions.length; i++) {
-					var unconfirmedTransaction = response.unconfirmedTransactions[i];
-					unconfirmedTransaction.confirmed = false;
-					unconfirmedTransaction.unconfirmed = true;
-					unconfirmedTransaction.confirmations = "/";
+					var transaction = response.unconfirmedTransactions[i];
+					transaction.confirmed = false;
+					transaction.unconfirmed = true;
+					transaction.confirmations = "/";
 
-					if (unconfirmedTransaction.attachment) {
-						for (var key in unconfirmedTransaction.attachment) {
-							if (!unconfirmedTransaction.attachment.hasOwnProperty(key)) {
+					if (transaction.attachment) {
+						for (var key in transaction.attachment) {
+							if (!transaction.attachment.hasOwnProperty(key)) {
 								continue;
 							}
-							if (!unconfirmedTransaction.hasOwnProperty(key)) {
-								unconfirmedTransaction[key] = unconfirmedTransaction.attachment[key];
+							if (!transaction.hasOwnProperty(key)) {
+								transaction[key] = transaction.attachment[key]; // Flatten the attachments
 							}
 						}
 					}
-					unconfirmedTransactions.push(unconfirmedTransaction);
-					unconfirmedTransactionIds.push(unconfirmedTransaction.fullHash);
+					transactions.push(transaction);
+					transactionIds.push(transaction.fullHash);
 				}
-				NRS.unconfirmedTransactions = unconfirmedTransactions;
-				var unconfirmedTransactionIdString = unconfirmedTransactionIds.toString();
-				if (unconfirmedTransactionIdString != NRS.unconfirmedTransactionIds) {
-					NRS.unconfirmedTransactionsChange = true;
+				unconfirmedTransactions = transactions;
+				var transactionIdString = transactionIds.toString();
+				if (transactionIdString != unconfirmedTransactionIds) {
+					unconfirmedTransactionsChange = true;
+					unconfirmedTransactionIds = transactionIdString;
 					NRS.setUnconfirmedNotifications();
-					NRS.unconfirmedTransactionIds = unconfirmedTransactionIdString;
 				} else {
-					NRS.unconfirmedTransactionsChange = false;
+					unconfirmedTransactionsChange = false;
 				}
-
 				if (callback) {
-					callback(unconfirmedTransactions);
+					callback(transactions);
 				}
 			} else {
-				NRS.unconfirmedTransactions = [];
-				if (NRS.unconfirmedTransactionIds) {
-					NRS.unconfirmedTransactionsChange = true;
+				unconfirmedTransactions = [];
+				if (unconfirmedTransactionIds) {
+					unconfirmedTransactionsChange = true;
 					NRS.setUnconfirmedNotifications();
 				} else {
-					NRS.unconfirmedTransactionsChange = false;
+					unconfirmedTransactionsChange = false;
 				}
-
-				NRS.unconfirmedTransactionIds = "";
+				unconfirmedTransactionIds = "";
 				if (callback) {
 					callback([]);
 				}
@@ -133,6 +136,9 @@ var NRS = (function(NRS, $, undefined) {
 		});
 	};
 
+	/**
+	 * Init the dashboard during scanning and initialization
+	 */
 	NRS.getInitialTransactions = function() {
 		NRS.sendRequest("getBlockchainTransactions", {
 			"account": NRS.account,
@@ -149,29 +155,32 @@ var NRS = (function(NRS, $, undefined) {
 					transactions.push(transaction);
 					transactionIds.push(transaction.fullHash);
 				}
-				NRS.getUnconfirmedTransactions(function() {
+				NRS.loadUnconfirmedTransactions(function() {
 					NRS.loadPage('dashboard');
 				});
 			} else {
-				NRS.getUnconfirmedTransactions(function() {
+				NRS.loadUnconfirmedTransactions(function() {
 					NRS.loadPage('dashboard');
 				});
 			}
 		});
 	};
 
+	/**
+	 * Load confirmed transactions from a new block and add unconfirmed transaction on top
+	 */
 	NRS.getNewTransactions = function() {
-		//check if there is a new transaction..
 		if (!NRS.blocks[0]) {
 			return;
 		}
-        NRS.sendRequest("getBlockchainTransactions", {
+		//check if there are new transactions in the new blocks
+		NRS.sendRequest("getBlockchainTransactions", {
 			"account": NRS.account,
 			"timestamp": Math.max(NRS.blocks[0].timestamp + 1, 0),
 			"firstIndex": 0,
 			"lastIndex": 0
 		}, function(response) {
-			//if there is, get latest 10 transactions
+			// if there is, get latest 10 transactions
 			if (response.transactions && response.transactions.length) {
 				NRS.sendRequest("getBlockchainTransactions", {
 					"account": NRS.account,
@@ -180,29 +189,33 @@ var NRS = (function(NRS, $, undefined) {
 				}, function(response) {
 					if (response.transactions && response.transactions.length) {
 						var transactionIds = [];
-
 						$.each(response.transactions, function(key, transaction) {
 							transactionIds.push(transaction.fullHash);
 							response.transactions[key].confirmed = true;
 						});
 
-						NRS.getUnconfirmedTransactions(function(unconfirmedTransactions) {
-							NRS.handleIncomingTransactions(response.transactions.concat(unconfirmedTransactions), transactionIds);
+						NRS.loadUnconfirmedTransactions(function(transactions) {
+							NRS.handleIncomingTransactions(response.transactions.concat(transactions), transactionIds);
 						});
 					} else {
-						NRS.getUnconfirmedTransactions(function(unconfirmedTransactions) {
-							NRS.handleIncomingTransactions(unconfirmedTransactions);
+						NRS.loadUnconfirmedTransactions(function(transactions) {
+							NRS.handleIncomingTransactions(transactions);
 						});
 					}
 				});
 			} else {
-				NRS.getUnconfirmedTransactions(function(unconfirmedTransactions) {
-					NRS.handleIncomingTransactions(unconfirmedTransactions);
+				NRS.loadUnconfirmedTransactions(function(transactions) {
+					NRS.handleIncomingTransactions(transactions);
 				});
 			}
 		});
 	};
 
+	/**
+	 * Add unconfirmed transaction after submitting a form and receiving a confirmation of a new transaction
+	 * @param fullHash the transaction full hash
+	 * @param callback the callback function
+	 */
 	NRS.addUnconfirmedTransaction = function(fullHash, callback) {
 		NRS.sendRequest("getTransaction", {
 			"fullHash": fullHash
@@ -218,17 +231,17 @@ var NRS = (function(NRS, $, undefined) {
                             continue;
                         }
 						if (!response.hasOwnProperty(key)) {
-							response[key] = response.attachment[key];
+							response[key] = response.attachment[key]; // flatten the attachment
 						}
 					}
 				}
 				var alreadyProcessed = false;
 				try {
 					var regex = new RegExp("(^|,)" + fullHash + "(,|$)");
-					if (regex.exec(NRS.lastTransactions)) {
+					if (regex.exec(lastTransactions)) {
 						alreadyProcessed = true;
 					} else {
-						$.each(NRS.unconfirmedTransactions, function(key, unconfirmedTransaction) {
+						$.each(unconfirmedTransactions, function(key, unconfirmedTransaction) {
 							if (unconfirmedTransaction.fullHash == fullHash) {
 								alreadyProcessed = true;
 								return false;
@@ -240,7 +253,13 @@ var NRS = (function(NRS, $, undefined) {
                 }
 
 				if (!alreadyProcessed) {
-					NRS.unconfirmedTransactions.unshift(response);
+					unconfirmedTransactions.unshift(response);
+					var transactions = [];
+					for (var i=0; i<unconfirmedTransactions.length; i++) {
+						transactions.push(unconfirmedTransactions[i].fullHash);
+					}
+					unconfirmedTransactionIds = transactions.toString();
+					unconfirmedTransactionsChange = true;
 				}
 				if (callback) {
 					callback(alreadyProcessed);
@@ -256,6 +275,25 @@ var NRS = (function(NRS, $, undefined) {
 				callback(false);
 			}
 		});
+	};
+
+	function getSelectedUnconfirmedTransactions(chain, type, subtype) {
+		var transactions = [];
+		for (var i = 0; i < unconfirmedTransactions.length; i++) {
+			var transaction = unconfirmedTransactions[i];
+			if (chain == transaction.chain && type == transaction.type && (subtype == transaction.subtype || subtype == -1)) {
+				transactions.push(transaction);
+			}
+		}
+		return transactions;
+	}
+
+	NRS.hasTransactionUpdates = function (transactions) {
+		return transactions && transactions.length || unconfirmedTransactionsChange;
+	};
+
+	NRS.getUnconfirmedTransactionsCount = function() {
+		return unconfirmedTransactions.length;
 	};
 
 	NRS.sortArray = function(a, b) {
@@ -290,10 +328,10 @@ var NRS = (function(NRS, $, undefined) {
 
 						if ($approveBtn) {
 							var disabled = false;
-							var unconfirmedTransactions = NRS.unconfirmedTransactions;
-							if (unconfirmedTransactions) {
-								for (var i = 0; i < unconfirmedTransactions.length; i++) {
-									var ut = unconfirmedTransactions[i];
+							var transactions = unconfirmedTransactions;
+							if (transactions) {
+								for (var i = 0; i < transactions.length; i++) {
+									var ut = transactions[i];
 									if (ut.attachment && ut.attachment["version.PhasingVoteCasting"] && ut.attachment.transactionFullHashes && ut.attachment.transactionFullHashes.length > 0) {
 										if (ut.attachment.transactionFullHashes[0] == t.fullHash) {
 											disabled = true;
@@ -508,15 +546,6 @@ var NRS = (function(NRS, $, undefined) {
 	};
 
     function getConfirmationData(t) {
-    	var info = getConfirmationInfo(t);
-        var html = "<span class='show_popover' data-content='" + info.popover + "' data-container='body' data-placement='left'>";
-        html += info.markup;
-        html += "</span>";
-        return html;
-    }
-
-    function getConfirmationInfo(t) {
-    	var info = {};
         var ul = "<ul class='confirmations-bar-ul'>";
     	var li_not_bundled_pulse = "<li class='confirmations-bar-li confirmations-bar-li-not-bundled confirmations-pulse'>";
         var li_bundled = "<li class='confirmations-bar-li confirmations-bar-li-bundled'>";
@@ -534,9 +563,7 @@ var NRS = (function(NRS, $, undefined) {
     			ul += li_confirmations_wait;
 			}
             ul += "</ul>";
-    		info.markup = ul;
-    		info.popover = $.t("not_bundled");
-    		return info;
+    		return ul;
 		}
 		if (!NRS.isParentChain()) {
             ul += li_bundled;
@@ -547,9 +574,7 @@ var NRS = (function(NRS, $, undefined) {
 				ul += li_confirmations_wait;
 			}
             ul += "</ul>";
-            info.markup = ul;
-            info.popover = $.t("unconfirmed");
-            return info;
+            return ul;
 		}
 		if (t.confirmations < 10) {
             ul += li_confirmed;
@@ -566,12 +591,10 @@ var NRS = (function(NRS, $, undefined) {
 			}
             ul += "</ul>";
             ul += "</ul>";
-            info.markup = ul;
 		} else {
-            info.markup = t.confirmations > 1440 ? (NRS.formatAmount('144000000000', false, false, false, NRS.getChain(1).decimals) + "+") : NRS.formatAmount(t.confirmations);
+            ul = t.confirmations > 1440 ? (NRS.formatAmount('144000000000', false, false, false, NRS.getChain(1).decimals) + "+") : NRS.formatAmount(t.confirmations);
         }
-        info.popover = t.confirmations + " " + $.t("confirmations");
-		return info;
+		return ul;
     }
 
     NRS.getTransactionRowHTML = function(t, actions, decimals) {
@@ -849,38 +872,43 @@ var NRS = (function(NRS, $, undefined) {
 		});
 	};
 
+	/**
+	 * Invoked when refreshing the dashboard
+	 */
     NRS.pages.dashboard = function() {
-        var params = {
-            "account": NRS.account,
-            "firstIndex": 0,
-            "lastIndex": 9
-        };
-        var unconfirmedTransactions = NRS.unconfirmedTransactions;
-        var decimals = NRS.getTransactionsAmountDecimals(unconfirmedTransactions);
-        var rows = "";
-        if (unconfirmedTransactions) {
-            for (var i = 0; i < unconfirmedTransactions.length; i++) {
-            	if (unconfirmedTransactions[i].chain == NRS.getActiveChainId()) {
-                    rows += NRS.getTransactionRowHTML(unconfirmedTransactions[i], false, decimals);
-                }
-            }
-        }
+		NRS.loadUnconfirmedTransactions(function(ucTransactions) {
+			var rows = "";
+			var ucNumber = 0;
+			if (ucTransactions) {
+				for (var i = 0; i < ucTransactions.length; i++) {
+					if (ucTransactions[i].chain == NRS.getActiveChainId()) {
+						rows += NRS.getTransactionRowHTML(ucTransactions[i], false, 2);
+					}
+				}
+				ucNumber = ucTransactions.length;
+			}
+			if (ucNumber >= 10) {
+				return;
+			}
 
-        NRS.sendRequest("getBlockchainTransactions+", params, function(response) {
-            if (response.transactions && response.transactions.length) {
-				var decimals = NRS.getTransactionsAmountDecimals(response.transactions);
-                for (var i = 0; i < response.transactions.length; i++) {
-                    var transaction = response.transactions[i];
-                    transaction.confirmed = true;
-                    rows += NRS.getTransactionRowHTML(transaction, false, decimals);
-                }
-
-                NRS.dataLoaded(rows);
-                NRS.addPhasingInfoToTransactionRows(response.transactions);
-            } else {
-                NRS.dataLoaded(rows);
-            }
-        });
+			NRS.sendRequest("getBlockchainTransactions+", {
+				"account": NRS.account,
+				"firstIndex": 0,
+				"lastIndex": 9 - ucNumber
+			}, function(response) {
+				if (response.transactions && response.transactions.length) {
+					for (var i = 0; i < response.transactions.length; i++) {
+						var transaction = response.transactions[i];
+						transaction.confirmed = true;
+						rows += NRS.getTransactionRowHTML(transaction, false, 2);
+					}
+					NRS.dataLoaded(rows);
+					NRS.addPhasingInfoToTransactionRows(response.transactions);
+				} else {
+					NRS.dataLoaded(rows);
+				}
+			});
+		});
     };
 
 	NRS.incoming.dashboard = function() {
@@ -951,19 +979,19 @@ var NRS = (function(NRS, $, undefined) {
 			"firstIndex": NRS.pageNumber * NRS.itemsPerPage - NRS.itemsPerPage,
 			"lastIndex": NRS.pageNumber * NRS.itemsPerPage
 		};
-        var unconfirmedTransactions;
+        var transactions;
         if (selectedType) {
             params.type = selectedType;
             params.subtype = selectedSubType;
-            unconfirmedTransactions = NRS.getUnconfirmedTransactionsFromCache(NRS.getActiveChainId(), params.type, (params.subtype ? params.subtype : -1));
+            transactions = getSelectedUnconfirmedTransactions(NRS.getActiveChainId(), params.type, (params.subtype ? params.subtype : -1));
         } else {
-            unconfirmedTransactions = NRS.unconfirmedTransactions;
+            transactions = unconfirmedTransactions;
         }
-        var decimals = NRS.getTransactionsAmountDecimals(unconfirmedTransactions);
+        var decimals = NRS.getTransactionsAmountDecimals(transactions);
         var rows = "";
-        for (var i = 0; i < unconfirmedTransactions.length; i++) {
-        	if (unconfirmedTransactions[i].chain == NRS.getActiveChainId()) {
-                rows += NRS.getTransactionRowHTML(unconfirmedTransactions[i], false, decimals);
+        for (var i = 0; i < transactions.length; i++) {
+        	if (transactions[i].chain == NRS.getActiveChainId()) {
+                rows += NRS.getTransactionRowHTML(transactions[i], false, decimals);
             }
 		}
 

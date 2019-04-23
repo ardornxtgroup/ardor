@@ -46,11 +46,11 @@ public class PhasedTransaction {
                 deadline(15).
                 feeNQT(100000000).
                 phased(true).
-                phasingVotingModel("" + VoteWeighting.VotingModel.ACCOUNT.getCode()). // Another account will need to approve this
-                phasingQuorum("1"). // One approver account is enough
+                phasingVotingModel(VoteWeighting.VotingModel.ACCOUNT.getCode()). // Another account will need to approve this
+                phasingQuorum(1). // One approver account is enough
                 phasingWhitelisted("NXT-EVHD-5FLM-3NMQ-G46NR"). // This is the account that needs to approve
-                phasingFinishHeight("" + (height + 100)). // It has 100 blocks to submit the approval
-                phasingMinBalanceModel("" + VoteWeighting.MinBalanceModel.NONE.getCode()). // There is no minimum balance requirement
+                phasingFinishHeight(height + 100). // It has 100 blocks to submit the approval
+                phasingMinBalanceModel(VoteWeighting.MinBalanceModel.NONE.getCode()). // There is no minimum balance requirement
                 remote(url).
                 call();
 

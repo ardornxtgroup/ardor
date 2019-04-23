@@ -16,15 +16,13 @@
 
 package nxt.migration;
 
-import nxt.account.Account;
 import nxt.account.HoldingType;
 import nxt.blockchain.Block;
 import nxt.blockchain.ChildChain;
+import nxt.blockchain.Genesis;
 import nxt.db.DbIterator;
 import nxt.db.TransactionalDb;
-import nxt.dbschema.Db;
 import nxt.freeze.FreezeMonitor;
-import nxt.util.Convert;
 import nxt.util.Listener;
 import nxt.util.Logger;
 
@@ -61,31 +59,7 @@ public class HoldingMigrateBlockEventHandler implements Listener<Block> {
         }
         Map<String, Long> snapshot = holdingSnapshot.getSnapshot(target);
         ChildChain childChain = target.getChildChain();
-        int count = 0;
-        long total = 0;
-        Logger.logDebugMessage("Loading balances for child chain %s", childChain.getName());
-        for (Map.Entry<String, Long> entry : snapshot.entrySet()) {
-            long quantity = entry.getValue();
-            Account account;
-            String key = entry.getKey();
-            if (key.length() == 64) {
-                byte[] publicKey = Convert.parseHexString(key);
-                account = Account.addOrGetAccount(Account.getId(publicKey));
-                try {
-                    account.apply(publicKey);
-                } catch (IllegalStateException e) {
-                    Logger.logErrorMessage(String.format("Public key mismatch for account %s", Long.toUnsignedString(account.getId())), e);
-                }
-            } else {
-                account = Account.addOrGetAccount(Long.parseUnsignedLong(key));
-            }
-            account.addToBalanceAndUnconfirmedBalance(childChain, null, null, quantity);
-            total += quantity;
-            if (++count % 1000 == 0) {
-                Db.db.commitTransaction();
-            }
-        }
-        Logger.logDebugMessage("Total balance %f %s", (double)total / childChain.ONE_COIN, childChain.getName());
+        Genesis.loadBalances(childChain, snapshot);
     }
 
 }

@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class GetReferencingTransactionsCall extends APICall.Builder<GetReferencingTransactionsCall> {
@@ -10,21 +9,11 @@ public class GetReferencingTransactionsCall extends APICall.Builder<GetReferenci
     }
 
     public static GetReferencingTransactionsCall create(int chain) {
-        GetReferencingTransactionsCall instance = new GetReferencingTransactionsCall();
-        instance.param("chain", chain);
-        return instance;
+        return new GetReferencingTransactionsCall().param("chain", chain);
     }
 
     public GetReferencingTransactionsCall requireLastBlock(String requireLastBlock) {
         return param("requireLastBlock", requireLastBlock);
-    }
-
-    public GetReferencingTransactionsCall chain(String chain) {
-        return param("chain", chain);
-    }
-
-    public GetReferencingTransactionsCall chain(int chain) {
-        return param("chain", chain);
     }
 
     public GetReferencingTransactionsCall firstIndex(int firstIndex) {

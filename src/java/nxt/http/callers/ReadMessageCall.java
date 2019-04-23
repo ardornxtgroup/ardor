@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class ReadMessageCall extends APICall.Builder<ReadMessageCall> {
@@ -10,9 +9,7 @@ public class ReadMessageCall extends APICall.Builder<ReadMessageCall> {
     }
 
     public static ReadMessageCall create(int chain) {
-        ReadMessageCall instance = new ReadMessageCall();
-        instance.param("chain", chain);
-        return instance;
+        return new ReadMessageCall().param("chain", chain);
     }
 
     public ReadMessageCall requireLastBlock(String requireLastBlock) {
@@ -21,14 +18,6 @@ public class ReadMessageCall extends APICall.Builder<ReadMessageCall> {
 
     public ReadMessageCall sharedKey(String sharedKey) {
         return param("sharedKey", sharedKey);
-    }
-
-    public ReadMessageCall chain(String chain) {
-        return param("chain", chain);
-    }
-
-    public ReadMessageCall chain(int chain) {
-        return param("chain", chain);
     }
 
     public ReadMessageCall retrieve(boolean retrieve) {
@@ -41,10 +30,6 @@ public class ReadMessageCall extends APICall.Builder<ReadMessageCall> {
 
     public ReadMessageCall transactionFullHash(byte[] transactionFullHash) {
         return param("transactionFullHash", transactionFullHash);
-    }
-
-    public ReadMessageCall secretPhrase(String secretPhrase) {
-        return param("secretPhrase", secretPhrase);
     }
 
     public ReadMessageCall requireBlock(String requireBlock) {

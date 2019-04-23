@@ -902,6 +902,8 @@ final class PeerImpl implements Peer {
                 setState(State.CONNECTED);
                 keyEvent.update(SelectionKey.OP_READ, 0);
                 Logger.logInfoMessage("Connection from " + host + " accepted");
+            } else {
+                Logger.logInfoMessage("Did not accept connection from " + host + ", peer state is " + state);
             }
         } finally {
             connectLock.unlock();
@@ -927,7 +929,10 @@ final class PeerImpl implements Peer {
                     connectPending = true;
                 }
                 if (!connectCondition.await(NetworkHandler.peerConnectTimeout, TimeUnit.SECONDS)) {
-                    disconnectPeer();
+                    if (connectPending) {
+                        Logger.logDebugMessage("Timeout trying to connect to " + host);
+                        disconnectPeer();
+                    }
                 }
             }
         } catch (InterruptedException exc) {
@@ -960,6 +965,7 @@ final class PeerImpl implements Peer {
                 setState(State.CONNECTED);
                 Logger.logInfoMessage("Connection to " + host + " completed");
             } else {
+                Logger.logInfoMessage("Connection to " + host + " failed to complete, disconnecting");
                 disconnectPeer();
             }
         } finally {
@@ -972,7 +978,7 @@ final class PeerImpl implements Peer {
      *
      * @return                          TRUE if the handshake is in progress
      */
-    synchronized boolean isHandshakePending() {
+    boolean isHandshakePending() {
         return handshakePending;
     }
 
@@ -982,6 +988,7 @@ final class PeerImpl implements Peer {
      * Send any queued messages
      */
     synchronized void handshakeComplete() {
+        Logger.logDebugMessage("Handshake complete with " + getHost());
         handshakePending = false;
         while (!pendingInputQueue.isEmpty()) {
             MessageHandler.processMessage(this, pendingInputQueue.poll());
@@ -1012,18 +1019,11 @@ final class PeerImpl implements Peer {
     }
 
     /**
-     * Indicate disconnect is pending
-     */
-    synchronized void setDisconnectPending() {
-        disconnectPending = true;
-    }
-
-    /**
      * Check if disconnect is pending
      *
      * @return                      TRUE if disconnect is pending
      */
-    synchronized boolean isDisconnectPending() {
+    boolean isDisconnectPending() {
         return disconnectPending;
     }
 
@@ -1032,11 +1032,18 @@ final class PeerImpl implements Peer {
      */
     @Override
     public void disconnectPeer() {
+        if (disconnectPending) {
+            return;
+        }
         disconnectPending = true;
         connectLock.lock();
         try {
+            if (!disconnectPending) {
+                Logger.logDebugMessage("Disconnect no longer pending");
+                return;
+            }
             if (state == State.CONNECTED) {
-                Logger.logInfoMessage("Connection to " + host + " closed");
+                Logger.logInfoMessage("Will close connection to " + host);
             }
             setState(State.DISCONNECTED);
             if (connectPending) {
@@ -1138,6 +1145,7 @@ final class PeerImpl implements Peer {
             } else {
                 Logger.logDebugMessage("Flushing " + message.getMessageName() + " message because "
                         + host + " is not connected");
+                disconnect = true;
             }
         }
         if (serializeMessage && !disconnectPending) {

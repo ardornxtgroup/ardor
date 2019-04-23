@@ -22,7 +22,9 @@ import org.junit.runners.Suite;
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
         Curve25519Test.class,
-        SecureRandomTest.class
+        SecureRandomTest.class,
+        SecretSharingGeneratorTest.class,
+        SimpleShamirSecretSharingTest.class
 })
 public class CryptoSuite {
 }

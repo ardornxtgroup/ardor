@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class GetHoldingShufflingsCall extends APICall.Builder<GetHoldingShufflingsCall> {
@@ -10,9 +9,7 @@ public class GetHoldingShufflingsCall extends APICall.Builder<GetHoldingShufflin
     }
 
     public static GetHoldingShufflingsCall create(int chain) {
-        GetHoldingShufflingsCall instance = new GetHoldingShufflingsCall();
-        instance.param("chain", chain);
-        return instance;
+        return new GetHoldingShufflingsCall().param("chain", chain);
     }
 
     public GetHoldingShufflingsCall requireLastBlock(String requireLastBlock) {
@@ -25,14 +22,6 @@ public class GetHoldingShufflingsCall extends APICall.Builder<GetHoldingShufflin
 
     public GetHoldingShufflingsCall holding(long holding) {
         return unsignedLongParam("holding", holding);
-    }
-
-    public GetHoldingShufflingsCall chain(String chain) {
-        return param("chain", chain);
-    }
-
-    public GetHoldingShufflingsCall chain(int chain) {
-        return param("chain", chain);
     }
 
     public GetHoldingShufflingsCall firstIndex(int firstIndex) {

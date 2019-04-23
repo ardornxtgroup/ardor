@@ -23,6 +23,7 @@ import nxt.account.Account;
 import nxt.account.AccountRestrictions;
 import nxt.crypto.Crypto;
 import nxt.db.DbUtils;
+import nxt.dbschema.Db;
 import nxt.util.Convert;
 import nxt.util.Logger;
 import org.json.simple.JSONObject;
@@ -280,6 +281,9 @@ public class FxtTransactionImpl extends TransactionImpl implements FxtTransactio
             DbUtils.setLongZeroToNull(pstmt, ++i, getECBlockId());
             pstmt.setShort(++i, getIndex());
             pstmt.executeUpdate();
+            if ((getIndex() + 1) % Constants.BATCH_COMMIT_SIZE == 0) {
+                Db.db.commitTransaction();
+            }
         }
     }
 

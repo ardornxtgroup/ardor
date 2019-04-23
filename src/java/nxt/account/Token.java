@@ -91,7 +91,7 @@ public final class Token {
         }
 
         if (i != 160) {
-            throw new IllegalArgumentException("Invalid token string: " + tokenString);
+            throw new IllegalArgumentException(String.format("Invalid token length %d, token must be composed of 160 characters hex string", i));
         }
         byte[] publicKey = new byte[32];
         System.arraycopy(tokenBytes, 0, publicKey, 0, 32);

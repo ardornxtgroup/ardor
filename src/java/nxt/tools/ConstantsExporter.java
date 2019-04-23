@@ -54,7 +54,7 @@ public class ConstantsExporter {
                         "}\n\n");
                 writer.write("NRS.constants.SERVER = ");
                 JSON.writeJSONString(GetConstants.getConstants(), writer);
-                writer.write("\n\n" +
+                writer.write(";\n\n" +
                         "if (isNode) {\n" +
                         "    module.exports = NRS.constants.SERVER;\n" +
                         "}\n");

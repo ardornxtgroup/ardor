@@ -17,6 +17,7 @@
 package nxt.env;
 
 import nxt.Nxt;
+import nxt.util.Logger;
 import nxt.util.security.BlockchainPermission;
 
 import java.lang.reflect.InvocationTargetException;
@@ -87,7 +88,10 @@ public class RuntimeEnvironment {
     }
 
     public static boolean isDesktopApplicationEnabled() {
-        return isDesktopEnabled(null) && Nxt.getBooleanProperty("nxt.launchDesktopApplication") && hasJavaFX;
+        boolean isDesktopEnabled = isDesktopEnabled(null);
+        boolean isLaunchDesktopApplication = Nxt.getBooleanProperty("nxt.launchDesktopApplication");
+        Logger.logInfoMessage("Desktop application isDesktopEnabled:" + isDesktopEnabled + ", isLaunchDesktopApplication:" + isLaunchDesktopApplication + ", hasJavaFX:" + hasJavaFX);
+        return isDesktopEnabled && isLaunchDesktopApplication && hasJavaFX;
     }
 
     public static RuntimeMode getRuntimeMode(String configuredMode) {

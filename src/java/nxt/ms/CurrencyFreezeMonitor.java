@@ -16,6 +16,7 @@
 
 package nxt.ms;
 
+import nxt.Constants;
 import nxt.Nxt;
 import nxt.NxtException;
 import nxt.account.Account;
@@ -64,7 +65,7 @@ public class CurrencyFreezeMonitor {
                 int count = 0;
                 for (ExchangeOfferHome.BuyOffer offer : offers) {
                     offerHome.removeOffer(null, offer);
-                    if (++count % 1000 == 0) {
+                    if (++count % Constants.BATCH_COMMIT_SIZE == 0) {
                         Db.db.commitTransaction();
                     }
                 }

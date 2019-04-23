@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class VerifyTaggedDataCall extends APICall.Builder<VerifyTaggedDataCall> {
@@ -10,21 +9,11 @@ public class VerifyTaggedDataCall extends APICall.Builder<VerifyTaggedDataCall> 
     }
 
     public static VerifyTaggedDataCall create(int chain) {
-        VerifyTaggedDataCall instance = new VerifyTaggedDataCall();
-        instance.param("chain", chain);
-        return instance;
+        return new VerifyTaggedDataCall().param("chain", chain);
     }
 
     public VerifyTaggedDataCall requireLastBlock(String requireLastBlock) {
         return param("requireLastBlock", requireLastBlock);
-    }
-
-    public VerifyTaggedDataCall chain(String chain) {
-        return param("chain", chain);
-    }
-
-    public VerifyTaggedDataCall chain(int chain) {
-        return param("chain", chain);
     }
 
     public VerifyTaggedDataCall filename(String filename) {
@@ -71,7 +60,7 @@ public class VerifyTaggedDataCall extends APICall.Builder<VerifyTaggedDataCall> 
         return param("tags", tags);
     }
 
-    public APICall.Builder file(byte[] b) {
+    public VerifyTaggedDataCall file(byte[] b) {
         return parts("file", b);
     }
 }

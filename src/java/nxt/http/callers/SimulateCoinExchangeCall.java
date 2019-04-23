@@ -1,7 +1,6 @@
 // Auto generated code, do not modify
 package nxt.http.callers;
 
-import java.lang.String;
 import nxt.http.APICall;
 
 public class SimulateCoinExchangeCall extends APICall.Builder<SimulateCoinExchangeCall> {
@@ -10,21 +9,11 @@ public class SimulateCoinExchangeCall extends APICall.Builder<SimulateCoinExchan
     }
 
     public static SimulateCoinExchangeCall create(int chain) {
-        SimulateCoinExchangeCall instance = new SimulateCoinExchangeCall();
-        instance.param("chain", chain);
-        return instance;
+        return new SimulateCoinExchangeCall().param("chain", chain);
     }
 
     public SimulateCoinExchangeCall quantityQNT(long quantityQNT) {
         return param("quantityQNT", quantityQNT);
-    }
-
-    public SimulateCoinExchangeCall chain(String chain) {
-        return param("chain", chain);
-    }
-
-    public SimulateCoinExchangeCall chain(int chain) {
-        return param("chain", chain);
     }
 
     public SimulateCoinExchangeCall exchange(String exchange) {
@@ -35,7 +24,7 @@ public class SimulateCoinExchangeCall extends APICall.Builder<SimulateCoinExchan
         return param("exchange", exchange);
     }
 
-    public SimulateCoinExchangeCall priceNQTPerCoin(String priceNQTPerCoin) {
+    public SimulateCoinExchangeCall priceNQTPerCoin(long priceNQTPerCoin) {
         return param("priceNQTPerCoin", priceNQTPerCoin);
     }
 }

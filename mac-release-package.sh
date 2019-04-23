@@ -17,7 +17,7 @@ MACVERSION=${VERSION}
 fi
 echo MACVERSION="${MACVERSION}"
 
-FILES="changelogs conf html lib testlib resource contrib"
+FILES="changelogs conf html lib testlib javafx-sdk resource contrib"
 FILES="${FILES} ardor.exe ardorservice.exe"
 FILES="${FILES} 3RD-PARTY-LICENSES.txt LICENSE.txt"
 FILES="${FILES} DEVELOPERS-GUIDE.md OPERATORS-GUIDE.md README.md README.txt USERS-GUIDE.md"

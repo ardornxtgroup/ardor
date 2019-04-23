@@ -25,20 +25,11 @@ import nxt.db.DbIterator;
 import nxt.db.FilteringIterator;
 import nxt.peer.BundlerRate;
 import nxt.util.Convert;
-import nxt.util.JSON;
 import nxt.util.Logger;
 import nxt.util.security.BlockchainPermission;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class Bundler {
@@ -593,8 +584,10 @@ public final class Bundler {
         builder.timestamp(timestamp);
         ChildBlockFxtTransaction childBlockFxtTransaction = (ChildBlockFxtTransaction)builder.build(secretPhrase);
         childBlockFxtTransaction.validate();
+        /*
         Logger.logDebugMessage("Created ChildBlockFxtTransaction: " + Long.toUnsignedString(childBlockFxtTransaction.getId()) + " "
                 + JSON.toJSONString(childBlockFxtTransaction.getJSONObject()));
+        */
         return childBlockFxtTransaction;
     }
 

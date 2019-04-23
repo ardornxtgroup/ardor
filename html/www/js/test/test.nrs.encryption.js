@@ -167,3 +167,135 @@ QUnit.test("signAndVerify", function(assert) {
     var publicKey = "584486d2ba4dbd7eaeadd071f9f8c3593cee620e1e374033551147d68899b529";
     assert.equal(NRS.verifySignature(signature, message, publicKey), true, "verify.signature");
 });
+
+QUnit.test("secretPhraseGenerator", function(assert) {
+    var crypto = window.crypto || window.msCrypto;
+    var bits = 128;
+    var random = new Uint32Array(bits / 32);
+    crypto.getRandomValues(random);
+    var words = NRS.constants.SECRET_WORDS;
+    var n = words.length;
+    var	phraseWords = [];
+    var	x, w1, w2, w3;
+    for (var i=0; i < random.length; i++) {
+        x = random[i];
+        console.log(x);
+        w1 = x % n;
+        w2 = (((x / n) >> 0) + w1) % n;
+        w3 = (((((x / n) >> 0) / n) >> 0) + w2) % n;
+        phraseWords.push(words[w1]);
+        phraseWords.push(words[w2]);
+        phraseWords.push(words[w3]);
+    }
+    var secretPhrase = phraseWords.join(" ");
+    console.log(secretPhrase);
+    assert.equal(phraseWords.length, 12);
+});
+
+QUnit.test("shamirSecretSharingWikipediaExample", function(assert) {
+    var prime = bigInt("1613");
+    var secret = "1234";
+    var allShares = sss.split(secret, 3, 5, prime);
+
+    // Works with 3 shares
+    var shares1 = [];
+    shares1.push(allShares[0], allShares[2], allShares[3]);
+    var reproducedSecret = sss.combine(shares1, prime);
+    assert.equal(reproducedSecret, secret);
+
+    // Works with other 3 shares
+    var shares2 = [];
+    shares2.push(allShares[0], allShares[1], allShares[4]);
+    reproducedSecret = sss.combine(shares2, prime);
+    assert.equal(reproducedSecret, secret);
+
+    // Fails with only 2 shares
+    var shares3 = [];
+    shares3.push(allShares[1], allShares[4]);
+    reproducedSecret = sss.combine(shares3, prime);
+    assert.notEqual(reproducedSecret, secret);
+});
+
+QUnit.test("shamirSecretSharingSplitAndCombine", function(assert) {
+    var secret = "298106192037605529109565170145082624171";
+    var secretAs128Bit = bigInt(secret);
+    var split = sss.split(secretAs128Bit, 3, 5, sss.PRIME_4096_BIT);
+    split.forEach(function(piece) {
+        assert.ok(piece.share.compareTo(bigInt.zero) > 0 && piece.share.compareTo(sss.PRIME_4096_BIT) < 0);
+    });
+    var shares = [split[0], split[2], split[4]];
+    var secretPhrase = sss.combine(shares, sss.PRIME_4096_BIT);
+    assert.equal(secret, secretPhrase);
+});
+
+var ALICE_SECRET_PHRASE = "hope peace happen touch easy pretend worthless talk them indeed wheel state";
+var CHUCK_SECRET_PHRASE = "eOdBVLMgySFvyiTy8xMuRXDTr45oTzB7L5J";
+
+QUnit.test("wordsTo128bitNumberAndBack", function(assert) {
+    var secretInteger = "298106192037605529109565170145082624171";
+    var secret = sss.to128bit(ALICE_SECRET_PHRASE.split(" "));
+    assert.equal(secret, secretInteger);
+    var reproducedSecret = sss.from128bit(secret);
+    assert.equal(reproducedSecret, ALICE_SECRET_PHRASE);
+});
+
+QUnit.test("splitAndCombine12wordsSecretPhrase", function(assert) {
+    // Generate the pieces
+    var pieces = sss.splitSecret(ALICE_SECRET_PHRASE, 5, 3, bigInt.zero);
+
+    // Select pieces and combine
+    var selectedPieces = [pieces[0], pieces[2], pieces[4]];
+    var combinedSecret = sss.combineSecret(selectedPieces);
+    assert.equal(combinedSecret, ALICE_SECRET_PHRASE);
+
+    // Select pieces and combine
+    selectedPieces = [pieces[1], pieces[3], pieces[4]];
+    combinedSecret = sss.combineSecret(selectedPieces);
+    assert.equal(combinedSecret, ALICE_SECRET_PHRASE);
+
+    // Again with 2 out of 3
+    pieces = sss.splitSecret(ALICE_SECRET_PHRASE, 3, 2, bigInt.zero);
+    selectedPieces = [pieces[0], pieces[2]];
+    combinedSecret = sss.combineSecret(selectedPieces);
+    assert.equal(combinedSecret, ALICE_SECRET_PHRASE);
+});
+
+QUnit.test("splitAndCombineRandomSecretPhrase", function(assert) {
+    // Generate the pieces
+    var pieces = sss.splitSecret(CHUCK_SECRET_PHRASE, 7, 4, bigInt.zero);
+
+    // Select pieces and combine
+    var selectedPieces = [pieces[1], pieces[3], pieces[5], pieces[6]];
+    var combinedSecret = sss.combineSecret(selectedPieces);
+    assert.equal(combinedSecret, CHUCK_SECRET_PHRASE);
+
+    // Select pieces and combine
+    selectedPieces = [pieces[1], pieces[2], pieces[4], pieces[6]];
+    combinedSecret = sss.combineSecret(selectedPieces);
+    assert.equal(combinedSecret, CHUCK_SECRET_PHRASE);
+});
+
+QUnit.test("splitAndCombineShortRandomSecretPhrase", function(assert) {
+    // Generate the pieces
+    var pieces = sss.splitSecret("aaa", 7, 4, bigInt.zero);
+
+    // Select pieces and combine
+    var selectedPieces = [pieces[1], pieces[3], pieces[5], pieces[6]];
+    var combinedSecret = sss.combineSecret(selectedPieces);
+    assert.equal(combinedSecret, "aaa");
+});
+
+QUnit.test("splitValidityChecks", function(assert) {
+    try {
+        sss.splitSecret(ALICE_SECRET_PHRASE, 4, 1, bigInt.zero);
+        assert.fail();
+    } catch (e) {
+        assert.equal(true, e instanceof Error);
+    }
+    try {
+        sss.splitSecret(ALICE_SECRET_PHRASE, 4, 5, bigInt.zero);
+        assert.fail();
+    } catch (e) {
+        assert.equal(true, e instanceof Error);
+    }
+});

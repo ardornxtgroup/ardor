@@ -341,7 +341,7 @@ var NRS = (function (NRS, $) {
 						} else {
 							decryptOptions = {
 								"nonce": nonce,
-								"account": account
+								"account": key == "encryptToSelfMessage" ? NRS.account : account
 							};
 						}
 						if (transaction.goodsIsText) {
