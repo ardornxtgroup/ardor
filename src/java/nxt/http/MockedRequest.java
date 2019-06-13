@@ -1,3 +1,18 @@
+/*
+ * Copyright © 2016-2019 Jelurida IP B.V.
+ *
+ * See the LICENSE.txt file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with Jelurida B.V.,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE.txt file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ *
+ */
+
 package nxt.http;
 
 import javax.servlet.AsyncContext;
@@ -14,24 +29,30 @@ import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpUpgradeHandler;
 import javax.servlet.http.Part;
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.security.Principal;
 import java.util.Collection;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
+
+import static java.util.stream.Collectors.toMap;
 
 public class MockedRequest implements HttpServletRequest {
 
     private final Map<String, List<String>> params;
-    private final Map<String, String[]> parameterMap = new HashMap<>();
-    private final Map<String, Part> parts;
+    private final Map<String, String[]> parameterMap;
+    private final Map<String, Part> partsMap;
 
-    public MockedRequest(Map<String, List<String>> params, Map<String, Part> parts) {
+    public MockedRequest(Map<String, List<String>> params, Map<String, byte[]> parts) {
         this.params = params;
-        this.params.keySet().forEach(k -> parameterMap.put(k, params.get(k).toArray(new String[0])));
-        this.parts = parts;
+        parameterMap = params.entrySet().stream()
+                .collect(toMap(Entry::getKey, e -> e.getValue().toArray(new String[0])));
+        partsMap = parts.entrySet().stream()
+                .collect(toMap(Entry::getKey, e -> new MockedPart(e.getValue())));
     }
 
     private String firstOrNull(List<String> list) {
@@ -201,7 +222,7 @@ public class MockedRequest implements HttpServletRequest {
 
     @Override
     public Part getPart(String key) {
-        return parts.get(key);
+        return partsMap.get(key);
     }
 
     @Override
@@ -241,10 +262,10 @@ public class MockedRequest implements HttpServletRequest {
 
     @Override
     public String getContentType() {
-        if (parts != null) {
-            return "multipart/form-data";
+        if (partsMap.isEmpty()) {
+            return "application/x-www-form-urlencoded";
         }
-        throw new UnsupportedOperationException();
+        return "multipart/form-data";
     }
 
     @Override
@@ -397,4 +418,64 @@ public class MockedRequest implements HttpServletRequest {
     public DispatcherType getDispatcherType() {
         throw new UnsupportedOperationException();
     }
+
+    static class MockedPart implements Part {
+
+        private final byte[] bytes;
+
+        MockedPart(byte[] bytes) {
+            this.bytes = bytes;
+        }
+
+        @Override
+        public InputStream getInputStream() {
+            return new ByteArrayInputStream(bytes);
+        }
+
+        @Override
+        public String getContentType() {
+            return null;
+        }
+
+        @Override
+        public String getName() {
+            return "testName";
+        }
+
+        @Override
+        public String getSubmittedFileName() {
+            return "testSubmittedFileName";
+        }
+
+        @Override
+        public long getSize() {
+            return bytes.length;
+        }
+
+        @Override
+        public void write(String s) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void delete() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public String getHeader(String s) {
+            return null;
+        }
+
+        @Override
+        public Collection<String> getHeaders(String s) {
+            return null;
+        }
+
+        @Override
+        public Collection<String> getHeaderNames() {
+            return null;
+        }
+    }
+
 }

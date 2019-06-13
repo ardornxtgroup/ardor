@@ -183,6 +183,10 @@ var NRS = (function (NRS) {
         return NRS.settings.changelly_url;
     };
 
+    NRS.changeNow_url = function() {
+        return NRS.settings.changeNow_url;
+    };
+
     NRS.isForgingSupported = function() {
         return !NRS.isMobileApp() && !(NRS.state && NRS.state.apiProxy);
     };

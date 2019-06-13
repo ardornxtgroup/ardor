@@ -77,7 +77,7 @@ public class FreezeMonitor {
     }
 
     public void enableFreeze(long holdingId, int minHeight, int actualHeight) {
-        if (!Constants.isAutomatedTest && Nxt.getServerStatus() != ServerStatus.BEFORE_DATABASE && !Nxt.getBlockchainProcessor().isScanning()) {
+        if (!Constants.isAutomatedTest && Nxt.getServerStatus() != ServerStatus.BEFORE_DATABASE) {
             throw new IllegalStateException("Setting freeze only allowed during tests or in DbVersion");
         }
         HoldingFreeze holdingFreeze = HoldingFreeze.getById(holdingId, holdingType);

@@ -55,7 +55,7 @@ public final class DeleteAssetProperty extends CreateTransaction {
         }
         Attachment attachment = new AssetPropertyDeleteAttachment(assetProperty.getId());
 
-        return createTransaction(req, senderAccount, asset.getAccountId(), 0, attachment);
+        return transactionParameters(req, senderAccount, attachment).setRecipientId(asset.getAccountId()).createTransaction();
     }
 
     @Override

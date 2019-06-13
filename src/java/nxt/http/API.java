@@ -84,7 +84,7 @@ public final class API {
     public static final int TESTNET_API_SSLPORT = 26877;
     public static final int MIN_COMPRESS_SIZE = 256;
     private static final String[] DISABLED_HTTP_METHODS = {"TRACE", "HEAD"};
-    static Set<String> SENSITIVE_PARAMS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList("secretPhrase", "adminPassword", "sharedKey", "sharedPiece")));
+    static Set<String> SENSITIVE_PARAMS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList("secretPhrase", "adminPassword", "sharedKey", "sharedPiece", "encryptionPassword")));
 
     static final int openAPIPort;
     static final int openAPISSLPort;

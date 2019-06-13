@@ -287,6 +287,8 @@ var NRS = (function (NRS, $) {
             requestType == "getForging" ||
             requestType == "startFundingMonitor" ||
             requestType == "startBundler" ||
+            requestType == "addBundlingRule" ||
+            requestType == "startStandbyShuffler" ||
             requestType == "signTransaction";
     };
 

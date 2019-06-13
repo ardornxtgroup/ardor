@@ -218,7 +218,8 @@ var NRS = (function(NRS, $) {
 		}
 		var $secretPhraseInput = $(this).closest("form").find('.secret-phrase-input');
 		var rsAccount = NRS.getAccountId(secretPhrase, true);
-		if (rsAccount != NRS.accountRS) {
+		var isVoucher = $(this).closest("form").find("input[name=isVoucher]").prop("checked");
+		if (rsAccount != NRS.accountRS && !isVoucher) {
 			$(this).closest(".modal").find(".error_message").html($.t("error_passphrase_incorrect_v2", { account: rsAccount })).show();
 			return;
 		}

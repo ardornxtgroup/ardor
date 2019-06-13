@@ -20,6 +20,7 @@ import nxt.Constants;
 import nxt.Nxt;
 import nxt.account.Account;
 import nxt.crypto.Crypto;
+import nxt.peer.Peers;
 import nxt.util.Convert;
 import nxt.util.Listener;
 import nxt.util.Listeners;
@@ -52,6 +53,7 @@ public final class Generator implements Comparable<Generator> {
     private static final List<String> fakeForgingPublicKeysStrings = Nxt.getBooleanProperty("nxt.enableFakeForging") ?
             Nxt.getStringListProperty("nxt.fakeForgingPublicKeys") : Collections.EMPTY_LIST;
     private static final List<byte[]> fakeForgingPublicKeys = fakeForgingPublicKeysStrings.stream().map(Convert::parseHexString).collect(Collectors.toList());
+    private static final boolean PAUSE_ON_NO_CONNECTION = Nxt.getBooleanProperty("nxt.pauseForgingOnNoConnection");
 
     private static final Listeners<Generator,Event> listeners = new Listeners<>();
 
@@ -77,7 +79,8 @@ public final class Generator implements Comparable<Generator> {
                     BlockchainImpl.getInstance().updateLock();
                     try {
                         Block lastBlock = Nxt.getBlockchain().getLastBlock();
-                        if (lastBlock == null || lastBlock.getHeight() < Constants.LAST_KNOWN_BLOCK) {
+                        if (lastBlock == null || lastBlock.getHeight() < Constants.LAST_KNOWN_BLOCK
+                                || (PAUSE_ON_NO_CONNECTION && !Constants.isOffline && Peers.getConnectedPeersCount() <= Constants.DEFAULT_NUMBER_OF_FORK_CONFIRMATIONS)) {
                             return;
                         }
                         final int generationLimit = now - delayTime;

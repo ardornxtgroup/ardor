@@ -46,7 +46,7 @@ public final class BuyAlias extends CreateTransaction {
         }
         long sellerId = alias.getAccountId();
         Attachment attachment = new AliasBuyAttachment(alias.getAliasName());
-        return createTransaction(req, buyer, sellerId, amountNQT, attachment);
+        return transactionParameters(req, buyer, attachment).setAmountNQT(amountNQT).setRecipientId(sellerId).createTransaction();
     }
 
     @Override

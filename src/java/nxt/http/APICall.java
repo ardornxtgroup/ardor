@@ -22,30 +22,21 @@ import nxt.blockchain.ChildChain;
 import nxt.http.responses.BlockResponse;
 import nxt.http.responses.TransactionResponse;
 import nxt.util.Convert;
-import nxt.util.Logger;
 import nxt.util.ResourceLookup;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.Part;
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -54,30 +45,29 @@ import java.util.stream.Collectors;
 
 public class APICall {
 
-    private Map<String, List<String>> params;
-    private Map<String, Part> parts;
-    private boolean isRemote;
-    private URL remoteUrl;
+    private APIConnector apiConnector;
 
     private APICall(Builder builder) {
-        this.params = builder.params;
-        this.parts = builder.parts;
-        if (builder.isRemoteOnly() && !builder.isRemote) {
+        URL remoteUrl = builder.remoteUrl;
+        if (builder.isRemoteOnly() && remoteUrl == null) {
             throw new IllegalArgumentException("API call " + getClass().getName() + " must connect to a remote node");
         }
-        this.isRemote = builder.isRemote;
-        this.remoteUrl = builder.remoteUrl;
+        if (remoteUrl != null) {
+            apiConnector = new APIRemoteConnector(builder.params, builder.parts, remoteUrl, builder.isTrustRemoteCertificate);
+        } else {
+            apiConnector = new APIInProcessConnector(builder.params, builder.parts);
+        }
     }
 
     public static class Builder<T extends Builder> {
-        protected Map<String, List<String>> params = new HashMap<>();
-        List<String> validParams = new ArrayList<>();
+        protected final Map<String, List<String>> params = new HashMap<>();
+        private List<String> validParams = new ArrayList<>();
         private boolean isValidationEnabled = true;
-        private Map<String, Part> parts = new HashMap<>();
-        String validFileParam;
-        String requestType;
-        private boolean isRemote;
+        private final Map<String, byte[]> parts = new HashMap<>();
+        private String validFileParam;
+        private String requestType;
         private URL remoteUrl;
+        private boolean isTrustRemoteCertificate;
 
         public Builder(String requestType) {
             this.requestType = requestType;
@@ -97,8 +87,12 @@ public class APICall {
         }
 
         public T remote(URL url) {
-            isRemote = url != null;
             remoteUrl = url;
+            return (T) this;
+        }
+
+        public T trustRemoteCertificate(boolean trustRemoteCertificate) {
+            isTrustRemoteCertificate = trustRemoteCertificate;
             return (T) this;
         }
 
@@ -233,7 +227,7 @@ public class APICall {
             if (!validFileParam.equals(key)) {
                 throw new IllegalArgumentException(String.format("Invalid file parameter %s for request type %s", key, requestType));
             }
-            parts.put(key, new PartImpl(b));
+            parts.put(key, b);
             return (T) this;
         }
 
@@ -347,11 +341,7 @@ public class APICall {
     }
 
     public InputStream getInputStream() {
-        if (isRemote) {
-            return getRemoteInputStream();
-        } else {
-            return getLocalInputStream();
-        }
+        return apiConnector.getInputStream();
     }
 
     public byte[] getBytes() {
@@ -359,14 +349,6 @@ public class APICall {
             return ResourceLookup.readInputStream(is);
         } catch (IOException e) {
             throw new RuntimeException(e.getMessage(), e);
-        }
-    }
-
-    public JSONObject invoke() {
-        if (isRemote) {
-            return invokeRemote();
-        } else {
-            return AccessController.doPrivileged((PrivilegedAction<JSONObject>) this::invokeLocal);
         }
     }
 
@@ -385,6 +367,23 @@ public class APICall {
         return actual;
     }
 
+    public JSONObject invoke() {
+        return AccessController.doPrivileged((PrivilegedAction<JSONObject>) this::invokeImpl);
+    }
+
+    private JSONObject invokeImpl() {
+        try {
+            InputStream inputStream = apiConnector.getInputStream();
+            try (Reader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+                return (JSONObject) JSONValue.parseWithException(reader); // Parse the response into Json object
+            }
+        } catch (IllegalStateException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
     private static void assertNull(Object o) {
         if (o != null) {
             throw new AssertionError("Expected null, got: " + o);
@@ -396,144 +395,6 @@ public class APICall {
             throw new AssertionError("Expected not null");
         }
         return o;
-    }
-
-    private InputStream getRemoteInputStream() {
-        StringBuilder postData = new StringBuilder();
-        try {
-            for (Map.Entry<String, List<String>> param : params.entrySet()) {
-                if (postData.length() != 0) {
-                    postData.append('&');
-                }
-                postData.append(URLEncoder.encode(param.getKey(), "UTF-8"));
-                postData.append('=');
-                String value = String.join(",", param.getValue());
-                postData.append(URLEncoder.encode(value, "UTF-8"));
-            }
-            byte[] postDataBytes = postData.toString().getBytes(StandardCharsets.UTF_8);
-
-            HttpURLConnection connection = (HttpURLConnection) remoteUrl.openConnection();
-            connection.setRequestMethod("POST");
-            connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-            connection.setRequestProperty("Content-Length", String.valueOf(postDataBytes.length));
-            connection.setDoOutput(true);
-            connection.getOutputStream().write(postDataBytes);
-            if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-                return connection.getInputStream();
-            } else {
-                Logger.logInfoMessage("response code %d", connection.getResponseCode());
-                throw new IllegalStateException("Connection failed response code " + connection.getResponseCode());
-            }
-        } catch (Exception e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
-    private JSONObject invokeRemote() {
-        try {
-            InputStream inputStream = getRemoteInputStream();
-            try (Reader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
-                return (JSONObject) JSONValue.parseWithException(reader); // Parse the response into Json object
-            }
-        } catch (IllegalStateException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
-    private InputStream getLocalInputStream() {
-        if (Logger.isInfoEnabled()) {
-            String paramsStr = params.entrySet().stream().map(e -> {
-                if (API.SENSITIVE_PARAMS.contains(e.getKey())) {
-                    return e.getKey() + "={hidden}";
-                } else {
-                    if (e.getValue().size() == 1) {
-                        return e.getKey() + "=" + e.getValue().get(0);
-                    } else {
-                        return e.getKey() + "=" + e.getValue().toString();
-                    }
-                }
-            }).collect(Collectors.joining("&"));
-            Logger.logInfoMessage("%s: request %s", params.get("requestType"), paramsStr);
-        } else {
-            Logger.logInfoMessage("%s", params.get("requestType"));
-        }
-        HttpServletRequest req = new MockedRequest(params, parts);
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        HttpServletResponse resp = new MockedResponse(out);
-        try {
-            APIServlet apiServlet = new APIServlet();
-            apiServlet.doPost(req, resp);
-            return new ByteArrayInputStream(out.toByteArray());
-        } catch (IOException e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
-    private JSONObject invokeLocal() {
-        JSONObject response = (JSONObject) JSONValue.parse(new InputStreamReader(getLocalInputStream()));
-        Logger.logDebugMessage("%s: response %s", params.get("requestType"), response);
-        return response;
-    }
-
-    static class PartImpl implements Part {
-
-        private final byte[] bytes;
-
-        PartImpl(byte[] bytes) {
-            this.bytes = bytes;
-        }
-
-        @Override
-        public InputStream getInputStream() {
-            return new ByteArrayInputStream(bytes);
-        }
-
-        @Override
-        public String getContentType() {
-            return null;
-        }
-
-        @Override
-        public String getName() {
-            return "testName";
-        }
-
-        @Override
-        public String getSubmittedFileName() {
-            return "testSubmittedFileName";
-        }
-
-        @Override
-        public long getSize() {
-            return bytes.length;
-        }
-
-        @Override
-        public void write(String s) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void delete() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public String getHeader(String s) {
-            return null;
-        }
-
-        @Override
-        public Collection<String> getHeaders(String s) {
-            return null;
-        }
-
-        @Override
-        public Collection<String> getHeaderNames() {
-            return null;
-        }
     }
 
     public static class InvocationError {

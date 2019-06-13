@@ -195,6 +195,7 @@ NRS.loadServerConstants(function() {
         assert.equal(NRS.getAccountLink({entityRS: "NXT-XK4R-7VJU-6EQG-7R335"}, "entity", "NXT-XK4R-7VJU-6EQG-7R335", "account"), "<a href='#' data-user='NXT-XK4R-7VJU-6EQG-7R335' class='show_account_modal_action user-info'>Account</a>", "force.account.name");
         assert.equal(NRS.getAccountLink({entityRS: "NXT-XK4R-7VJU-6EQG-7R335"}, "entity", undefined, undefined, true), "<a href='#' data-user='NXT-XK4R-7VJU-6EQG-7R335' class='show_account_modal_action user-info'>NXT-XK4R-7VJU-6EQG-7R335</a>", "maintain.rs.format");
         assert.equal(NRS.getAccountLink({entityRS: "NXT-XK4R-7VJU-6EQG-7R335"}, "entity", undefined, undefined, undefined, "btn btn-xs"), "<a href='#' data-user='NXT-XK4R-7VJU-6EQG-7R335' class='show_account_modal_action user-info btn btn-xs'>You</a>", "add.class");
+        assert.equal(NRS.getAccountLink({entityRS: "NXT-XK4R-7VJU-6EQG-7R335"}, "entity", undefined, undefined, undefined, undefined, "alert(1)"), "<a href='#' onclick='alert(1)' data-user='NXT-XK4R-7VJU-6EQG-7R335' class='show_account_modal_action user-info'>You</a>", "onclick handler");
         NRS.contacts = null;
         NRS.accountRS = null;
     });

@@ -1199,7 +1199,9 @@ var NRS = (function(NRS, $, undefined) {
 			if (response.errorCode) {
 				NRS.logConsole("Get account info error (" + response.errorCode + ") " + response.errorDescription);
 				$("#account_balance, #account_balance_sidebar, #account_currencies_balance, #account_nr_currencies, #account_purchase_count, #account_pending_sale_count, #account_completed_sale_count, #account_message_count, #account_alias_count").html("0");
-                NRS.updateDashboardMessage();
+				NRS.isLeased = NRS.isAccountLeased();
+                NRS.updateDashboardLeasingStatus();
+				NRS.updateDashboardMessage();
                 if (NRS.isParentChain() || !NRS.isDisplayOptionalDashboardTiles()) {
                 	hideOptionalDashboardTiles();
 				} else {
@@ -1468,19 +1470,8 @@ var NRS = (function(NRS, $, undefined) {
                     hideOptionalDashboardTiles();
                 }
 
-                var leasingChange = false;
-				if (NRS.lastBlockHeight) {
-					var isLeased = NRS.lastBlockHeight >= NRS.accountInfo.currentLeasingHeightFrom;
-					if (isLeased != NRS.isLeased) {
-						leasingChange = true;
-						NRS.isLeased = isLeased;
-					}
-				}
-
-				if (leasingChange || response.lessors) {
-					NRS.updateAccountLeasingStatus();
-				}
-
+				NRS.isLeased = NRS.isAccountLeased();
+                NRS.updateDashboardLeasingStatus();
 				NRS.updateAccountControlStatus();
 
                 var accountName = $("#account_name");
@@ -1569,7 +1560,6 @@ var NRS = (function(NRS, $, undefined) {
     };
 
 	NRS.updateAccountLeasingStatus = function() {
-		var accountLeasingLabel = "";
 		var accountLeasingStatus = "";
 		var nextLesseeStatus = "";
 		if (NRS.accountInfo.nextLeasingHeightFrom < NRS.constants.MAX_INT_JAVA) {
@@ -1581,7 +1571,6 @@ var NRS = (function(NRS, $, undefined) {
 		}
 
 		if (NRS.lastBlockHeight >= NRS.accountInfo.currentLeasingHeightFrom) {
-			accountLeasingLabel = $.t("leased_out");
 			accountLeasingStatus = $.t("balance_is_leased_out", {
 				"blocks": String(NRS.accountInfo.currentLeasingHeightTo - NRS.lastBlockHeight).escapeHTML(),
 				"end": NRS.escapeRespStr(NRS.accountInfo.currentLeasingHeightTo),
@@ -1589,7 +1578,6 @@ var NRS = (function(NRS, $, undefined) {
 			});
 			$("#lease_balance_message").html($.t("balance_leased_out_help"));
 		} else if (NRS.lastBlockHeight < NRS.accountInfo.currentLeasingHeightTo) {
-			accountLeasingLabel = $.t("leased_soon");
 			accountLeasingStatus = $.t("balance_will_be_leased_out", {
 				"blocks": String(NRS.accountInfo.currentLeasingHeightFrom - NRS.lastBlockHeight).escapeHTML(),
 				"start": NRS.escapeRespStr(NRS.accountInfo.currentLeasingHeightFrom),
@@ -1608,14 +1596,10 @@ var NRS = (function(NRS, $, undefined) {
 		//no reed solomon available? do it myself? todo
         var accountLessorTable = $("#account_lessor_table");
         if (NRS.accountInfo.lessors) {
-			if (accountLeasingLabel) {
-				accountLeasingLabel += ", ";
+			if (accountLeasingStatus) {
 				accountLeasingStatus += "<br /><br />";
 			}
 
-			accountLeasingLabel += $.t("x_lessor", {
-				"count": NRS.accountInfo.lessors.length
-			});
 			accountLeasingStatus += $.t("x_lessor_lease", {
 				"count": NRS.accountInfo.lessors.length
 			});
@@ -1656,18 +1640,43 @@ var NRS = (function(NRS, $, undefined) {
 			$("#account_lessor_container").hide();
 		}
 
+		if (accountLeasingStatus) {
+			$("#account_leasing_status").html(accountLeasingStatus).show();
+		} else {
+			$("#account_leasing_status").hide();
+		}		
+	};
+
+	NRS.updateDashboardLeasingStatus = function() {
+		const accountLeasingLabel = NRS.generateAccountLeasingLabel();
 		if (accountLeasingLabel && NRS.isParentChain()) {
 			$("#account_leasing").html(accountLeasingLabel).show();
 		} else {
 			$("#account_leasing").hide();
 		}
-
-		if (accountLeasingStatus) {
-			$("#account_leasing_status").html(accountLeasingStatus).show();
-		} else {
-			$("#account_leasing_status").hide();
-		}
 	};
+
+	NRS.generateAccountLeasingLabel = function() {
+		var accountLeasingLabel = "";
+		if (NRS.isLeased) {
+			accountLeasingLabel = $.t("leased_out");
+		} else if (NRS.lastBlockHeight < NRS.accountInfo.currentLeasingHeightTo) {
+			accountLeasingLabel = $.t("leased_soon");
+		}
+		if (NRS.accountInfo.lessors) {
+			if (accountLeasingLabel) {
+				accountLeasingLabel += ", ";
+			}
+			accountLeasingLabel += $.t("x_lessor", {
+				"count": NRS.accountInfo.lessors.length
+			});
+		}
+		return accountLeasingLabel;
+	};
+
+	NRS.isAccountLeased = function() {
+		return NRS.lastBlockHeight >= NRS.accountInfo.currentLeasingHeightFrom && NRS.lastBlockHeight <= NRS.accountInfo.currentLeasingHeightTo;
+	}
 
 	NRS.updateAccountControlStatus = function() {
 		var onNoPhasingOnly = function() {

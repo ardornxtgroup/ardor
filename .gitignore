@@ -26,7 +26,9 @@
 /test/classes/
 *.csv
 /jdk
+/jdk.runtime
 /javafx-sdk
+/javafx-sdk.runtime
 /dist
 deploy.sh
 /resource/nxt.manifest.mf

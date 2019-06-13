@@ -18,7 +18,6 @@ package nxt.http;
 
 import nxt.BlockchainTest;
 import nxt.Constants;
-import nxt.blockchain.ChildChain;
 import nxt.blockchain.FxtChain;
 import nxt.util.Logger;
 import org.json.simple.JSONObject;
@@ -29,6 +28,7 @@ public class LeaseTest extends BlockchainTest {
 
     @Test
     public void lease() {
+        generateBlock(); // start from baseHeight + 1
         // #2 & #3 lease their balance to %1
         JSONObject response = new APICall.Builder("leaseBalance").
                 param("secretPhrase", BOB.getSecretPhrase()).
@@ -62,15 +62,15 @@ public class LeaseTest extends BlockchainTest {
                 build().invoke();
         Logger.logDebugMessage("getLeasedAccount: " + leasedResponse1);
         Assert.assertEquals(ALICE.getRsAccount(), leasedResponse1.get("currentLesseeRS"));
-        Assert.assertEquals((long) (baseHeight + 1 + 1), leasedResponse1.get("currentLeasingHeightFrom"));
-        Assert.assertEquals((long) (baseHeight + 1 + 1 + 2), leasedResponse1.get("currentLeasingHeightTo"));
+        Assert.assertEquals((long) (baseHeight + 1 + 1 + 1), leasedResponse1.get("currentLeasingHeightFrom"));
+        Assert.assertEquals((long) (baseHeight + 1 + 1 + 1 + 2), leasedResponse1.get("currentLeasingHeightTo"));
         JSONObject leasedResponse2 = new APICall.Builder("getAccount").
                 param("account", CHUCK.getRsAccount()).
                 build().invoke();
         Logger.logDebugMessage("getLeasedAccount: " + leasedResponse1);
         Assert.assertEquals(ALICE.getRsAccount(), leasedResponse2.get("currentLesseeRS"));
-        Assert.assertEquals((long) (baseHeight + 1 + 1), leasedResponse2.get("currentLeasingHeightFrom"));
-        Assert.assertEquals((long) (baseHeight + 1 + 1 + 3), leasedResponse2.get("currentLeasingHeightTo"));
+        Assert.assertEquals((long) (baseHeight + 1 + 1 + 1), leasedResponse2.get("currentLeasingHeightFrom"));
+        Assert.assertEquals((long) (baseHeight + 1 + 1 + 1 + 3), leasedResponse2.get("currentLeasingHeightTo"));
         generateBlock();
 
 
@@ -96,7 +96,7 @@ public class LeaseTest extends BlockchainTest {
                 param("includeEffectiveBalance", "true").
                 build().invoke();
         Logger.logDebugMessage("getLesseeAccount: " + lesseeResponse);
-        Assert.assertEquals((ALICE.getInitialFxtBalance()) / ChildChain.IGNIS.ONE_COIN,
+        Assert.assertEquals((ALICE.getInitialFxtBalance()) / Constants.ONE_FXT,
                 lesseeResponse.get("effectiveBalanceFXT"));
     }
 }

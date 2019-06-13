@@ -87,6 +87,9 @@ var NRS = (function(NRS, $, undefined) {
 		tabListItem.addClass("active");
 		$(".account_details_modal_content").hide();
 		var content = $("#account_details_modal_" + tab);
+		if (tab == "leasing") {
+			NRS.updateAccountLeasingStatus();
+		}
 		content.show();
 	}
 

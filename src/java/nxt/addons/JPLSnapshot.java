@@ -1,5 +1,21 @@
+/*
+ * Copyright © 2016-2019 Jelurida IP B.V.
+ *
+ * See the LICENSE.txt file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with Jelurida B.V.,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE.txt file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ *
+ */
+
 package nxt.addons;
 
+import nxt.Constants;
 import nxt.Nxt;
 import nxt.NxtException;
 import nxt.account.Account;
@@ -50,7 +66,8 @@ public final class JPLSnapshot implements AddOn {
      *
      * <p>This utility takes a snapshot of account balances and public keys on the Ignis child chain as of the specified height,
      * scales down the balance of each account proportionately so that the total of balances of sharedrop accounts is equal
-     * to 10% of the total of all balances, and merges this data with the supplied new genesis accounts and balances.</p>
+     * to 10% of the total of all balances, and merges this data with the supplied new genesis accounts and balances. (If the total
+     * of new genesis account balances is zero, the balance of sharedrop accounts is left unchanged.)</p>
      *
      * <p>Note that using a height more than 800 blocks in the past will normally require a blockchain rescan, which takes a
      * few hours to complete. Do not interrupt this process.</p>
@@ -69,8 +86,9 @@ public final class JPLSnapshot implements AddOn {
      *
      * <p>Input file format</p>
      * The input file should contain a mapping of public keys to their initial balances, for the accounts to which the remaining
-     * 90% of the tokens will be distributed, i.e. the non-sharedrop accounts. (If an existing account is included here, it will
-     * receive the specified balance in addition to the sharedrop.)
+     * 90% of the tokens will be distributed, i.e. the non-sharedrop accounts. If an existing account is included here, it will
+     * receive the specified balance in addition to the sharedrop. If no input file is provided, or the total balance of new
+     * accounts in the input file is zero, no adjustment of existing account balances is done.
      *
      * Here is an example input file, which allocates 300M each to the accounts with passwords "0", "1" and "2",
      * for a total of 900M to new accounts, resulting in 100M automatically allocated to existing Ignis holders:
@@ -256,7 +274,7 @@ public final class JPLSnapshot implements AddOn {
             SortedMap<String, Long> map = new TreeMap<>();
             try (Connection con = Db.db.getConnection(ChildChain.IGNIS.getDbSchema());
                  PreparedStatement pstmt = con.prepareStatement("SELECT account_id, balance FROM balance WHERE " +
-                         "balance > 0 AND LATEST=true")) {
+                         "balance > 0 AND LATEST=true AND account_id <> " + Constants.BURN_ACCOUNT_ID)) {
                 try (ResultSet rs = pstmt.executeQuery()) {
                     while (rs.next()) {
                         long accountId = rs.getLong("account_id");

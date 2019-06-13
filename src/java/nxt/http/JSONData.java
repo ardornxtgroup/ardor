@@ -26,16 +26,8 @@ import nxt.account.BalanceHome;
 import nxt.account.FundingMonitor;
 import nxt.account.HoldingType;
 import nxt.account.Token;
-import nxt.addons.Contract;
-import nxt.addons.ContractAndSetupParameters;
-import nxt.addons.ContractInvocationParameter;
-import nxt.addons.ContractLoader;
+import nxt.addons.*;
 import nxt.addons.ContractRunner.INVOCATION_TYPE;
-import nxt.addons.JA;
-import nxt.addons.JO;
-import nxt.addons.ValidateChain;
-import nxt.addons.ValidateTransactionType;
-import nxt.addons.ValidationAnnotation;
 import nxt.ae.Asset;
 import nxt.ae.AssetDeleteAttachment;
 import nxt.ae.AssetDividendHome;
@@ -478,17 +470,21 @@ public final class JSONData {
             json.put("recipientPublicKeys", recipientPublicKeys);
         }
         if (includeHoldingInfo) {
-            JSONObject holdingJson = new JSONObject();
-            if (holdingType == HoldingType.COIN) {
-                putChainInfo(holdingJson, shuffling.getHoldingId());
-            } else if (holdingType == HoldingType.ASSET) {
-                putAssetInfo(holdingJson, shuffling.getHoldingId());
-            } else if (holdingType == HoldingType.CURRENCY) {
-                putCurrencyInfo(holdingJson, shuffling.getHoldingId());
-            }
-            json.put("holdingInfo", holdingJson);
+            json.put("holdingInfo", holdingInfoJson(holdingType, shuffling.getHoldingId()));
         }
         return json;
+    }
+
+    private static JSONObject holdingInfoJson(HoldingType holdingType, long holdingId) {
+        JSONObject holdingJson = new JSONObject();
+        if (holdingType == HoldingType.COIN) {
+            putChainInfo(holdingJson, holdingId);
+        } else if (holdingType == HoldingType.ASSET) {
+            putAssetInfo(holdingJson, holdingId);
+        } else if (holdingType == HoldingType.CURRENCY) {
+            putCurrencyInfo(holdingJson, holdingId);
+        }
+        return holdingJson;
     }
 
     static JSONObject participant(ShufflingParticipantHome.ShufflingParticipant participant) {
@@ -949,15 +945,7 @@ public final class JSONData {
         HoldingType holdingType = assetDividend.getHoldingType();
         json.put("holdingType", holdingType.getCode());
         if (includeHoldingInfo) {
-            JSONObject holdingJson = new JSONObject();
-            if (holdingType == HoldingType.COIN) {
-                putChainInfo(holdingJson, assetDividend.getHoldingId());
-            } else if (holdingType == HoldingType.ASSET) {
-                putAssetInfo(holdingJson, assetDividend.getHoldingId());
-            } else if (holdingType == HoldingType.CURRENCY) {
-                putCurrencyInfo(holdingJson, assetDividend.getHoldingId());
-            }
-            json.put("holdingInfo", holdingJson);
+            json.put("holdingInfo", holdingInfoJson(holdingType, assetDividend.getHoldingId()));
         }
         return json;
     }
@@ -1526,6 +1514,27 @@ public final class JSONData {
             Transaction transaction = Nxt.getBlockchain().getTransaction(chain, entry.getEventHash());
             json.put("transaction", JSONData.transaction(transaction));
         }
+    }
+
+    public static JSONObject standbyShuffler(StandbyShuffler standbyShuffler, boolean includeHoldingInfo) {
+        JSONObject json = new JSONObject();
+        json.put("account", Long.toUnsignedString(standbyShuffler.getAccountId()));
+        json.put("accountRS", Convert.rsAccount(standbyShuffler.getAccountId()));
+        json.put("chain", standbyShuffler.getChain().getId());
+        HoldingType holdingType = standbyShuffler.getHoldingType();
+        json.put("holdingType", holdingType.getCode());
+        json.put("holding", Long.toUnsignedString(standbyShuffler.getHoldingId()));
+        json.put("minAmount", String.valueOf(standbyShuffler.getMinAmount()));
+        json.put("maxAmount", String.valueOf(standbyShuffler.getMaxAmount()));
+        json.put("minParticipants", standbyShuffler.getMinParticipants());
+        json.put("feeRateNQTPerFXT", standbyShuffler.getFeeRateNQTPerFXT());
+        JSONArray publicKeys = new JSONArray();
+        standbyShuffler.getRecipientPublicKeys().forEach(publicKey -> publicKeys.add(Convert.toHexString(publicKey)));
+        json.put("recipientPublicKeys", publicKeys);
+        if (includeHoldingInfo) {
+            json.put("holdingInfo", holdingInfoJson(holdingType, standbyShuffler.getHoldingId()));
+        }
+        return json;
     }
 
     private JSONData() {} // never

@@ -48,11 +48,13 @@ public final class GetUnconfirmedTransactionIds extends APIServlet.APIRequestHan
         int lastIndex = ParameterParser.getLastIndex(req);
 
         JSONArray transactionIds = new JSONArray();
+        JSONArray transactionHashes = new JSONArray();
         if (accountIds.isEmpty() && chain == null) {
             try (DbIterator<? extends Transaction> transactionsIterator = Nxt.getTransactionProcessor().getAllUnconfirmedTransactions(firstIndex, lastIndex)) {
                 while (transactionsIterator.hasNext()) {
                     Transaction transaction = transactionsIterator.next();
                     transactionIds.add(Long.toUnsignedString(transaction.getId()));
+                    transactionHashes.add(transaction.getStringId());
                 }
             }
         } else {
@@ -66,12 +68,14 @@ public final class GetUnconfirmedTransactionIds extends APIServlet.APIRequestHan
                 while (transactionsIterator.hasNext()) {
                     Transaction transaction = transactionsIterator.next();
                     transactionIds.add(Long.toUnsignedString(transaction.getId()));
+                    transactionHashes.add(transaction.getStringId());
                 }
             }
         }
 
         JSONObject response = new JSONObject();
         response.put("unconfirmedTransactionIds", transactionIds);
+        response.put("unconfirmedTransactionHashes", transactionHashes);
         return response;
     }
 

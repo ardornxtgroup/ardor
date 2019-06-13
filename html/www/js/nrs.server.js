@@ -73,6 +73,8 @@ var NRS = (function (NRS, $, undefined) {
                 ["controlMaxFeesNXT", "controlMaxFees"],
                 ["minBalanceNXT", "minBalance"],
                 ["shufflingAmountNXT", "amount"],
+                ["standbyShufflerMinAmountNXT", "minAmount"],
+                ["standbyShufflerMaxAmountNXT", "maxAmount"],
                 ["monitorAmountNXT", "amount"],
                 ["monitorThresholdNXT", "threshold"],
                 ["minRateNXTPerFXT", "minRateNQTPerFXT"]
@@ -103,7 +105,11 @@ var NRS = (function (NRS, $, undefined) {
                 ["minBalanceQNTf", "create_poll_asset_decimals"],
                 ["minBalanceQNTf", "create_poll_ms_decimals"],
                 ["amountQNTf", "shuffling_asset_decimals"],
-                ["amountQNTf", "shuffling_ms_decimals"]
+                ["amountQNTf", "shuffling_ms_decimals"],
+                ["minAmountQNTf", "standbyshuffler_asset_decimals"],
+                ["minAmountQNTf", "standbyshuffler_ms_decimals"],
+                ["maxAmountQNTf", "standbyshuffler_asset_decimals"],
+                ["maxAmountQNTf", "standbyshuffler_ms_decimals"]
             ];
             var toDelete = [];
             for (i = 0; i < currencyFields.length; i++) {
@@ -297,15 +303,6 @@ var NRS = (function (NRS, $, undefined) {
             } else {
                 data.random = Math.random();
             }
-        }
-
-        if ((NRS.isRequirePost(requestType) || "secretPhrase" in data) &&
-            NRS.isRequireBlockchain(requestType) && NRS.accountInfo.errorCode && NRS.accountInfo.errorCode == 5) {
-            callback({
-                "errorCode": 2,
-                "errorDescription": $.t("error_new_account")
-            }, data);
-            return;
         }
 
         if (data.referencedTransactionFullHash) {

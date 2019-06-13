@@ -16,6 +16,14 @@ public class CalculateFeeCall extends APICall.Builder<CalculateFeeCall> {
         return param("transactionJSON", transactionJSON);
     }
 
+    public CalculateFeeCall minBundlerFeeLimitFQT(long minBundlerFeeLimitFQT) {
+        return param("minBundlerFeeLimitFQT", minBundlerFeeLimitFQT);
+    }
+
+    public CalculateFeeCall minBundlerBalanceFXT(long minBundlerBalanceFXT) {
+        return param("minBundlerBalanceFXT", minBundlerBalanceFXT);
+    }
+
     public CalculateFeeCall transactionBytes(String transactionBytes) {
         return param("transactionBytes", transactionBytes);
     }

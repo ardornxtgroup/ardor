@@ -31,6 +31,8 @@ var NRS = (function(NRS, $) {
 			"includeCounts": true,
             "adminPassword": NRS.getAdminPassword()
 		}, function(state) {
+			// reset all the fields to prevent artifacts before populating with new values
+			$("span[id^='nrs_node_state_']").empty();
 			for (var key in state) {
 				if (!state.hasOwnProperty(key)) {
 					continue;

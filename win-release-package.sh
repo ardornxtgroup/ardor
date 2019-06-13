@@ -10,7 +10,7 @@ echo PACKAGE="${PACKAGE}"
 CHANGELOG=ardor-client-${VERSION}.changelog.txt
 OBFUSCATE=$2
 
-FILES="changelogs conf html lib testlib javafx-sdk resource contrib logs"
+FILES="changelogs conf html lib testlib resource contrib logs"
 FILES="${FILES} ardor.exe ardorservice.exe"
 FILES="${FILES} 3RD-PARTY-LICENSES.txt LICENSE.txt"
 FILES="${FILES} DEVELOPERS-GUIDE.md OPERATORS-GUIDE.md README.md README.txt USERS-GUIDE.md"

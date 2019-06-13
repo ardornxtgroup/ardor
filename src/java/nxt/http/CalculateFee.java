@@ -33,7 +33,7 @@ public final class CalculateFee extends APIServlet.APIRequestHandler {
     static final CalculateFee instance = new CalculateFee();
 
     private CalculateFee() {
-        super(new APITag[]{APITag.TRANSACTIONS}, "transactionJSON", "transactionBytes", "prunableAttachmentJSON");
+        super(new APITag[]{APITag.TRANSACTIONS}, "transactionJSON", "transactionBytes", "prunableAttachmentJSON", "minBundlerBalanceFXT", "minBundlerFeeLimitFQT");
     }
 
     @Override
@@ -42,6 +42,8 @@ public final class CalculateFee extends APIServlet.APIRequestHandler {
         String transactionJSON = Convert.emptyToNull(req.getParameter("transactionJSON"));
         String transactionBytes = Convert.emptyToNull(req.getParameter("transactionBytes"));
         String prunableAttachmentJSON = Convert.emptyToNull(req.getParameter("prunableAttachmentJSON"));
+        long minBundlerBalanceFXT = ParameterParser.getLong(req, "minBundlerBalanceFXT", 0, Constants.MAX_BALANCE_FXT, Constants.minBundlerBalanceFXT);
+        long minBundlerFeeLimitFQT = ParameterParser.getLong(req, "minBundlerFeeLimitFQT", 0, Constants.MAX_BALANCE_FXT * Constants.ONE_FXT, Constants.minBundlerFeeLimitFXT * Constants.ONE_FXT);
 
         JSONObject response = new JSONObject();
         try {
@@ -52,7 +54,7 @@ public final class CalculateFee extends APIServlet.APIRequestHandler {
             if (transaction.getChain() == FxtChain.FXT) {
                 response.put("feeNQT", String.valueOf(minFeeFQT));
             } else {
-                long feeRateNQTPerFXT = Peers.getBestBundlerRate(transaction.getChain(), minFeeFQT, Peers.getBestBundlerRateWhitelist());
+                long feeRateNQTPerFXT = Peers.getBestBundlerRate(transaction.getChain(), minBundlerBalanceFXT, Math.max(minFeeFQT, minBundlerFeeLimitFQT), Peers.getBestBundlerRateWhitelist());
                 BigInteger[] fee = BigInteger.valueOf(minFeeFQT).multiply(BigInteger.valueOf(feeRateNQTPerFXT))
                         .divideAndRemainder(Constants.ONE_FXT_BIG_INTEGER);
                 long feeNQT = fee[0].longValueExact() + (fee[1].equals(BigInteger.ZERO) ? 0 : 1);

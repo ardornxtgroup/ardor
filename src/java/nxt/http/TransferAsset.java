@@ -46,7 +46,7 @@ public final class TransferAsset extends CreateTransaction {
 
         Attachment attachment = new AssetTransferAttachment(asset.getId(), quantityQNT);
         try {
-            return createTransaction(req, account, recipient, 0, attachment);
+            return transactionParameters(req, account, attachment).setRecipientId(recipient).createTransaction();
         } catch (NxtException.InsufficientBalanceException e) {
             return NOT_ENOUGH_ASSETS;
         }

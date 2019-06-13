@@ -68,7 +68,7 @@ public final class ExchangeCoins extends CreateTransaction {
                 new OrderIssueFxtAttachment(chain, exchange, quantityQNT, priceNQT) :
                 new OrderIssueAttachment(chain, exchange, quantityQNT, priceNQT));
         try {
-            return createTransaction(req, account, attachment, txChain);
+            return transactionParameters(req, account, attachment).setTxChain(txChain).createTransaction();
         } catch (NxtException.InsufficientBalanceException e) {
             return NOT_ENOUGH_FUNDS;
         }

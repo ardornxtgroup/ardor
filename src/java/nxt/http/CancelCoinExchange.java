@@ -59,7 +59,7 @@ public final class CancelCoinExchange extends CreateTransaction {
         Attachment attachment = (txChain.getId() == FxtChain.FXT.getId() ?
                 new OrderCancelFxtAttachment(orderHash) : new OrderCancelAttachment(orderHash));
         try {
-            return createTransaction(req, account, attachment, txChain);
+            return transactionParameters(req, account, attachment).setTxChain(txChain).createTransaction();
         } catch (NxtException.InsufficientBalanceException e) {
             return NOT_ENOUGH_FUNDS;
         }

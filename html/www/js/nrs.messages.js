@@ -250,6 +250,7 @@ var NRS = (function(NRS, $) {
 	};
 
     function getMessage(message) {
+    	var messageIsEscaped = false;
         var decoded = {};
 		decoded.format = "";
         if (!message.attachment) {
@@ -285,6 +286,7 @@ var NRS = (function(NRS, $) {
             } else {
 				if (message.attachment.messageIsText) {
 					decoded.message = String(message.attachment.message);
+					messageIsEscaped = true; // all strings on a response are already escaped (NRS.escapeResponseObjStrings)
 				} else {
 					decoded.message = $.t("binary_data");
 					decoded.format = "<i class='fa fa-database'></i>&nbsp";
@@ -309,7 +311,8 @@ var NRS = (function(NRS, $) {
             if (!decoded.message) {
                 decoded.message = $.t("message_empty");
             }
-            decoded.message = NRS.addEllipsis(String(decoded.message).escapeHTML().nl2br(), 100);
+            var escapedMessage = messageIsEscaped ? String(decoded.message) : String(decoded.message).escapeHTML();
+            decoded.message = NRS.addEllipsis(escapedMessage.nl2br(), 100);
             if (decoded.extra == "to_decrypt") {
                 decoded.format = "<i class='fa fa-warning'></i>&nbsp";
             } else if (decoded.extra == "decrypted") {

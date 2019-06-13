@@ -48,8 +48,6 @@ public final class LeaseBalance extends CreateTransaction {
             return response;
         }
         Attachment attachment = new EffectiveBalanceLeasingAttachment(period);
-        return createTransaction(req, account, recipient, 0, attachment);
-
+        return transactionParameters(req, account, attachment).setRecipientId(recipient).createTransaction();
     }
-
 }

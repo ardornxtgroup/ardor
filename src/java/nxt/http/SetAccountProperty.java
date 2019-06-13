@@ -57,7 +57,7 @@ public final class SetAccountProperty extends CreateTransaction {
         }
 
         Attachment attachment = new AccountPropertyAttachment(property, value);
-        return createTransaction(req, senderAccount, recipientId, 0, attachment);
+        return transactionParameters(req, senderAccount, attachment).setRecipientId(recipientId).createTransaction();
 
     }
 

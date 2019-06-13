@@ -42,7 +42,7 @@ public final class SendMoney extends CreateTransaction {
         Account account = ParameterParser.getSenderAccount(req);
         Chain chain = ParameterParser.getChain(req);
         Attachment attachment = chain instanceof ChildChain ? PaymentAttachment.INSTANCE : PaymentFxtAttachment.INSTANCE;
-        return createTransaction(req, account, recipient, amountNQT, attachment);
+        return transactionParameters(req, account, attachment).setRecipientId(recipient).setAmountNQT(amountNQT).createTransaction();
     }
 
 }

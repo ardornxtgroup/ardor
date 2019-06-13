@@ -652,8 +652,8 @@ public final class BlockchainImpl implements Blockchain {
             String phasingResultHeightFilter;
             if (height > 0) {
                 //use the block_timestamp index because there is no index on transaction.height
-                heightFilter = " transaction.block_timestamp = (SELECT timestamp FROM block WHERE height = ? LIMIT 1) ";
-                phasingResultHeightFilter = " phasing_poll_result.height = ? ";
+                heightFilter = " AND transaction.block_timestamp = (SELECT timestamp FROM block WHERE height = ? LIMIT 1) ";
+                phasingResultHeightFilter = " AND phasing_poll_result.height = ? ";
             } else {
                 if (senderId == 0 && recipientId == 0) {
                     throw new IllegalArgumentException("Sender or recipient expected");
@@ -664,8 +664,8 @@ public final class BlockchainImpl implements Blockchain {
                         throw new IllegalArgumentException("Number of confirmations required " + numberOfConfirmations
                                 + " exceeds current blockchain height " + getHeight());
                     }
-                    heightFilter = " transaction.height <= ? ";
-                    phasingResultHeightFilter = " phasing_poll_result.height <= ? ";
+                    heightFilter = " AND transaction.height <= ? ";
+                    phasingResultHeightFilter = " AND phasing_poll_result.height <= ? ";
                 } else {
                     heightFilter = null;
                     phasingResultHeightFilter = null;
@@ -675,17 +675,14 @@ public final class BlockchainImpl implements Blockchain {
             boolean hasTypeFilter = isChildChain && type >= 0 || !isChildChain && type < 0;
             StringBuilder accountAndTypeFilter = new StringBuilder();
             if (senderId != 0) {
-                accountAndTypeFilter.append(" transaction.sender_id = ? ");
+                accountAndTypeFilter.append(" AND transaction.sender_id = ? ");
             }
             if (recipientId != 0) {
-                accountAndTypeFilter.append(" transaction.recipient_id = ? ");
+                accountAndTypeFilter.append(" AND transaction.recipient_id = ? ");
             }
 
             if (hasTypeFilter) {
-                if (accountAndTypeFilter.length() > 0) {
-                    accountAndTypeFilter.append(" AND ");
-                }
-                accountAndTypeFilter.append(" transaction.type = ? ");
+                accountAndTypeFilter.append(" AND transaction.type = ? ");
                 if (subtype >= 0) {
                     accountAndTypeFilter.append(" AND transaction.subtype = ? ");
                 }
@@ -693,15 +690,12 @@ public final class BlockchainImpl implements Blockchain {
 
             StringBuilder buf = new StringBuilder();
             if (isChildChain) {
-                buf.append("SELECT transaction.*, transaction.height AS execution_height FROM transaction WHERE transaction.phased = FALSE AND ").append(accountAndTypeFilter);
+                buf.append("SELECT transaction.*, transaction.height AS execution_height FROM transaction WHERE transaction.phased = FALSE ").append(accountAndTypeFilter);
             } else {
-                buf.append("SELECT * FROM transaction_fxt AS transaction WHERE ").append(accountAndTypeFilter);
+                buf.append("SELECT * FROM transaction_fxt AS transaction WHERE TRUE ").append(accountAndTypeFilter);
             }
 
             if (heightFilter != null) {
-                if (accountAndTypeFilter.length() > 0) {
-                    buf.append(" AND ");
-                }
                 buf.append(heightFilter);
             }
 
@@ -710,12 +704,9 @@ public final class BlockchainImpl implements Blockchain {
                 buf.append(" JOIN phasing_poll_result ON transaction.id = phasing_poll_result.id ");
                 buf.append("  AND transaction.full_hash = phasing_poll_result.full_hash ");
                 buf.append(" WHERE transaction.phased = TRUE AND phasing_poll_result.approved = TRUE ");
-                buf.append("  AND ").append(accountAndTypeFilter);
+                buf.append(accountAndTypeFilter);
 
                 if (heightFilter != null) {
-                    if (accountAndTypeFilter.length() > 0) {
-                        buf.append(" AND ");
-                    }
                     buf.append(phasingResultHeightFilter);
                 }
                 buf.append("ORDER BY execution_height DESC, transaction_index DESC");

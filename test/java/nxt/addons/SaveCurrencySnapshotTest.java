@@ -20,15 +20,19 @@ import nxt.BlockchainTest;
 import nxt.DeleteFileRule;
 import nxt.FileUtils;
 import nxt.Tester;
+import nxt.blockchain.TransactionProcessorImpl;
 import nxt.http.monetarysystem.TestCurrencyIssuance;
 import nxt.ms.Currency;
 import nxt.ms.CurrencyFreezeMonitorTest;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -42,6 +46,15 @@ public class SaveCurrencySnapshotTest extends BlockchainTest {
     public void setUp() {
         currencyOwner = TestCurrencyIssuance.Builder.creator;
         new SaveCurrencySnapshot().init();
+    }
+
+    @After
+    public void destroy() {
+        AccessController.doPrivileged((PrivilegedAction<Void>) () -> {
+            TransactionProcessorImpl.getInstance().clearUnconfirmedTransactions();
+            blockchainProcessor.popOffTo(-2);
+            return null;
+        });
     }
 
     @Test

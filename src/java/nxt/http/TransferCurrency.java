@@ -46,7 +46,7 @@ public final class TransferCurrency extends CreateTransaction {
 
         Attachment attachment = new CurrencyTransferAttachment(currency.getId(), unitsQNT);
         try {
-            return createTransaction(req, account, recipient, 0, attachment);
+            return transactionParameters(req, account, attachment).setRecipientId(recipient).createTransaction();
         } catch (NxtException.InsufficientBalanceException e) {
             return NOT_ENOUGH_CURRENCY;
         }

@@ -21,14 +21,13 @@ import nxt.blockchain.ChildChain;
 import nxt.crypto.Crypto;
 import nxt.util.Logger;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.BufferOverflowException;
 import java.nio.BufferUnderflowException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import nxt.Constants;
 
 public final class BundlerRate {
 
@@ -80,8 +79,7 @@ public final class BundlerRate {
                         !Arrays.equals(rate.getPublicKey(), publicKey)) {
                 Logger.logDebugMessage("Bundler rate for account "
                         + Long.toUnsignedString(accountId) + " failed signature verification");
-            } else if (balance >= Peers.minBundlerBalanceFXT &&
-                    rate.getFeeLimit() >= Peers.minBundlerFeeLimitFXT * Constants.ONE_FXT) {
+            } else {
                 rate.setBalance(balance);
                 validRates.add(rate);
             }

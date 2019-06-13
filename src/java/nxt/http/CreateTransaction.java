@@ -57,7 +57,7 @@ import static nxt.http.JSONResponses.NOT_ENOUGH_FUNDS;
 
 public abstract class CreateTransaction extends APIServlet.APIRequestHandler {
 
-    private static final String[] commonParameters = new String[]{"secretPhrase", "publicKey", "feeNQT", "feeRateNQTPerFXT", "minBundlerBalanceFXT",
+    private static final String[] commonParameters = new String[]{"secretPhrase", "publicKey", "feeNQT", "feeRateNQTPerFXT", "minBundlerBalanceFXT", "minBundlerFeeLimitFQT",
             "deadline", "referencedTransaction", "broadcast", "timestamp",
             "message", "messageIsText", "messageIsPrunable",
             "messageToEncrypt", "messageToEncryptIsText", "encryptedMessageData", "encryptedMessageNonce", "encryptedMessageIsPrunable", "compressMessageToEncrypt",
@@ -101,12 +101,11 @@ public abstract class CreateTransaction extends APIServlet.APIRequestHandler {
 
     protected final JSONStreamAware createTransaction(HttpServletRequest req, Account senderAccount, Attachment attachment)
             throws NxtException {
-        return createTransaction(req, senderAccount, 0, 0, attachment, null);
+        return transactionParameters(req, senderAccount, attachment).createTransaction();
     }
 
-    protected final JSONStreamAware createTransaction(HttpServletRequest req, Account senderAccount, Attachment attachment,
-            Chain txChain) throws NxtException {
-        return createTransaction(req, senderAccount, 0, 0, attachment, txChain);
+    protected final CreateTransactionParameters transactionParameters(HttpServletRequest req, Account senderAccount, Attachment attachment) {
+        return new CreateTransactionParameters(req).setSenderAccount(senderAccount).setAttachment(attachment);
     }
 
     private PhasingAppendix parsePhasing(HttpServletRequest req) throws ParameterException {
@@ -124,22 +123,14 @@ public abstract class CreateTransaction extends APIServlet.APIRequestHandler {
         return new PhasingAppendix(finishHeight, phasingParams);
     }
 
-    final JSONStreamAware createTransaction(HttpServletRequest req, Account senderAccount, long recipientId,
-                                            long amountNQT, Attachment attachment) throws NxtException {
-        return createTransaction(req, senderAccount, recipientId, amountNQT, attachment, null);
-    }
+    private JSONStreamAware createTransactionFromParameters(CreateTransactionParameters parameters) throws NxtException {
+        final HttpServletRequest req = parameters.getReq();
+        final ChainTransactionId referencedTransactionId = parameters.getReferencedTransactionId();
+        final Attachment attachment = parameters.getAttachment();
+        final long amountNQT = parameters.getAmountNQT();
+        final long recipientId = parameters.getRecipientId();
+        final Account senderAccount = parameters.getSenderAccount();
 
-    final JSONStreamAware createTransaction(HttpServletRequest req, Account senderAccount, long recipientId,
-                                            long amountNQT, Attachment attachment, Chain txChain) throws NxtException {
-        return createTransaction(req, senderAccount, recipientId, amountNQT, attachment, txChain, null);
-    }
-
-    protected final JSONStreamAware createTransaction(HttpServletRequest req, Account senderAccount, long recipientId,
-                                            long amountNQT, Attachment attachment, Chain txChain,
-                                            ChainTransactionId referencedTransactionId) throws NxtException {
-        if (referencedTransactionId == null) {
-            referencedTransactionId = ParameterParser.getChainTransactionId(req, "referencedTransaction");
-        }
         String secretPhrase = ParameterParser.getSecretPhrase(req, false);
         boolean isVoucher = "true".equalsIgnoreCase(req.getParameter("voucher"));
         String publicKeyValue = Convert.emptyToNull(req.getParameter("publicKey"));
@@ -178,7 +169,7 @@ public abstract class CreateTransaction extends APIServlet.APIRequestHandler {
             return MISSING_SECRET_PHRASE;
         }
 
-        short deadline = (short)ParameterParser.getInt(req, "deadline", 1, Short.MAX_VALUE, 15);
+        short deadline = (short) ParameterParser.getInt(req, "deadline", 1, Short.MAX_VALUE, 15);
         long feeNQT = ParameterParser.getLong(req, "feeNQT", -1L, Constants.MAX_BALANCE_NQT, -1L);
         int ecBlockHeight = ParameterParser.getInt(req, "ecBlockHeight", 0, Integer.MAX_VALUE, false);
         long ecBlockId = Convert.parseUnsignedLong(req.getParameter("ecBlockId"));
@@ -197,16 +188,12 @@ public abstract class CreateTransaction extends APIServlet.APIRequestHandler {
 
         // Allow the caller to specify the chain for the transaction instead of using
         // the 'chain' request parameter
-        Chain chain;
-        if (txChain == null) {
-            chain = ParameterParser.getChain(req);
-        } else {
-            chain = txChain;
-        }
+        Chain chain = parameters.getChain();
 
         if (feeNQT < 0L && feeRateNQTPerFXT < 0L && chain != FxtChain.FXT) {
-            long minBundlerBalanceFXT = ParameterParser.getLong(req, "minBundlerBalanceFXT", 0, Constants.MAX_BALANCE_FXT, false);
-            feeRateNQTPerFXT = Peers.getBestBundlerRate(chain, minBundlerBalanceFXT, Peers.getBestBundlerRateWhitelist());
+            long minBundlerBalanceFXT = ParameterParser.getLong(req, "minBundlerBalanceFXT", 0, Constants.MAX_BALANCE_FXT, Constants.minBundlerBalanceFXT);
+            long minBundlerFeeLimitFQT = ParameterParser.getLong(req, "minBundlerFeeLimitFQT", 0, Constants.MAX_BALANCE_FXT * Constants.ONE_FXT, Constants.minBundlerFeeLimitFXT * Constants.ONE_FXT);
+            feeRateNQTPerFXT = Peers.getBestBundlerRate(chain, minBundlerBalanceFXT, minBundlerFeeLimitFQT, Peers.getBestBundlerRateWhitelist());
             broadcast = false;
             if (!isVoucher) {
                 response.put("bundlerRateNQTPerFXT", String.valueOf(feeRateNQTPerFXT));
@@ -221,7 +208,7 @@ public abstract class CreateTransaction extends APIServlet.APIRequestHandler {
                             attachment.getTransactionType().getName() + " attachment not allowed for "
                                     + chain.getName() + " chain"));
                 }
-                builder = ((ChildTransaction.Builder)builder)
+                builder = ((ChildTransaction.Builder) builder)
                         .referencedTransaction(referencedTransactionId)
                         .feeRateNQTPerFXT(feeRateNQTPerFXT)
                         .appendix(encryptedMessage)
@@ -347,4 +334,88 @@ public abstract class CreateTransaction extends APIServlet.APIRequestHandler {
         return true;
     }
 
+    protected class CreateTransactionParameters {
+        private final HttpServletRequest req;
+        private Account senderAccount;
+        private long recipientId;
+        private long amountNQT;
+        private Attachment attachment;
+        private Chain txChain;
+        private ChainTransactionId referencedTransactionId;
+
+        protected CreateTransactionParameters(HttpServletRequest req) {
+            this.req = req;
+        }
+
+        public CreateTransactionParameters setSenderAccount(Account senderAccount) {
+            this.senderAccount = senderAccount;
+            return this;
+        }
+
+        public CreateTransactionParameters setRecipientId(long recipientId) {
+            this.recipientId = recipientId;
+            return this;
+        }
+
+        public CreateTransactionParameters setAmountNQT(long amountNQT) {
+            this.amountNQT = amountNQT;
+            return this;
+        }
+
+        public CreateTransactionParameters setAttachment(Attachment attachment) {
+            this.attachment = attachment;
+            return this;
+        }
+
+        public CreateTransactionParameters setTxChain(Chain txChain) {
+            this.txChain = txChain;
+            return this;
+        }
+
+        public CreateTransactionParameters setReferencedTransactionId(ChainTransactionId referencedTransactionId) {
+            this.referencedTransactionId = referencedTransactionId;
+            return this;
+        }
+
+        public HttpServletRequest getReq() {
+            return req;
+        }
+
+        public Chain getChain() throws ParameterException {
+            if (txChain != null) {
+                return txChain;
+            }
+            return ParameterParser.getChain(req);
+        }
+
+        public ChainTransactionId getReferencedTransactionId() throws ParameterException {
+            if (referencedTransactionId != null) {
+                return referencedTransactionId;
+            }
+            return ParameterParser.getChainTransactionId(req, "referencedTransaction");
+        }
+
+        public Account getSenderAccount() throws ParameterException {
+            if (senderAccount != null) {
+                return senderAccount;
+            }
+            return ParameterParser.getSenderAccount(req);
+        }
+
+        public Attachment getAttachment() {
+            return attachment;
+        }
+
+        public long getAmountNQT() {
+            return amountNQT;
+        }
+
+        public long getRecipientId() {
+            return recipientId;
+        }
+
+        protected final JSONStreamAware createTransaction() throws NxtException {
+            return createTransactionFromParameters(this);
+        }
+    }
 }

@@ -632,7 +632,11 @@ public final class NetworkHandler implements Runnable {
                 sendGetInfoMessage(peer);
             }
         } catch (IOException exc) {
-            Logger.logDebugMessage("Outbound connect failed to complete", exc);
+            if (exc instanceof SocketException && exc.getMessage() != null) {
+                Logger.logDebugMessage("Outbound connect failed to complete: %s", exc.getMessage());
+            } else {
+                Logger.logDebugMessage("Outbound connect failed to complete", exc);
+            }
             Peers.peersService.execute(() -> peer.connectComplete(false));
         }
     }

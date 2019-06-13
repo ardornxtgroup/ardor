@@ -45,7 +45,7 @@ import nxt.util.TrustAllSSLProvider;
 import nxt.util.security.BlockchainPermission;
 
 import javax.net.ssl.HttpsURLConnection;
-import java.awt.*;
+import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -138,6 +138,8 @@ public class DesktopApplication extends Application {
 
     @Override
     public void start(Stage stage) {
+        Thread.currentThread().setName("jfx");
+        logJavaFxProperties();
         DesktopApplication.stage = stage;
         Rectangle2D primaryScreenBounds = Screen.getPrimary().getVisualBounds();
         WebView browser = new WebView();
@@ -384,7 +386,7 @@ public class DesktopApplication extends Application {
         fileChooser.setInitialFileName(filename);
         File file = fileChooser.showSaveDialog(stage);
         if (file != null) {
-            try (OutputStream outputStream = Files.newOutputStream(file.toPath());){
+            try (OutputStream outputStream = Files.newOutputStream(file.toPath())){
                 outputStream.write(data);
                 growl(String.format("File %s downloaded", file.getAbsolutePath()));
             } catch (IOException e) {
@@ -410,6 +412,16 @@ public class DesktopApplication extends Application {
             Logger.logInfoMessage(msg, e);
         }
         nrs.call("growl", msg);
+    }
+
+    private void logJavaFxProperties() {
+        String[] loggedProperties = new String[] {
+                "javafx.version",
+                "javafx.runtime.version",
+        };
+        for (String property : loggedProperties) {
+            Logger.logDebugMessage(String.format("%s = %s", property, System.getProperty(property)));
+        }
     }
 
 }

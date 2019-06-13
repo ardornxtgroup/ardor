@@ -1644,8 +1644,8 @@ var NRS = (function (NRS, $) {
                 if (asset.quantityQNT != 1 || asset.decimals != 0) {
                     rows += "<a href='#' class='btn btn-xs btn-default' data-toggle='modal' data-target='#transfer_asset_modal' data-asset='" + assetId + "' data-name='" + assetName + "' data-decimals='" + decimals + "' data-action='increase_shares'>" + $.t("increase_shares") + "</a>";
                 }
-                rows += "<a href='#' class='btn btn-xs btn-default' data-toggle='modal' data-target='#transfer_asset_modal' data-asset='" + assetId + "' data-name='" + assetName + "' data-decimals='" + decimals + "' data-action='delete_shares'>" + $.t("delete_shares") + "</a>";
             }
+            rows += "<a href='#' class='btn btn-xs btn-default' data-toggle='modal' data-target='#transfer_asset_modal' data-asset='" + assetId + "' data-name='" + assetName + "' data-decimals='" + decimals + "' data-action='delete_shares'>" + $.t("delete_shares") + "</a>";
             rows += "</td></tr>";
         }
         NRS.dataLoaded(rows);

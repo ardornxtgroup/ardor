@@ -36,6 +36,16 @@ import java.util.jar.Manifest;
 
 public class ManifestGenerator {
 
+    public static final String JAVAFX_SDK_RUNTIME_LIB = "javafx-sdk.runtime";
+    public static final String JAVAFX_LIB = "../" + JAVAFX_SDK_RUNTIME_LIB + "/lib";
+    public static final String JAVAFX_SDK_LIB = "javafx-sdk";
+    public static final String LIB = "./lib";
+    public static final String CONF = "conf/";
+    public static final String SOURCE_FILE = "src.zip";
+
+    public static final String ARDOR_MANIFEST = "./resource/ardor.manifest.mf";
+    public static final String ARDORSERVICE_MANIFEST = "./resource/ardorservice.manifest.mf";
+
     public static void main(String[] args) {
         SecurityManager sm = System.getSecurityManager();
         if (sm != null) {
@@ -43,10 +53,10 @@ public class ManifestGenerator {
         }
 
         ManifestGenerator manifestGenerator = new ManifestGenerator();
-        manifestGenerator.generate("./resource/ardor.manifest.mf", Nxt.class.getCanonicalName(), "./lib", "./javafx-sdk/lib");
+        manifestGenerator.generate(ARDOR_MANIFEST, Nxt.class.getCanonicalName(), LIB, JAVAFX_LIB);
         String serviceClassName = ArdorService_ServiceManagement.class.getCanonicalName();
         serviceClassName = serviceClassName.substring(0, serviceClassName.length() - "_ServiceManagement".length());
-        manifestGenerator.generate("./resource/ardorservice.manifest.mf", serviceClassName, "./lib");
+        manifestGenerator.generate(ARDORSERVICE_MANIFEST, serviceClassName, LIB);
     }
 
     private void generate(String fileName, String className, String ... directories) {
@@ -64,7 +74,7 @@ public class ManifestGenerator {
             }
             classpath.append(dirListing.getFileList().toString());
         }
-        classpath.append("conf/");
+        classpath.append(CONF);
         manifest.getMainAttributes().put(Attributes.Name.CLASS_PATH, classpath.toString());
         try {
             Path path = Paths.get(fileName);
@@ -88,8 +98,14 @@ public class ManifestGenerator {
 
         @Override
         public FileVisitResult visitFile(Path file, BasicFileAttributes attr) {
-            Path dir = file.subpath(1, file.getNameCount() - 1);
-            fileList.append(dir.toString().replace('\\', '/')).append('/').append(file.getFileName()).append(' ');
+            if (file.getFileName().toString().equals(SOURCE_FILE)) {
+                return FileVisitResult.CONTINUE;
+            }
+            for (int i=1; i < file.getNameCount() - 1; i++) {
+                String folderName = file.getName(i).toString().replace(JAVAFX_SDK_RUNTIME_LIB, JAVAFX_SDK_LIB);
+                fileList.append(folderName).append('/');
+            }
+            fileList.append(file.getFileName()).append(' ');
             return FileVisitResult.CONTINUE;
         }
 

@@ -57,7 +57,7 @@ public final class DeleteAccountProperty extends CreateTransaction {
             return JSONResponses.INCORRECT_PROPERTY;
         }
         Attachment attachment = new AccountPropertyDeleteAttachment(accountProperty.getId());
-        return createTransaction(req, senderAccount, recipientId, 0, attachment);
+        return transactionParameters(req, senderAccount, attachment).setRecipientId(recipientId).createTransaction();
 
     }
 

@@ -140,6 +140,10 @@ public class CreateTransactionCallBuilder<T extends APICall.Builder> extends API
         return param("phasingSenderPropertySetter", phasingSenderPropertySetter);
     }
 
+    public T minBundlerFeeLimitFQT(long minBundlerFeeLimitFQT) {
+        return param("minBundlerFeeLimitFQT", minBundlerFeeLimitFQT);
+    }
+
     public T phasingSenderPropertyName(String phasingSenderPropertyName) {
         return param("phasingSenderPropertyName", phasingSenderPropertyName);
     }

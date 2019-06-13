@@ -52,7 +52,7 @@ public final class DGSFeedback extends CreateTransaction {
 
         Account sellerAccount = Account.getAccount(purchase.getSellerId());
         Attachment attachment = new FeedbackAttachment(purchase.getId());
-        return createTransaction(req, buyerAccount, sellerAccount.getId(), 0, attachment);
+        return transactionParameters(req, buyerAccount, attachment).setRecipientId(sellerAccount.getId()).createTransaction();
     }
 
 }

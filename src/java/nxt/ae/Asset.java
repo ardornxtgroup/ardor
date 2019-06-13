@@ -325,6 +325,9 @@ public final class Asset {
 
     public static void deleteProperty(long propertyId) {
         AssetProperty assetProperty = assetPropertyTable.get(assetPropertyDbKeyFactory.newKey(propertyId));
+        if (assetProperty == null) {
+            return;
+        }
         assetPropertyTable.delete(assetProperty);
         propertyListeners.notify(assetProperty, Event.DELETE_PROPERTY);
     }

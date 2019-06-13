@@ -25,12 +25,12 @@ import nxt.util.Convert;
 import nxt.util.Logger;
 import org.json.simple.JSONObject;
 
-class ShufflingUtil {
+public class ShufflingUtil {
 
-    static final Tester ALICE_RECIPIENT = new Tester("oiketrdgfxyjqhwds");
-    static final Tester BOB_RECIPIENT = new Tester("5ehtrd9oijnkter");
-    static final Tester CHUCK_RECIPIENT = new Tester("sdfxbejytdgfqrwefsrd");
-    static final Tester DAVE_RECIPIENT = new Tester("gh-=e49rsiufzn4^");
+    public static final Tester ALICE_RECIPIENT = new Tester("oiketrdgfxyjqhwds");
+    public static final Tester BOB_RECIPIENT = new Tester("5ehtrd9oijnkter");
+    public static final Tester CHUCK_RECIPIENT = new Tester("sdfxbejytdgfqrwefsrd");
+    public static final Tester DAVE_RECIPIENT = new Tester("gh-=e49rsiufzn4^");
 
     static final long defaultShufflingAmount = 1500000000;
     static final long defaultHoldingShufflingAmount = 40000;
@@ -46,7 +46,7 @@ class ShufflingUtil {
         return create(creator, 4);
     }
 
-    static JSONObject create(Tester creator, int participantCount) {
+    public static JSONObject create(Tester creator, int participantCount) {
         APICall apiCall = new APICall.Builder("shufflingCreate").
                 secretPhrase(creator.getSecretPhrase()).
                 feeRateNQTPerFXT(ChildChain.IGNIS.ONE_COIN).
@@ -189,7 +189,7 @@ class ShufflingUtil {
         return response;
     }
 
-    static JSONObject getShuffling(String shufflingFullHash) {
+    public static JSONObject getShuffling(String shufflingFullHash) {
         APICall apiCall = new APICall.Builder("getShuffling").
                 param("shufflingFullHash", shufflingFullHash).
                 build();
@@ -198,7 +198,7 @@ class ShufflingUtil {
         return getShufflingResponse;
     }
 
-    static JSONObject getShufflingParticipants(String shufflingFullHash) {
+    public static JSONObject getShufflingParticipants(String shufflingFullHash) {
         APICall apiCall = new APICall.Builder("getShufflingParticipants").
                 param("shufflingFullHash", shufflingFullHash).
                 build();

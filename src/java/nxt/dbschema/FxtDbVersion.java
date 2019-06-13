@@ -559,6 +559,10 @@ public class FxtDbVersion extends DbVersion {
             case 168:
                 apply("CREATE INDEX IF NOT EXISTS transaction_fxt_block_id_idx ON transaction_fxt (block_id)");
             case 169:
+                apply("UPDATE holding_freeze SET height = -1");
+            case 170:
+                apply("UPDATE holding_migrate SET height = -1");
+            case 171:
                 return;
             default:
                 throw new RuntimeException("Forging chain database inconsistent with code, at update " + nextUpdate

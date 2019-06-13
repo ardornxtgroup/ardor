@@ -19,10 +19,7 @@ package nxt.db;
 import nxt.Constants;
 import nxt.Nxt;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 
 public abstract class DerivedDbTable extends Table {
 
@@ -52,15 +49,23 @@ public abstract class DerivedDbTable extends Table {
         popOffTo(height);
     }
 
+    @Override
     public void truncate() {
         if (!db.isInTransaction()) {
             throw new IllegalStateException("Not in transaction");
         }
+        boolean hasPermanentRecords;
         try (Connection con = getConnection();
-             Statement stmt = con.createStatement()) {
-            stmt.executeUpdate("TRUNCATE TABLE " + schemaTable);
+             Statement stmt = con.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT * FROM " + schemaTable + " WHERE height < 0 LIMIT 1")) {
+            hasPermanentRecords = rs.next();
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
+        }
+        if (hasPermanentRecords) {
+            popOffTo(-1);
+        } else {
+            super.truncate();
         }
     }
 

@@ -233,6 +233,9 @@ public final class Constants {
     public static final int MAX_TIMEDRIFT = 15; // allow up to 15 s clock difference
     public static final int FORGING_DELAY = Math.min(MAX_TIMEDRIFT - 1, Nxt.getIntProperty("nxt.forgingDelay"));
     public static final int FORGING_SPEEDUP = Nxt.getIntProperty("nxt.forgingSpeedup");
+    public static final int DEFAULT_NUMBER_OF_FORK_CONFIRMATIONS = Nxt.getIntProperty(Constants.isTestnet
+            ? "nxt.testnetNumberOfForkConfirmations" : "nxt.numberOfForkConfirmations");
+
     public static final int BATCH_COMMIT_SIZE = Nxt.getIntProperty("nxt.batchCommitSize", Integer.MAX_VALUE);
 
     public static final byte MAX_PHASING_VOTE_TRANSACTIONS = 10;
@@ -342,9 +345,12 @@ public final class Constants {
     public static final long UNCONFIRMED_POOL_DEPOSIT_FQT = 10 * ONE_FXT;
 
     public static final boolean correctInvalidFees = Nxt.getBooleanProperty("nxt.correctInvalidFees");
+    public static final int minBundlerBalanceFXT = Nxt.getIntProperty("nxt.minBundlerBalanceFXT");
+    public static final int minBundlerFeeLimitFXT = Nxt.getIntProperty("nxt.minBundlerFeeLimitFXT");
 
     public static final String ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyz";
     public static final String ALLOWED_CURRENCY_CODE_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    public static final long BURN_ACCOUNT_ID = Convert.parseAccountId("ARDOR-Q9KZ-74XD-WERK-CV6GB");
 
     private Constants() {
     } // never

@@ -23,33 +23,17 @@ import nxt.account.Account;
 import nxt.account.HoldingType;
 import nxt.ae.Asset;
 import nxt.aliases.AliasHome;
-import nxt.blockchain.Appendix;
-import nxt.blockchain.Bundler;
-import nxt.blockchain.Chain;
-import nxt.blockchain.ChainTransactionId;
-import nxt.blockchain.ChildChain;
-import nxt.blockchain.Transaction;
+import nxt.blockchain.*;
 import nxt.crypto.Crypto;
 import nxt.crypto.EncryptedData;
 import nxt.crypto.SecretSharingGenerator;
 import nxt.dgs.DigitalGoodsHome;
-import nxt.messaging.EncryptToSelfMessageAppendix;
-import nxt.messaging.EncryptedMessageAppendix;
-import nxt.messaging.MessageAppendix;
-import nxt.messaging.PrunableEncryptedMessageAppendix;
-import nxt.messaging.PrunablePlainMessageAppendix;
-import nxt.messaging.UnencryptedEncryptToSelfMessageAppendix;
-import nxt.messaging.UnencryptedEncryptedMessageAppendix;
-import nxt.messaging.UnencryptedPrunableEncryptedMessageAppendix;
+import nxt.messaging.*;
 import nxt.ms.Currency;
 import nxt.ms.ExchangeOfferHome;
 import nxt.shuffling.ShufflingHome;
 import nxt.taggeddata.TaggedDataAttachment;
-import nxt.util.BooleanExpression;
-import nxt.util.Convert;
-import nxt.util.JSON;
-import nxt.util.Logger;
-import nxt.util.Search;
+import nxt.util.*;
 import nxt.voting.PhasingParams;
 import nxt.voting.PollHome;
 import nxt.voting.VoteWeighting;
@@ -67,15 +51,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.StringJoiner;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -550,6 +526,26 @@ public final class ParameterParser {
         } else {
             return Crypto.getPublicKey(secretPhrase);
         }
+    }
+
+    public static List<byte[]> getPublicKeys(HttpServletRequest req, String name) throws ParameterException {
+        String[] paramValues = req.getParameterValues(name);
+        if (paramValues == null || paramValues.length == 0) {
+            throw new ParameterException(missing(name));
+        }
+        List<byte[]> publicKeys = new ArrayList<>();
+        for (String keyString : paramValues) {
+            for (String key : keyString.split("\\n")) {
+                byte[] publicKey = Convert.parseHexString(key.trim());
+                if (publicKey.length != 0) {
+                    if (!Crypto.isCanonicalPublicKey(publicKey)) {
+                        throw new ParameterException(incorrect(name));
+                    }
+                    publicKeys.add(publicKey);
+                }
+            }
+        }
+        return publicKeys;
     }
 
     public static Account getSenderAccount(HttpServletRequest req) throws ParameterException {

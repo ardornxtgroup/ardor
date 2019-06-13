@@ -327,7 +327,7 @@ public final class ShufflingHome {
                 throw new IllegalStateException(String.format("Shuffling in stage %s cannot go to stage %s", this.stage, stage));
             }
             if ((stage == ShufflingStage.VERIFICATION || stage == ShufflingStage.DONE) && assigneeAccountId != 0) {
-                throw new IllegalArgumentException(String.format("Invalid assigneeAccountId %s for stage %s", Long.toUnsignedString(assigneeAccountId), stage));
+                throw new IllegalArgumentException(String.format("Invalid assigneeAccountId %s for stage %s", Convert.rsAccount(assigneeAccountId), stage));
             }
             if ((stage == ShufflingStage.REGISTRATION || stage == ShufflingStage.PROCESSING || stage == ShufflingStage.BLAME) && assigneeAccountId == 0) {
                 throw new IllegalArgumentException(String.format("In stage %s assigneeAccountId cannot be 0", stage));
@@ -339,7 +339,7 @@ public final class ShufflingHome {
             this.assigneeAccountId = assigneeAccountId;
             this.blocksRemaining = blocksRemaining;
             Logger.logDebugMessage("Shuffling %s entered stage %s, assignee %s, remaining blocks %s",
-                    Long.toUnsignedString(id), this.stage, Long.toUnsignedString(this.assigneeAccountId), this.blocksRemaining);
+                    Long.toUnsignedString(id), this.stage, Convert.rsAccount(this.assigneeAccountId), this.blocksRemaining);
         }
 
         /*
@@ -454,7 +454,7 @@ public final class ShufflingHome {
             try (DbIterator<ShufflingParticipantHome.ShufflingParticipant> participants = shufflingParticipantHome.getParticipants(this.hash)) {
                 if (cancellingAccountId != this.assigneeAccountId) {
                     throw new RuntimeException(String.format("Current shuffling cancellingAccountId %s does not match %s",
-                            Long.toUnsignedString(this.assigneeAccountId), Long.toUnsignedString(cancellingAccountId)));
+                            Convert.rsAccount(this.assigneeAccountId), Convert.rsAccount(cancellingAccountId)));
                 }
                 if (shufflingStateHash == null || !Arrays.equals(shufflingStateHash, getStateHash())) {
                     throw new RuntimeException("Current shuffling state hash does not match");
@@ -472,7 +472,7 @@ public final class ShufflingHome {
                     throw new RuntimeException("Last participant cannot have keySeeds to reveal");
                 }
                 if (data == null) {
-                    throw new RuntimeException("Account " + Long.toUnsignedString(accountId) + " has not submitted data");
+                    throw new RuntimeException("Account " + Convert.rsAccount(accountId) + " has not submitted data");
                 }
                 final byte[] nonce = this.hash;
                 final List<byte[]> keySeeds = new ArrayList<>();
@@ -676,7 +676,7 @@ public final class ShufflingHome {
             if (deleteFinished) {
                 delete();
             }
-            Logger.logDebugMessage("Shuffling %s was cancelled, blaming account %s", Long.toUnsignedString(id), Long.toUnsignedString(blamedAccountId));
+            Logger.logDebugMessage("Shuffling %s was cancelled, blaming account %s", Long.toUnsignedString(id), Convert.rsAccount(blamedAccountId));
         }
 
         private long blame() {
@@ -687,7 +687,7 @@ public final class ShufflingHome {
             }
             // if no one submitted cancellation, blame the first one that did not submit processing data
             if (stage == ShufflingStage.PROCESSING) {
-                Logger.logDebugMessage("Participant %s did not submit processing", Long.toUnsignedString(assigneeAccountId));
+                Logger.logDebugMessage("Participant %s did not submit processing", Convert.rsAccount(assigneeAccountId));
                 return assigneeAccountId;
             }
             List<ShufflingParticipantHome.ShufflingParticipant> participants = new ArrayList<>();
@@ -700,7 +700,7 @@ public final class ShufflingHome {
                 // if verification started, blame the first one who did not submit verification
                 for (ShufflingParticipantHome.ShufflingParticipant participant : participants) {
                     if (participant.getState() != ShufflingParticipantHome.State.VERIFIED) {
-                        Logger.logDebugMessage("Participant %s did not submit verification", Long.toUnsignedString(participant.getAccountId()));
+                        Logger.logDebugMessage("Participant %s did not submit verification", Convert.rsAccount(participant.getAccountId()));
                         return participant.getAccountId();
                     }
                 }
@@ -713,7 +713,7 @@ public final class ShufflingHome {
                 byte[][] keySeeds = participant.getKeySeeds();
                 // if participant couldn't submit key seeds because he also couldn't decrypt some of the previous data, this should have been caught before
                 if (keySeeds.length == 0) {
-                    Logger.logDebugMessage("Participant %s did not reveal keys", Long.toUnsignedString(participant.getAccountId()));
+                    Logger.logDebugMessage("Participant %s did not reveal keys", Convert.rsAccount(participant.getAccountId()));
                     return participant.getAccountId();
                 }
                 byte[] publicKey = Crypto.getPublicKey(keySeeds[0]);
@@ -727,7 +727,7 @@ public final class ShufflingHome {
                 }
                 if (encryptedData == null || !Arrays.equals(publicKey, encryptedData.getPublicKey())) {
                     // participant lied about key seeds or data
-                    Logger.logDebugMessage("Participant %s did not submit blame data, or revealed invalid keys", Long.toUnsignedString(participant.getAccountId()));
+                    Logger.logDebugMessage("Participant %s did not submit blame data, or revealed invalid keys", Convert.rsAccount(participant.getAccountId()));
                     return participant.getAccountId();
                 }
                 for (int k = i + 1; k < participantCount; k++) {
@@ -739,7 +739,7 @@ public final class ShufflingHome {
                         participantBytes = encryptedData.decrypt(keySeed, nextParticipantPublicKey);
                     } catch (Exception e) {
                         // the next participant couldn't decrypt the data either, blame this one
-                        Logger.logDebugMessage("Could not decrypt data from participant %s", Long.toUnsignedString(participant.getAccountId()));
+                        Logger.logDebugMessage("Could not decrypt data from participant %s", Convert.rsAccount(participant.getAccountId()));
                         return participant.getAccountId();
                     }
                     boolean isLast = k == participantCount - 1;
@@ -747,17 +747,17 @@ public final class ShufflingHome {
                         // not encrypted data but plaintext recipient public key
                         if (!Crypto.isCanonicalPublicKey(publicKey)) {
                             // not a valid public key
-                            Logger.logDebugMessage("Participant %s submitted invalid recipient public key", Long.toUnsignedString(participant.getAccountId()));
+                            Logger.logDebugMessage("Participant %s submitted invalid recipient public key", Convert.rsAccount(participant.getAccountId()));
                             return participant.getAccountId();
                         }
                         // check for collisions and assume they are intentional
                         byte[] currentPublicKey = Account.getPublicKey(Account.getId(participantBytes));
                         if (currentPublicKey != null && !Arrays.equals(currentPublicKey, participantBytes)) {
-                            Logger.logDebugMessage("Participant %s submitted colliding recipient public key", Long.toUnsignedString(participant.getAccountId()));
+                            Logger.logDebugMessage("Participant %s submitted colliding recipient public key", Convert.rsAccount(participant.getAccountId()));
                             return participant.getAccountId();
                         }
                         if (!recipientAccounts.add(Account.getId(participantBytes))) {
-                            Logger.logDebugMessage("Participant %s submitted duplicate recipient public key", Long.toUnsignedString(participant.getAccountId()));
+                            Logger.logDebugMessage("Participant %s submitted duplicate recipient public key", Convert.rsAccount(participant.getAccountId()));
                             return participant.getAccountId();
                         }
                     }
@@ -773,7 +773,7 @@ public final class ShufflingHome {
                     }
                     if (!found) {
                         // the next participant did not include this participant's data
-                        Logger.logDebugMessage("Participant %s did not include previous data", Long.toUnsignedString(nextParticipant.getAccountId()));
+                        Logger.logDebugMessage("Participant %s did not include previous data", Convert.rsAccount(nextParticipant.getAccountId()));
                         return nextParticipant.getAccountId();
                     }
                     if (!isLast) {

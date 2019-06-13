@@ -83,6 +83,10 @@ public abstract class SaveEncrypted implements AddOn {
             protected boolean isTextArea(String parameter) {
                 return getDataParameter().equals(parameter);
             }
+            @Override
+            protected boolean requirePassword() {
+                return true;
+            }
 
         };
     }

@@ -81,16 +81,16 @@ public final class PassphraseRecovery {
             }
             String dictionaryStr = Nxt.getStringProperty("recoveryDictionary", "");
             char[] dictionary;
-            switch(dictionaryStr.toLowerCase()) {
+            switch (dictionaryStr.toLowerCase()) {
                 case "":
                 case "ascii":
                     dictionary = getDictionary(32, 127);
                     break;
                 case "asciiall":
-                    dictionary = getDictionary(0, (int)(Math.pow(2, 8) - 1));
+                    dictionary = getDictionary(0, (int) (Math.pow(2, 8) - 1));
                     break;
                 case "unicode":
-                    dictionary = getDictionary(0, (int)(Math.pow(2, 16) - 1));
+                    dictionary = getDictionary(0, (int) (Math.pow(2, 16) - 1));
                     break;
                 default:
                     dictionary = dictionaryStr.toCharArray();
@@ -149,7 +149,7 @@ public final class PassphraseRecovery {
             if (positions.length == 0) {
                 Logger.logInfoMessage("Position not specified scanning for a single typo");
                 char[] copy = new char[wildcard.length];
-                for (int i=0; i<wildcard.length; i++) {
+                for (int i = 0; i < wildcard.length; i++) {
                     positions = new int[1];
                     positions[0] = i;
                     System.arraycopy(wildcard, 0, copy, 0, wildcard.length);
@@ -167,15 +167,14 @@ public final class PassphraseRecovery {
             final ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() + 1);
             final ExecutorCompletionService<Solution> completionService = new ExecutorCompletionService<>(executorService);
             executorService.submit(() -> {
-                int counter = 0;
-                while (!executorService.isShutdown()) {
+
+                for (int counter = 1; counter <= dictionary.length && !executorService.isShutdown(); counter++) {
                     final Solution solution;
                     try {
                         solution = completionService.take().get();
                     } catch (InterruptedException | ExecutionException e) {
                         throw new IllegalStateException(e);
                     }
-                    counter++;
                     Logger.logInfoMessage(String.format("task %d / %d is done", counter, dictionary.length));
                     if (solution != NO_SOLUTION) {
                         realSolution = solution;

@@ -61,7 +61,7 @@ import java.util.Properties;
 
 public final class Nxt {
 
-    public static final String VERSION = "2.2.3";
+    public static final String VERSION = "2.2.4";
     public static final String APPLICATION = "Ardor";
 
     private static volatile Time time = new Time.EpochTime();
@@ -432,7 +432,7 @@ public final class Nxt {
             Logger.logMessage("Ardor server " + VERSION + " started successfully.");
             Logger.logMessage("Copyright © 2013-2016 The Nxt Core Developers.");
             Logger.logMessage("Copyright © 2016-2019 Jelurida IP B.V.");
-            Logger.logMessage("Distributed under the Jelurida Public License version 1.1 for the Ardor Public Blockchain Platform, with ABSOLUTELY NO WARRANTY.");
+            Logger.logMessage("Distributed under the Jelurida Public License version 1.2 for the Ardor Public Blockchain Platform, with ABSOLUTELY NO WARRANTY.");
             if (API.getWelcomePageUri() != null) {
                 Logger.logMessage("Client UI is at " + API.getWelcomePageUri());
             }

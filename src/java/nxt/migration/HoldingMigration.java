@@ -59,6 +59,7 @@ class HoldingMigration {
     private final ChildChain childChain;
     private final int minHeight;
     private int actualHeight;
+    private int height;
 
     HoldingMigration(long holdingId, HoldingType holdingType, ChildChain childChain, int minHeight, int actualHeight) {
         this.dbKey = DB_KEY_FACTORY.newKey(childChain.getId());
@@ -67,6 +68,7 @@ class HoldingMigration {
         this.minHeight = minHeight;
         this.actualHeight = actualHeight;
         this.childChain = childChain;
+        this.height = -1;
     }
 
     private HoldingMigration(ResultSet rs, DbKey dbKey) throws SQLException {
@@ -76,6 +78,7 @@ class HoldingMigration {
         this.childChain = ChildChain.getChildChain(rs.getInt("child_chain_id"));
         this.minHeight = rs.getInt("min_height");
         this.actualHeight = rs.getInt("actual_height");
+        this.height = rs.getInt("height");
     }
 
     private void save(Connection con) throws SQLException {
@@ -88,7 +91,7 @@ class HoldingMigration {
             pstmt.setInt(++i, childChain.getId());
             pstmt.setInt(++i, minHeight);
             pstmt.setInt(++i, actualHeight);
-            pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
+            pstmt.setInt(++i, height);
             pstmt.executeUpdate();
         }
     }
@@ -117,6 +120,7 @@ class HoldingMigration {
 
     void setActualHeight(int actualHeight) {
         this.actualHeight = actualHeight;
+        this.height = Nxt.getBlockchain().getHeight();
     }
 
     long getHoldingId() {

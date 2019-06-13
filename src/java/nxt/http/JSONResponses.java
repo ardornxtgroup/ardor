@@ -572,6 +572,9 @@ public final class JSONResponses {
         NO_TRADES_FOUND = JSON.prepare(response);
     }
 
+    public static final JSONStreamAware INCORRECT_RECIPIENTS_PUBLIC_KEY = incorrect("recipientsPublicKey",
+            "all specified recipient accounts are used");
+
     private JSONResponses() {} // never
 
 }

@@ -97,7 +97,7 @@ public final class DGSDelivery extends CreateTransaction {
                         goodsIsText, discountNQT, Account.getPublicKey(buyerAccount.getId())) :
                 new DeliveryAttachment(purchase.getId(), encryptedGoods,
                         goodsIsText, discountNQT);
-        return createTransaction(req, sellerAccount, buyerAccount.getId(), 0, attachment);
+        return transactionParameters(req, sellerAccount, attachment).setRecipientId(buyerAccount.getId()).createTransaction();
 
     }
 

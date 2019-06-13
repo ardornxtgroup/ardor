@@ -346,7 +346,7 @@ public class APITestServlet extends HttpServlet {
     }
 
     private static boolean isTextArea(String parameter, APIServlet.APIRequestHandler requestHandler) {
-        return "website".equals(parameter) || requestHandler.isTextArea(parameter);
+        return requestHandler.isTextArea(parameter);
     }
 
     static void initClass() {}

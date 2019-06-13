@@ -59,6 +59,7 @@ class HoldingFreeze {
     private final long holdingId;
     private final int minHeight;
     private int actualHeight;
+    private int height;
 
     HoldingFreeze(long holdingId, HoldingType holdingType, int minHeight, int actualHeight) {
         this.dbKey = DB_KEY_FACTORY.newKey(holdingId, holdingType.name());
@@ -66,6 +67,7 @@ class HoldingFreeze {
         this.holdingType = holdingType;
         this.minHeight = minHeight;
         this.actualHeight = actualHeight;
+        this.height = -1;
     }
 
     private HoldingFreeze(ResultSet rs, DbKey dbKey) throws SQLException {
@@ -74,6 +76,7 @@ class HoldingFreeze {
         this.holdingType = HoldingType.valueOf(rs.getString("holding_type"));
         this.minHeight = rs.getInt("min_height");
         this.actualHeight = rs.getInt("actual_height");
+        this.height = rs.getInt("height");
     }
 
     private void save(Connection connection) throws SQLException {
@@ -86,7 +89,7 @@ class HoldingFreeze {
             statement.setString(++i, holdingType.name());
             statement.setInt(++i, minHeight);
             statement.setInt(++i, actualHeight);
-            statement.setInt(++i, Nxt.getBlockchain().getHeight());
+            statement.setInt(++i, height);
             statement.executeUpdate();
         }
     }
@@ -132,6 +135,7 @@ class HoldingFreeze {
 
     void setActualHeight(int actualHeight) {
         this.actualHeight = actualHeight;
+        this.height = Nxt.getBlockchain().getHeight();
     }
 
     boolean isFrozen(int height) {

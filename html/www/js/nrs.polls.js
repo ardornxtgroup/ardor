@@ -88,7 +88,7 @@ var NRS = (function(NRS, $, undefined) {
 						pollDescription = pollDescription.substring(0, 100) + "...";
 					}
 					rows += "<tr>";
-					rows += "<td>" + NRS.getEntityLink({ text: poll.name, request: "getPoll", key: "poll", id: poll.poll }) + "</td>";
+					rows += "<td>" + NRS.getEntityLink({ text: NRS.unescapeRespStr(poll.name), request: "getPoll", key: "poll", id: poll.poll }) + "</td>";
 					rows += "<td>" + NRS.escapeRespStr(pollDescription) + "</td>";
 					rows += "<td>" + NRS.getAccountLink(poll, "account") + "</td>";
 					rows += "<td>" + NRS.formatTimestamp(poll.timestamp) + "</td>";
@@ -132,7 +132,7 @@ var NRS = (function(NRS, $, undefined) {
 						pollDescription = pollDescription.substring(0, 100) + "...";
 					}
 					rows += "<tr>";
-					rows += "<td>" + NRS.getEntityLink({ text: poll.name, request: "getPoll", key: "poll", id: poll.poll }) + "</td>";
+					rows += "<td>" + NRS.getEntityLink({ text: NRS.unescapeRespStr(poll.name), request: "getPoll", key: "poll", id: poll.poll }) + "</td>";
 					rows += "<td>" + NRS.escapeRespStr(pollDescription) + "</td>";
 					rows += "<td>" + NRS.getAccountLink(poll, "account") + "</td>";
 					rows += "<td>" + NRS.formatTimestamp(poll.timestamp) + "</td>";
@@ -186,7 +186,7 @@ var NRS = (function(NRS, $, undefined) {
 									pollDescription = pollDescription.substring(0, 100) + "...";
 								}
 								rows += "<tr>";
-								rows += "<td>" + poll.poll + "</td>";
+								rows += "<td>" + poll.name + "</td>";
 								rows += "<td>" + NRS.escapeRespStr(pollDescription) + "</td>";
 								rows += "<td>" + NRS.getAccountLink(poll, "account") + "</td>";
 								rows += "<td>" + NRS.formatTimestamp(poll.timestamp) + "</td>";
@@ -338,8 +338,8 @@ var NRS = (function(NRS, $, undefined) {
 		NRS.sendRequest("getPoll", {
 			"poll": poll
 		}, function(response, input) {
-			$("#cast_vote_poll_name").text(response.name);
-			$("#cast_vote_poll_description").text(response.description);
+			$("#cast_vote_poll_name").text(NRS.unescapeRespStr(response.name));
+			$("#cast_vote_poll_description").text(NRS.unescapeRespStr(response.description));
 			var castVoteAnswersEntry = $("#cast_vote_answers_entry");
             castVoteAnswersEntry.text("");
 			var selectText;
@@ -938,7 +938,7 @@ var NRS = (function(NRS, $, undefined) {
 			rows += "data-cache='" + i + "' ";
 			rows += "data-poll='" + NRS.escapeRespStr(poll.poll) + "' ";
 			rows += "data-closed='false'>";
-			rows += "<h4 class='list-group-item-heading'>" + poll.name.escapeHTML() + "</h4>";
+			rows += "<h4 class='list-group-item-heading'>" + poll.name + "</h4>";
 
 			if(NRS.lastBlockHeight > parseInt(poll.finishHeight)) {
 				rows += "<p class='list-group-item-text'><span data-i18n=\"completed\">Completed</span></p>";
@@ -1215,7 +1215,7 @@ var NRS = (function(NRS, $, undefined) {
 				}
 				var actions = '<a class="view_button btn btn-xs btn-default" href="#" data-view="' + poll.poll + '">' + $.t('view') + '</a>';
 				view.data.push({
-					"title": NRS.getEntityLink({ request: "getPoll", key: "poll", id: poll.poll, text:NRS.escapeRespStr(poll.name)}),
+					"title": NRS.getEntityLink({ request: "getPoll", key: "poll", id: poll.poll, text: NRS.unescapeRespStr(poll.name)}),
 					"description": description,
 					"sender": NRS.getAccountLink(poll, "account"),
 					"timestamp": NRS.formatTimestamp(poll.timestamp),

@@ -82,4 +82,9 @@ public final class GenerateToken extends APIServlet.APIRequestHandler {
         return false;
     }
 
+    @Override
+    protected boolean isTextArea(String parameter) {
+        return "website".equals(parameter);
+    }
+
 }

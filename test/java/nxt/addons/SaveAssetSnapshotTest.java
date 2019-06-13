@@ -22,14 +22,18 @@ import nxt.FileUtils;
 import nxt.Tester;
 import nxt.ae.Asset;
 import nxt.ae.AssetFreezeMonitorTest;
+import nxt.blockchain.TransactionProcessorImpl;
 import nxt.http.assetexchange.AssetExchangeTest;
 import nxt.http.client.IssueAssetBuilder;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -43,6 +47,15 @@ public class SaveAssetSnapshotTest extends BlockchainTest {
     public void setUp() {
         assetOwner = ALICE;
         new SaveAssetSnapshot().init();
+    }
+
+    @After
+    public void destroy() {
+        AccessController.doPrivileged((PrivilegedAction<Void>) () -> {
+            TransactionProcessorImpl.getInstance().clearUnconfirmedTransactions();
+            blockchainProcessor.popOffTo(-2);
+            return null;
+        });
     }
 
     @Test

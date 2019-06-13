@@ -273,8 +273,8 @@ var NRS = (function (NRS, $, undefined) {
                 }
             }
         }
-        var onClickHandler = onClickAction ? "onclick='" + onClickAction + "'" : "";
-        return "<a href='#' " + onClickHandler + " data-user='" + String(accountRS).escapeHTML() +
+        var onClickHandler = onClickAction ? "onclick='" + onClickAction + "' " : "";
+        return "<a href='#' " + onClickHandler + "data-user='" + String(accountRS).escapeHTML() +
             "' class='show_account_modal_action user-info" + clazz + "'>" + accountTitle + "</a>";
     };
 

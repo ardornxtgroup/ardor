@@ -21,7 +21,6 @@ import nxt.Nxt;
 import nxt.NxtException;
 import nxt.account.Account;
 import nxt.account.AccountLedger;
-import nxt.ae.AssetFreezeMonitor;
 import nxt.crypto.Crypto;
 import nxt.db.DbIterator;
 import nxt.db.DerivedDbTable;
@@ -113,8 +112,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     private final ExecutorService networkService = Executors.newCachedThreadPool();
     private final List<DerivedDbTable> derivedTables = new CopyOnWriteArrayList<>();
     private final boolean trimDerivedTables = Nxt.getBooleanProperty("nxt.trimDerivedTables");
-    private final int defaultNumberOfForkConfirmations = Nxt.getIntProperty(Constants.isTestnet
-            ? "nxt.testnetNumberOfForkConfirmations" : "nxt.numberOfForkConfirmations");
     private final boolean simulateEndlessDownload = Nxt.getBooleanProperty("nxt.simulateEndlessDownload");
 
     private int initialScanHeight;
@@ -197,7 +194,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             try {
                 long startTime = System.currentTimeMillis();
                 int numberOfForkConfirmations = blockchain.getHeight() > Constants.LAST_CHECKSUM_BLOCK - 720 ?
-                        defaultNumberOfForkConfirmations : Math.min(5, defaultNumberOfForkConfirmations);
+                        Constants.DEFAULT_NUMBER_OF_FORK_CONFIRMATIONS : Math.min(5, Constants.DEFAULT_NUMBER_OF_FORK_CONFIRMATIONS);
                 connectedPublicPeers = Peers.getConnectedPeers();
                 if (connectedPublicPeers.size() <= numberOfForkConfirmations) {
                     return;
@@ -499,8 +496,10 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                         throw new RuntimeException(exc.getMessage(), exc);
                     }
                     if (blockList == null) {
-                        Logger.logDebugMessage("No blocks returned, disconnecting peer");
-                        connectedPublicPeers.remove(nextBlocks.getPeer());
+                        Peer unresponsivePeer = nextBlocks.getPeer();
+                        Logger.logDebugMessage("No blocks returned, disconnecting peer " + unresponsivePeer.getHost());
+                        connectedPublicPeers.remove(unresponsivePeer);
+                        unresponsivePeer.disconnectPeer();
                         continue;
                     }
                     Peer peer = nextBlocks.getPeer();
@@ -1748,7 +1747,11 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 Db.db.rollbackTransaction();
                 BlockImpl lastBlock = BlockDb.findLastBlock();
                 blockchain.setLastBlock(lastBlock);
-                popOffTo(lastBlock);
+                for (DerivedDbTable table : derivedTables) {
+                    table.popOffTo(lastBlock.getHeight());
+                }
+                Db.db.clearCache();
+                Db.db.commitTransaction();
                 throw e;
             }
         } finally {
@@ -1970,8 +1973,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                     if (!Arrays.equals(generationSignature, currentBlock.getGenerationSignature())) {
                         throw new RuntimeException("Invalid generation signature " /*+ Arrays.toString(generationSignature)*/);
                     }
-                    ChildChainLoader.enableChildChainLoading(ChildChain.MPG, Constants.MPG_BLOCK, Constants.MPG_BLOCK);
-                    AssetFreezeMonitor.enableFreeze(Convert.parseUnsignedLong("6066975351926729052"), Constants.MPG_BLOCK, Constants.MPG_BLOCK);
                 } else {
                     blockchain.setLastBlock(BlockDb.findBlockAtHeight(height - 1));
                 }

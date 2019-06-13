@@ -24,6 +24,7 @@ import nxt.authentication.RoleMapperFactory;
 import nxt.blockchain.Bundler;
 import nxt.blockchain.Chain;
 import nxt.blockchain.ChildChain;
+import nxt.blockchain.FxtChain;
 import nxt.configuration.SubSystem;
 import nxt.crypto.Crypto;
 import nxt.dbschema.Db;
@@ -123,12 +124,6 @@ public final class Peers {
 
     /** Ignore peer announced address */
     static final boolean ignorePeerAnnouncedAddress = Nxt.getBooleanProperty("nxt.ignorePeerAnnouncedAddress");
-
-    /** Minimum bundler effective balance */
-    static final int minBundlerBalanceFXT = Nxt.getIntProperty("nxt.minBundlerBalanceFXT");
-
-    /** Minimum bundler fee limit */
-    static final int minBundlerFeeLimitFXT = Nxt.getIntProperty("nxt.minBundlerFeeLimitFXT");
 
     /** Blacklisted bundler accounts */
     private static final Set<Long> blacklistedBundlerAccounts = new HashSet<>();
@@ -671,14 +666,24 @@ public final class Peers {
      * @return                          List of connected peers
      */
     public static List<Peer> getConnectedPeers() {
+        Collection<PeerImpl> peersCollection = getConnectedPeersInternal();
+        return peersCollection != null ? new ArrayList<>(peersCollection) : Collections.emptyList();
+    }
+
+    public static int getConnectedPeersCount() {
+        Collection<PeerImpl> peersCollection = getConnectedPeersInternal();
+        return peersCollection != null ? peersCollection.size() : 0;
+    }
+
+    private static Collection<PeerImpl> getConnectedPeersInternal() {
         SecurityManager sm = System.getSecurityManager();
         if (sm != null) {
             sm.checkPermission(new BlockchainPermission("peers"));
         }
         if (Nxt.isEnabled(SubSystem.PEER_NETWORKING)) {
-            return new ArrayList<>(NetworkHandler.connectionMap.values());
+            return NetworkHandler.connectionMap.values();
         } else {
-            return Collections.EMPTY_LIST;
+            return null;
         }
     }
 
@@ -1098,9 +1103,6 @@ public final class Peers {
         boolean updated = false;
         synchronized(bundlerRates) {
             for (BundlerRate rate : rates) {
-                if (rate.getRate() < 0) {
-                    continue;
-                }
                 long accountId = rate.getAccountId();
                 List<BundlerRate> listRates = bundlerRates.get(accountId);
                 BundlerRate prevRate = null;
@@ -1119,9 +1121,15 @@ public final class Peers {
                 if (prevRate == null || prevRate.getTimestamp() < rate.getTimestamp()) {
                     if (prevRate != null) {
                         listRates.remove(prevRate);
+                        updated = true;
                     }
-                    listRates.add(rate);
-                    updated = true;
+                    if (rate.getRate() >= 0) {
+                        listRates.add(rate);
+                        updated = true;
+                    }
+                }
+                if (listRates.isEmpty()) {
+                    bundlerRates.remove(accountId);
                 }
             }
         }
@@ -1156,11 +1164,12 @@ public final class Peers {
     /**
      * Get the best bundler rates
      *
-     * @param   minBalance      Minimum bundler account balance
+     * @param   minBalance      Minimum bundler effective account balance in FXT
+     * @param   minFeeLimit     Minimum bundler remaining fee limit in FQT
      * @param   whitelist       If present, only rates from the whitelisted accounts will be returned
      * @return                  List of bundler rates
      */
-    public static List<BundlerRate> getBestBundlerRates(long minBalance, Set<Long> whitelist) {
+    public static List<BundlerRate> getBestBundlerRates(long minBalance, long minFeeLimit, Set<Long> whitelist) {
         SecurityManager sm = System.getSecurityManager();
         if (sm != null) {
             sm.checkPermission(new BlockchainPermission("peers"));
@@ -1168,8 +1177,9 @@ public final class Peers {
         Map<ChildChain, BundlerRate> rateMap = new HashMap<>();
         forEachBundlerRate(rate -> {
             BundlerRate prevRate = rateMap.get(rate.getChain());
-            if (rate.getBalance() >= minBalance &&
-                    (prevRate == null || rate.getRate() < prevRate.getRate())) {
+            if (rate.getBalance() >= minBalance && rate.getFeeLimit() >= minFeeLimit &&
+                    (prevRate == null || rate.getRate() < prevRate.getRate()) &&
+                    FxtChain.FXT.getBalanceHome().getBalance(rate.getAccountId()).getUnconfirmedBalance() >= minFeeLimit) {
                 rateMap.put(rate.getChain(), rate);
             }
         }, whitelist);
@@ -1203,19 +1213,21 @@ public final class Peers {
      * Get the best bundler rate for a child chain
      *
      * @param   childChain      Child chain
-     * @param   minBalance      Minimum bundler account balance
+     * @param   minBalance      Minimum bundler effective account balance in FXT
+     * @param   minFeeLimit     Minimum bundler remaining fee limit in FQT
      * @param   whitelist       If present, only rates from the whitelisted accounts will be returned
      * @return                  Best bundler rate or -1 if there are no rates
      */
-    public static long getBestBundlerRate(Chain childChain, long minBalance, Set<Long> whitelist) {
+    public static long getBestBundlerRate(Chain childChain, long minBalance, long minFeeLimit, Set<Long> whitelist) {
         SecurityManager sm = System.getSecurityManager();
         if (sm != null) {
             sm.checkPermission(new BlockchainPermission("peers"));
         }
         AtomicLong minRate = new AtomicLong(-1);
         forEachBundlerRate(rate -> {
-            if (rate.getChain() == childChain && rate.getBalance() >= minBalance &&
-                    (minRate.get() < 0 || rate.getRate() < minRate.get())) {
+            if (rate.getChain() == childChain && rate.getBalance() >= minBalance && rate.getFeeLimit() >= minFeeLimit &&
+                    (minRate.get() < 0 || rate.getRate() < minRate.get()) &&
+                    FxtChain.FXT.getBalanceHome().getBalance(rate.getAccountId()).getUnconfirmedBalance() >= minFeeLimit) {
                 minRate.set(rate.getRate());
             }
         }, whitelist);

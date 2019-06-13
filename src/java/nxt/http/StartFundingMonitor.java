@@ -120,6 +120,9 @@ public final class StartFundingMonitor extends APIServlet.APIRequestHandler {
         if (account == null) {
             return UNKNOWN_ACCOUNT;
         }
+        if (account.getControls().contains(Account.ControlType.PHASING_ONLY)) {
+            return JSONResponses.error("Accounts under phasing only control cannot run a funding monitor");
+        }
         FundingMonitor monitor = FundingMonitor.startMonitor(chain, holdingType, holdingId, property, amount, threshold, interval, secretPhrase, feeRateNQTPerFXT);
         if (monitor != null) {
             JSONObject response = new JSONObject();

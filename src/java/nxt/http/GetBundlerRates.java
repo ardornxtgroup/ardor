@@ -32,16 +32,17 @@ public final class GetBundlerRates extends APIServlet.APIRequestHandler {
     static final GetBundlerRates instance = new GetBundlerRates();
 
     private GetBundlerRates() {
-        super(new APITag[]{APITag.FORGING}, "minBundlerBalanceFXT");
+        super(new APITag[]{APITag.FORGING}, "minBundlerBalanceFXT", "minBundlerFeeLimitFQT");
     }
 
     @Override
     protected JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
-        long minBalance = ParameterParser.getLong(req, "minBundlerBalanceFXT",
-                0, Constants.MAX_BALANCE_FXT, false);
+        long minBundlerBalanceFXT = ParameterParser.getLong(req, "minBundlerBalanceFXT", 0, Constants.MAX_BALANCE_FXT, Constants.minBundlerBalanceFXT);
+        long minBundlerFeeLimitFQT = ParameterParser.getLong(req, "minBundlerFeeLimitFQT", 0, Constants.MAX_BALANCE_FXT * Constants.ONE_FXT, Constants.minBundlerFeeLimitFXT * Constants.ONE_FXT);
+
         JSONObject response = new JSONObject();
         JSONArray ratesJSON = new JSONArray();
-        List<BundlerRate> rates = Peers.getBestBundlerRates(minBalance, Peers.getBestBundlerRateWhitelist());
+        List<BundlerRate> rates = Peers.getBestBundlerRates(minBundlerBalanceFXT, minBundlerFeeLimitFQT, Peers.getBestBundlerRateWhitelist());
         rates.forEach(rate -> {
             JSONObject rateJSON = new JSONObject();
             rateJSON.put("chain", rate.getChain().getId());

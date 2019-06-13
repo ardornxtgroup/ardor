@@ -56,7 +56,7 @@ public final class SetAssetProperty extends CreateTransaction {
         }
 
         Attachment attachment = new AssetPropertyAttachment(asset.getId(), property, value);
-        return createTransaction(req, senderAccount, asset.getAccountId(), 0, attachment);
+        return transactionParameters(req, senderAccount, attachment).setRecipientId(asset.getAccountId()).createTransaction();
     }
 
     @Override

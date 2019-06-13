@@ -72,7 +72,7 @@ public final class DGSRefund extends CreateTransaction {
         Account buyerAccount = Account.getAccount(purchase.getBuyerId());
 
         Attachment attachment = new RefundAttachment(purchase.getId(), refundNQT);
-        return createTransaction(req, sellerAccount, buyerAccount.getId(), 0, attachment);
+        return transactionParameters(req, sellerAccount, attachment).setRecipientId(buyerAccount.getId()).createTransaction();
 
     }
 

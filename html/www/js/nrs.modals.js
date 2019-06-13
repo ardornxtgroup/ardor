@@ -245,6 +245,8 @@ var NRS = (function(NRS, $, undefined) {
 		$("#create_poll_ms_currency_group").css("display", "none");
 		$("#shuffling_asset_id_group").css("display", "none");
 		$("#shuffling_ms_currency_group").css("display", "none");
+		$("#standbyshuffler_asset_id_group").css("display", "none");
+		$("#standbyshuffler_ms_currency_group").css("display", "none");
         var pollTypeGroup = $("#create_poll_type_group");
         pollTypeGroup.removeClass("col-xs-6").addClass("col-xs-12");
 		pollTypeGroup.removeClass("col-sm-6").addClass("col-sm-12");

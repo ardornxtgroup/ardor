@@ -1,0 +1,109 @@
+This release introduces the StandbyShuffler add-on, a new feature intended to
+simplify the use of our flagship privacy feature, fully decentralized and
+trustless Shuffling.
+
+A StandbyShuffler, as opposed to a regular Shuffler, does not start a new
+shuffling immediately, but runs in the background and waits for other users to
+start a shuffling which matches the StandbyShuffler parameters - holding (coin,
+asset or currency), minimum and maximum amounts, and number of participants.
+When such a shuffling is created, the StandbyShuffler joins it automatically. A
+StandbyShuffler is configured on start with a number of recipient public keys
+to use as recipients in each shuffling it joins, and shuts down once all have
+been used.
+
+Running a StandbyShuffler requires a full node, not just a light client.
+To enable the StandbyShuffler add-on, add nxt.addons.StandbyShuffling to the
+list of enabled add-ons in the nxt.addOns property. This add-on registers three
+new APIs:
+
+StartStandbyShuffler - start a StandbyShuffler. The secretPhrase of the
+shuffling account must be supplied. The holdingType and holding parameters
+define the coin, asset or currency for which to listen for shufflings being
+started. The optional minAmount, maxAmount and minParticipants parameters can
+be used to limit which shufflings to join. The recipientPublicKeys parameter
+holds one or more public keys, used one at a time as a recipient account public
+key each time a shuffling is joined. This can be specified either as a multi-
+value parameter, or a single text value holding multiple public keys separated
+by newlines. The feeRateNQTPerFXT parameter specifies what rate to use when
+calculating the child chain fees for each shuffling transaction submitted.
+Since the market rate can change between when the StandbyShuffler is started
+and an actual shuffling is joined, one should use a high enough rate to make
+sure shuffling transactions of the StandbyShuffler account are always bundled.
+
+GetStandbyShufflers - returns a list of all StandbyShufflers running on the
+node, optionally filtered using holdingType, holding and account parameters.
+If not running locally, a secretPhrase or admin password are required.
+
+StopStandbyShuffler - stops the StandbyShuffler for a specified account and
+holding or all StandbyShufflers running on the node if account is not
+specified. If not running locally, a secretPhrase or admin password are
+required.
+
+An UI for starting, observing, or stopping StandbyShufflers has been added
+under Shuffling / My StandbyShufflers.
+
+To automate starting the configured StandbyShufflers when the node is
+restarted, a set of StartStandbyShuffling, SaveStandbyShufflingEncrypted, and
+StartStandbyShufflingEncrypted add-ons has been provided.
+
+StartStandbyShuffling automatically starts one or more StandbyShufflers as
+defined in a file set in the nxt.startStandbyShufflingFile property. The
+format of this JSON file is the same as the JSON output of GetStandbyShufflers,
+with secretPhrase field added for each StandbyShuffler, thus the simplest way
+to generate it is first to setup StandbyShufflers as required and then save
+and edit the GetStandbyShufflers response.
+
+Alternatively, to avoid keeping the secretPhrase and recipient public keys in
+a plain text file, the SaveStandbyShufflingEncrypted add-on can be used to save
+the StandbyShufflers configuration JSON in an encrypted file, and the
+StartStandbyShufflingEncrypted add-on to start them by submitting the
+decryption password through the API.
+
+
+Added ChangeNOW as an integrated exchange in the wallet, allowing exchange of
+Ignis and Ardor to any coin supported by ChangeNOW.
+
+Permanently disallowed outgoing transactions from the new @ArdorBurnAccount,
+see announcement at https://www.jelurida.com/ardor-burn-account
+
+Pause forging if there are not enough connected peers from which to download
+the blockchain, as defined in nxt.numberOfForkConfirmations or
+nxt.testnetNumberOfForkConfirmations, unless nxt.isOffline=true. This is to
+avoid building a fork if the node is temporarily disconnected. To disable this
+behavior, set nxt.pauseForgingOnNoConnection=false (default is true).
+
+Do not allow accounts under account control to start a Funding Monitor.
+
+The SaveBundlingEncrypted, SaveForgingEncrypted, SaveFundingMonitorEncrypted
+APIs now require admin password when running on a remote node.
+
+Added a list of full transaction hashes with chain ids to the response of the
+getUnconfirmedTransactionIds API.
+
+Added a new bundling filter, nxt.addons.TransactionTypeBundler, which bundles
+only transactions of the transaction types specified in the filter parameter.
+The parameter must be a comma separated list of <type>:<subtype> pairs with
+the "type" and "subtype" of the whitelisted transaction types.
+
+Improved propagation of bundler rates between peers and calculation of best
+bundler rates. The CalculateFee, GetBundlerRates, and all CreateTransaction
+APIs now take both minBundlerBalanceFXT and minBundlerFeeLimitFQT parameters,
+with defaults based on the nxt.minBundlerBalanceFXT (default 1000 ARDR) and
+nxt.minBundlerFeeLimitFXT (default 10 ARDR) properties.
+Bundlers with effective balance lower than minBundlerBalanceFXT, or remaining
+fee limit or available ARDR balance lower than minBundlerFeeLimitFQT, are
+excluded from the best rates calculation.
+
+Shamir secret sharing passphrases can now be used to sign transaction
+vouchers.
+
+Updated Jetty to version 9.4.18. This release fixes a Jetty bug which causes
+a server hang after high load, therefore an update is highly recommended.
+
+The Jelurida Public License has been updated to version 1.2, to clarify that
+Ardor code is not portable to Nxt clones unless the JPL requirements for Ardor
+are also satisfied (article 3.4.2 of the General Conditions), and to require
+that airdrops, including the fact that they are done in order to satisfy the
+JPL, are announced at least a month before the planned snapshot date (article
+2.2 of the Special Conditions).
+

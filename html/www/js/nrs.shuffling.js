@@ -125,6 +125,36 @@ var NRS = (function(NRS, $) {
         };
     };
 
+    NRS.jsondata.standbyshuffler = function (response, minAmountDecimals, maxAmountDecimals) {
+        return {
+            holdingFormatted: (function () {
+                switch (response.holdingType) {
+                    case 0: return NRS.getActiveChainName();
+                    case 1: return NRS.getHoldingLink(response.holding, response.holdingType) + " (" + $.t('asset') + ")";
+                    case 2: return NRS.getHoldingLink(response.holding, response.holdingType, response.holdingInfo.code)  + " (" + $.t('currency') + ")";
+                }
+            })(),
+            minAmountFormatted: (function () {
+                switch (response.holdingType) {
+                    case 0: return NRS.formatAmount(response.minAmount, false, false, minAmountDecimals);
+                    case 1:
+                    case 2: return NRS.formatQuantity(response.minAmount, response.holdingInfo.decimals, false, minAmountDecimals);
+                }
+            })(),
+            maxAmountFormatted: (function () {
+                switch (response.holdingType) {
+                    case 0: return NRS.formatAmount(response.maxAmount, false, false, maxAmountDecimals);
+                    case 1:
+                    case 2: return NRS.formatQuantity(response.maxAmount, response.holdingInfo.decimals, false, maxAmountDecimals);
+                }
+            })(),
+            minParticipants: NRS.escapeRespStr(response.minParticipants),
+            publicKeysLeft: NRS.escapeRespStr(response.recipientPublicKeys.length),
+            holdingType: NRS.escapeRespStr(response.holdingType),
+            holding: NRS.escapeRespStr(response.holding)
+        };
+    };
+
     NRS.pages.shuffling = function () {};
 
     NRS.setup.shuffling = function() {
@@ -150,12 +180,15 @@ var NRS = (function(NRS, $) {
             "page": 'my_shufflings'
         });
         NRS.appendMenuItemToTSMenuItem(sidebarId, {
+            "titleHTML": '<span data-i18n="my_standbyshufflers">My StandbyShufflers</span>',
+            "type": 'PAGE',
+            "page": 'my_standbyshufflers'
+        });
+        NRS.appendMenuItemToTSMenuItem(sidebarId, {
             "titleHTML": '<span data-i18n="create_shuffling">Create Shuffling</span>',
             "type": 'MODAL',
             "modalId": 'm_shuffling_create_modal'
         });
-
-        $('#m_shuffling_create_holding_type').change();
     };
 
     /**
@@ -180,6 +213,30 @@ var NRS = (function(NRS, $) {
             $('#m_shuffling_create_unit').html($.t('units'));
             $('#m_shuffling_create_amount').attr('name', 'amountQNTf');
 		}
+    });
+
+    /**
+     * Create standbyshuffler modal holding type onchange listener.
+     * Hides holding field unless type is asset or currency.
+     */
+    $('#m_start_standbyshuffler_holding_type').change(function () {
+        var holdingType = $("#m_start_standbyshuffler_holding_type");
+        if(holdingType.val() == "0") {
+            $("#standbyshuffler_asset_id_group").css("display", "none");
+            $("#standbyshuffler_ms_currency_group").css("display", "none");
+            $('#m_start_standbyshuffler_min_amount').attr('name', 'standbyShufflerMinAmountNXT');
+            $('#m_start_standbyshuffler_max_amount').attr('name', 'standbyShufflerMaxAmountNXT');
+        } if(holdingType.val() == "1") {
+            $("#standbyshuffler_asset_id_group").css("display", "inline");
+            $("#standbyshuffler_ms_currency_group").css("display", "none");
+            $('#m_start_standbyshuffler_min_amount').attr('name', 'minAmountQNTf');
+            $('#m_start_standbyshuffler_max_amount').attr('name', 'maxAmountQNTf');
+        } else if(holdingType.val() == "2") {
+            $("#standbyshuffler_asset_id_group").css("display", "none");
+            $("#standbyshuffler_ms_currency_group").css("display", "inline");
+            $('#m_start_standbyshuffler_min_amount').attr('name', 'minAmountQNTf');
+            $('#m_start_standbyshuffler_max_amount').attr('name', 'maxAmountQNTf');
+        }
     });
 
     NRS.forms.shufflingCreate = function($modal) {
@@ -355,7 +412,62 @@ var NRS = (function(NRS, $) {
         ], function (err, result) {});
     };
 
+    NRS.pages.my_standbyshufflers = function () {
+        async.waterfall([
+            function(callback) {
+                NRS.hasMorePages = false;
+                var view = NRS.simpleview.get('my_standbyshufflers_page', {
+                    errorMessage: null,
+                    isLoading: true,
+                    isEmpty: false,
+                    standbyShufflers: []
+                });
+                NRS.sendRequest("getStandbyShufflers", {"account": NRS.account, "adminPassword": NRS.getAdminPassword(), "includeHoldingInfo": "true"},
+                    function(response) {
+                        if (NRS.isErrorResponse(response)) {
+                            view.render({
+                                errorMessage: $.t("cannot_check_standbyshufflers_status") + " " + NRS.getErrorMessage(response),
+                                isLoading: false,
+                                isEmpty: false
+                            });
+                            return;
+                        }
+                        var minAmountDecimals = NRS.getNumberOfDecimals(response.standbyShufflers, "minAmount", function(standbyshuffler) {
+                            switch (standbyshuffler.holdingType) {
+                                case 0: return NRS.formatAmount(standbyshuffler.minAmount);
+                                case 1:
+                                case 2: return NRS.formatQuantity(standbyshuffler.minAmount, standbyshuffler.holdingInfo.decimals);
+                                default: return "";
+                            }
+                        });
+                        var maxAmountDecimals = NRS.getNumberOfDecimals(response.standbyShufflers, "maxAmount", function(standbyshuffler) {
+                            switch (standbyshuffler.holdingType) {
+                                case 0: return NRS.formatAmount(standbyshuffler.maxAmount);
+                                case 1:
+                                case 2: return NRS.formatQuantity(standbyshuffler.maxAmount, standbyshuffler.holdingInfo.decimals);
+                                default: return "";
+                            }
+                        });
+                        response.standbyShufflers.forEach(
+                            function (standbyshufflerJson) {
+                                view.standbyShufflers.push( NRS.jsondata.standbyshuffler(standbyshufflerJson, minAmountDecimals, maxAmountDecimals) );
+                            }
+                        );
+                        view.render({
+                            isLoading: false,
+                            isEmpty: view.standbyShufflers.length == 0
+                        });
+                        NRS.pageLoaded();
+                        callback(null);
+                    }
+                );
+            }
+        ], function (err, result) {});
+    };
+
     $("#m_shuffling_create_modal").on("show.bs.modal", function() {
+        $('#m_shuffling_create_holding_type').change();
+
    		var context = {
    			labelText: "Currency",
    			labelI18n: "currency",
@@ -404,6 +516,48 @@ var NRS = (function(NRS, $) {
         }
     });
 
+    $("#m_start_standbyshuffler_modal").on("show.bs.modal", function() {
+        $('#m_start_standbyshuffler_holding_type').change();
+
+        var context = {
+            labelText: "Currency",
+            labelI18n: "currency",
+            inputCodeName: "standbyshuffler_ms_code",
+            inputIdName: "holding",
+            inputDecimalsName: "standbyshuffler_ms_decimals",
+            helpI18n: "add_currency_modal_help"
+        };
+        NRS.initModalUIElement($(this), '.standbyshuffler_holding_currency', 'add_currency_modal_ui_element', context);
+
+        context = {
+            labelText: "Asset",
+            labelI18n: "asset",
+            inputIdName: "holding",
+            inputDecimalsName: "standbyshuffler_asset_decimals",
+            helpI18n: "add_asset_modal_help"
+        };
+        NRS.initModalUIElement($(this), '.standbyshuffler_holding_asset', 'add_asset_modal_ui_element', context);
+
+        // Activating context help popovers - from some reason this code is activated
+        // after the same event in nrs.modals.js which doesn't happen for create pool thus it's necessary
+        // to explicitly enable the popover here. strange ...
+        $(function () {
+            $("[data-toggle='popover']").popover({
+                "html": true
+            });
+        });
+    });
+
+    $("#m_stop_standbyshuffler_modal").on("show.bs.modal", function(event) {
+        var $invoker = $(event.relatedTarget);
+        $("#stop_standbyshuffler_account").val(NRS.account);
+        $("#stop_standbyshuffler_holding_type").val($invoker.data("holdingType"));
+        $("#stop_standbyshuffler_holding").val($invoker.data("holding"));
+        if (NRS.getAdminPassword()) {
+            $("#stop_standbyshuffler_admin_password").val(NRS.getAdminPassword());
+        }
+    });
+
     $('#m_shuffler_start_recipient_secretphrase').on("change", function () {
         var secretPhraseValue = $('#m_shuffler_start_recipient_secretphrase').val();
         var recipientAccount = $('#m_shuffler_start_recipient_account');
@@ -414,11 +568,30 @@ var NRS = (function(NRS, $) {
         recipientAccount.val(NRS.getAccountId(secretPhraseValue, true));
     });
 
+    $('#m_start_standbyshuffler_recipient_secretphrases').on('change', function () {
+        var secretPhrases = $('#m_start_standbyshuffler_recipient_secretphrases').val();
+        var recipientAccounts = $('#m_start_standbyshuffler_recipient_accounts');
+        recipientAccounts.val('');
+        if (secretPhrases === null || secretPhrases === '') {
+            return;
+        }
+        var accounts = convertSecretPhrasesList(secretPhrases, function (secretPhrase) {
+            return NRS.getAccountId(secretPhrase, true);
+        });
+        recipientAccounts.val(accounts);
+    });
+
     NRS.forms.startShuffler = function ($modal) {
         var data = NRS.getFormData($modal.find("form:first"));
         if (data.recipientSecretPhrase) {
             data.recipientPublicKey = NRS.getPublicKey(converters.stringToHexString(data.recipientSecretPhrase));
             delete data.recipientSecretPhrase;
+        }
+
+        if (data.feeRateNXTPerFXT.trim() === "") {
+            return {
+                "error": $.t("shuffler_bundling_advice")
+            };
         }
         data.feeRateNQTPerFXT = NRS.convertToNQT(data.feeRateNXTPerFXT);
         delete data.feeRateNXTPerFXT;
@@ -427,6 +600,45 @@ var NRS = (function(NRS, $) {
             "data": data
         };
     };
+
+    NRS.forms.startStandbyShuffler = function ($modal) {
+        var data = NRS.getFormData($modal.find("form:first"));
+
+        switch (data.holdingType) {
+            case '0':
+                data.holding = NRS.getActiveChainId();
+                break;
+            case '1':
+                break;
+            case '2':
+                break;
+        }
+
+        if (data.recipientSecretPhrases) {
+            data.recipientPublicKeys = convertSecretPhrasesList(data.recipientSecretPhrases, function (secretPhrase) {
+                return NRS.getPublicKey(converters.stringToHexString(secretPhrase));
+            });
+            delete data.recipientSecretPhrases;
+        }
+
+        if (data.feeRateNXTPerFXT.trim() === "") {
+            return {
+                "error": $.t("standbyshuffler_bundling_advice")
+            };
+        }
+        data.feeRateNQTPerFXT = NRS.convertToNQT(data.feeRateNXTPerFXT);
+        delete data.feeRateNXTPerFXT;
+
+        return {
+            "data": data
+        };
+    };
+
+    function convertSecretPhrasesList(secretPhrases, callback) {
+        return secretPhrases.split('\n').filter(function(secretPhrase) {
+            return secretPhrase !== null && secretPhrase !== '';
+        }).map(callback).join('\n');
+    }
 
     NRS.forms.shufflingCreateComplete = function(response) {
         $.growl($.t("shuffling_created"));
@@ -437,6 +649,22 @@ var NRS = (function(NRS, $) {
 
     NRS.forms.startShufflerComplete = function() {
         $.growl($.t("shuffler_started"));
+        NRS.loadPage(NRS.currentPage);
+    };
+
+    NRS.forms.startStandbyShufflerComplete = function (response) {
+        if (response.started === true) {
+            $.growl($.t("standbyshuffler_started"));
+        } else {
+            $.growl($.t("standbyshuffler_not_started"), {"type":"warning"});
+        }
+        NRS.loadPage(NRS.currentPage);
+    };
+
+    NRS.forms.stopStandbyShufflerComplete = function (response) {
+        if (response.stopped === 1) {
+            $.growl($.t("standbyshuffler_stopped"));
+        }
         NRS.loadPage(NRS.currentPage);
     };
 

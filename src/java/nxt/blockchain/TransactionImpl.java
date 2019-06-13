@@ -38,14 +38,7 @@ import java.security.MessageDigest;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.*;
 
 public abstract class TransactionImpl implements Transaction {
 
@@ -673,6 +666,10 @@ public abstract class TransactionImpl implements Transaction {
             if (recipientId == 0) {
                 throw new NxtException.NotValidException("Transactions of this type must have a valid recipient");
             }
+        }
+
+        if (getSenderId() == Constants.BURN_ACCOUNT_ID) {
+            throw new NxtException.NotValidException(String.format("Burn account %s not allowed to send transactions", Convert.rsAccount(senderId)));
         }
 
     }
