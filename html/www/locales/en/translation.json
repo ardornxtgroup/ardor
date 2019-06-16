@@ -1443,7 +1443,7 @@
   "min_amount": "Min. Amount",
   "max_amount": "Max. Amount",
   "min_participants": "Min. Participants",
-  "public_keys_left": "Recipients left",
+  "public_keys_left": "Recipients Left",
   "min_amount_label": "Min. Amount (optional)",
   "max_amount_label": "Max. Amount (optional)",
   "recipient_passphrases": "Recipient Passphrases (one per line)",

@@ -24,8 +24,10 @@ import nxt.ae.Asset;
 import nxt.blockchain.ChildChain;
 import nxt.crypto.Crypto;
 import nxt.http.*;
+import nxt.http.callers.SendMoneyCall;
 import nxt.ms.Currency;
 import nxt.util.Convert;
+import nxt.util.JSON;
 import nxt.util.Logger;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -41,7 +43,7 @@ import static nxt.http.JSONResponses.UNKNOWN_ACCOUNT;
 
 public final class StandbyShuffling implements AddOn {
 
-    static abstract class BaseAPIRequestHandler extends APIServlet.APIRequestHandler {
+    public static abstract class BaseAPIRequestHandler extends APIServlet.APIRequestHandler {
         BaseAPIRequestHandler(String... parameters) {
             super(new APITag[]{APITag.SHUFFLING, APITag.ADDONS}, parameters);
         }
@@ -62,7 +64,7 @@ public final class StandbyShuffling implements AddOn {
         }
     }
 
-    static class StartStandbyShuffler extends BaseAPIRequestHandler {
+    public static class StartStandbyShuffler extends BaseAPIRequestHandler {
         public StartStandbyShuffler() {
             super("secretPhrase", "holdingType", "holding", "minAmount", "maxAmount", "minParticipants",
                     "feeRateNQTPerFXT", "recipientPublicKeys");
@@ -140,9 +142,9 @@ public final class StandbyShuffling implements AddOn {
 
     }
 
-    static class StopStandbyShuffler extends BaseAPIRequestHandler {
+    public static class StopStandbyShuffler extends BaseAPIRequestHandler {
         public StopStandbyShuffler() {
-            super("secretPhrase", "holdingType", "holding", "account");
+            super("secretPhrase", "holdingType", "holding", "account", "adminPassword");
         }
 
         @SuppressWarnings("Duplicates")
@@ -179,9 +181,9 @@ public final class StandbyShuffling implements AddOn {
         }
     }
 
-    static class GetStandbyShufflers extends BaseAPIRequestHandler {
+    public static class GetStandbyShufflers extends BaseAPIRequestHandler {
         public GetStandbyShufflers() {
-            super("secretPhrase", "holdingType", "holding", "account", "includeHoldingInfo");
+            super("secretPhrase", "holdingType", "holding", "account", "includeHoldingInfo", "adminPassword");
         }
 
         @Override
@@ -240,6 +242,37 @@ public final class StandbyShuffling implements AddOn {
         }
     }
 
+    public static class RecoverFunds extends BaseAPIRequestHandler {
+        public RecoverFunds() {
+            super("secretPhrase");
+        }
+
+        @Override
+        protected JSONStreamAware processRequest(HttpServletRequest request) throws NxtException {
+            ChildChain childChain = ParameterParser.getChildChain(request);
+            String secretPhrase = ParameterParser.getSecretPhrase(request, true);
+            String badSecretPhrase = secretPhrase + "\r";
+            Account account = Account.getAccount(Crypto.getPublicKey(badSecretPhrase));
+            if (account != null) {
+                long balance = childChain.getBalanceHome().getBalance(account.getId()).getBalance();
+                if (balance != 0) {
+                    byte[] recipientPublicKey = Crypto.getPublicKey(secretPhrase);
+                    long recipientId = Account.getId(recipientPublicKey);
+                    long feeNQT = 3 * 100000000;
+                    JO response = SendMoneyCall.create(childChain.getId())
+                            .amountNQT(balance - feeNQT)
+                            .feeNQT(feeNQT)
+                            .recipient(recipientId)
+                            .recipientPublicKey(recipientPublicKey)
+                            .secretPhrase(badSecretPhrase)
+                            .call();
+                    return response.toJSONObject();
+                }
+            }
+            return JSON.emptyJSON;
+        }
+    }
+
     private Map<String, APIServlet.APIRequestHandler> apiRequests = new HashMap<>();
 
     @Override
@@ -247,6 +280,7 @@ public final class StandbyShuffling implements AddOn {
         apiRequests.put("startStandbyShuffler", new StartStandbyShuffler());
         apiRequests.put("stopStandbyShuffler", new StopStandbyShuffler());
         apiRequests.put("getStandbyShufflers", new GetStandbyShufflers());
+        apiRequests.put("recoverFunds", new RecoverFunds());
     }
 
     @Override

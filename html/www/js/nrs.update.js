@@ -105,7 +105,7 @@ var NRS = (function(NRS, $) {
 		updateHashProgress.show();
 		var worker = new Worker("js/crypto/sha256worker.js");
 		worker.onmessage = function(e) {
-			if (e.data.progress) {
+			if (e.data.progress !== undefined) {
 				$("#nrs_update_hash_progress").css("width", e.data.progress + "%");
 			} else {
 				$("#nrs_update_hash_progress").hide();

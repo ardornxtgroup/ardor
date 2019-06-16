@@ -614,11 +614,11 @@ var NRS = (function(NRS, $) {
                 break;
         }
 
-        if (data.recipientSecretPhrases) {
-            data.recipientPublicKeys = convertSecretPhrasesList(data.recipientSecretPhrases, function (secretPhrase) {
+        var recipientSecretPhrases = $('#m_start_standbyshuffler_recipient_secretphrases').val(); // read directly from the text area since the form data returns \r\n as line separator in some configurations
+        if (recipientSecretPhrases) {
+            data.recipientPublicKeys = convertSecretPhrasesList(recipientSecretPhrases, function (secretPhrase) {
                 return NRS.getPublicKey(converters.stringToHexString(secretPhrase));
             });
-            delete data.recipientSecretPhrases;
         }
 
         if (data.feeRateNXTPerFXT.trim() === "") {
