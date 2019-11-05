@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetPeersCall extends APICall.Builder<GetPeersCall> {
     private GetPeersCall() {
-        super("getPeers");
+        super(ApiSpec.getPeers);
     }
 
     public static GetPeersCall create() {

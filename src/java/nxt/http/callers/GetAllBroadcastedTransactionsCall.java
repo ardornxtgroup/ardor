@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetAllBroadcastedTransactionsCall extends APICall.Builder<GetAllBroadcastedTransactionsCall> {
     private GetAllBroadcastedTransactionsCall() {
-        super("getAllBroadcastedTransactions");
+        super(ApiSpec.getAllBroadcastedTransactions);
     }
 
     public static GetAllBroadcastedTransactionsCall create() {

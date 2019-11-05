@@ -16,6 +16,7 @@
 
 package nxt.db;
 
+import nxt.Constants;
 import nxt.dbschema.Db;
 import nxt.util.Logger;
 import nxt.util.ReadWriteUpdateLock;
@@ -162,6 +163,9 @@ public class FullTextTrigger implements Trigger, TransactionalDb.TransactionCall
      * @param   active              TRUE to enable database triggers
      */
     public static void setActive(boolean active) {
+        if (Constants.DISABLE_FULL_TEXT_SEARCH) {
+            return;
+        }
         isActive = active;
         if (!active) {
             indexTriggers.values().forEach((trigger) -> trigger.isEnabled = false);
@@ -179,6 +183,9 @@ public class FullTextTrigger implements Trigger, TransactionalDb.TransactionCall
      * @param db                    BasicDb to init
      */
     public static void init(BasicDb db) {
+        if (Constants.DISABLE_FULL_TEXT_SEARCH) {
+            return;
+        }
         String ourClassName = FullTextTrigger.class.getName();
         try (Connection conn = db.getConnection("PUBLIC");
                 Statement stmt = conn.createStatement();
@@ -258,6 +265,9 @@ public class FullTextTrigger implements Trigger, TransactionalDb.TransactionCall
     }
 
     public static void migrateToV7(BasicDb db) {
+        if (Constants.DISABLE_FULL_TEXT_SEARCH) {
+            return;
+        }
         String ourClassName = FullTextTrigger.class.getName();
 
         try (Connection conn = db.getConnection("PUBLIC");
@@ -324,6 +334,9 @@ public class FullTextTrigger implements Trigger, TransactionalDb.TransactionCall
      */
     public static void createIndex(Connection conn, String schema, String table, String columnList)
                                     throws SQLException {
+        if (Constants.DISABLE_FULL_TEXT_SEARCH) {
+            return;
+        }
         String schemaTable = schema + "." + table;
         getIndexAccess(conn);
         //
@@ -400,6 +413,9 @@ public class FullTextTrigger implements Trigger, TransactionalDb.TransactionCall
      * @throws  SQLException        Unable to drop fulltext indexes
      */
     public static void dropAll(Connection conn) throws SQLException {
+        if (Constants.DISABLE_FULL_TEXT_SEARCH) {
+            return;
+        }
         //
         // Drop existing triggers
         //
@@ -860,6 +876,9 @@ public class FullTextTrigger implements Trigger, TransactionalDb.TransactionCall
      * @throws  SQLException        Unable to access the Lucene index
      */
     private static void getIndexAccess(Connection conn) throws SQLException {
+        if (Constants.DISABLE_FULL_TEXT_SEARCH) {
+            return;
+        }
         if (!isActive) {
             throw new SQLException("NRS is no longer active");
         }
@@ -876,7 +895,18 @@ public class FullTextTrigger implements Trigger, TransactionalDb.TransactionCall
                         getIndexPath(conn);
                     }
                     if (directory == null) {
-                        directory = FSDirectory.open(indexPath);
+                        try {
+                            //
+                            //Reflection for
+                            // "directory = FSDirectory.open(indexPath);"
+                            // because the Lucene port for Android currently doesn't support
+                            // java.nio and the compilation fails.
+                            // This code is currently not executed on Android
+                            directory = (Directory) FSDirectory.class.getMethod("open", Path.class).invoke(null, indexPath);
+                        } catch (ReflectiveOperationException e) {
+                            throw new RuntimeException("FSDirectory.open cannot be invoket", e);
+                        }
+
                     }
                     if (indexWriter == null) {
                         IndexWriterConfig config = new IndexWriterConfig(analyzer);

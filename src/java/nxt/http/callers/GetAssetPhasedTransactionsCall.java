@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetAssetPhasedTransactionsCall extends APICall.Builder<GetAssetPhasedTransactionsCall> {
     private GetAssetPhasedTransactionsCall() {
-        super("getAssetPhasedTransactions");
+        super(ApiSpec.getAssetPhasedTransactions);
     }
 
     public static GetAssetPhasedTransactionsCall create(int chain) {

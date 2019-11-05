@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class AddBundlingRuleCall extends APICall.Builder<AddBundlingRuleCall> {
     private AddBundlingRuleCall() {
-        super("addBundlingRule");
+        super(ApiSpec.addBundlingRule);
     }
 
     public static AddBundlingRuleCall create(int chain) {

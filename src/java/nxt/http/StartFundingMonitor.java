@@ -127,7 +127,7 @@ public final class StartFundingMonitor extends APIServlet.APIRequestHandler {
         if (monitor != null) {
             JSONObject response = new JSONObject();
             response.put("started", true);
-            response.put("monitor", JSONData.accountMonitor(monitor, false));
+            response.put("monitor", JSONData.accountMonitor(monitor, false, false));
             return response;
         } else {
             return MONITOR_ALREADY_STARTED;

@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class VerifyPrunableMessageCall extends APICall.Builder<VerifyPrunableMessageCall> {
     private VerifyPrunableMessageCall() {
-        super("verifyPrunableMessage");
+        super(ApiSpec.verifyPrunableMessage);
     }
 
     public static VerifyPrunableMessageCall create(int chain) {

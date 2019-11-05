@@ -3,7 +3,7 @@ package nxt.http.callers;
 
 public class SetAliasCall extends CreateTransactionCallBuilder<SetAliasCall> {
     private SetAliasCall() {
-        super("setAlias");
+        super(ApiSpec.setAlias);
     }
 
     public static SetAliasCall create(int chain) {

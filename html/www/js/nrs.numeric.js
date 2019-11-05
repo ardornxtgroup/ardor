@@ -127,7 +127,7 @@ var NRS = (function (NRS, $) {
                 fraction = fraction.substring(0, decimals);
             }
 
-            return parts[0] + "." + fraction;
+            return fraction.length === 0 ? parts[0] : parts[0] + "." + fraction;
         } else {
             throw $.t("error_invalid_input", { input: "amount " + amount + " decimals " + decimals });
         }
@@ -426,8 +426,8 @@ var NRS = (function (NRS, $) {
     NRS.validateDecimals = function (maxFractionLength, charCode, val, caretPos, e) {
         if (maxFractionLength) {
             //allow 1 single period character
-            if (charCode == 110 || charCode == 190) {
-                if (val.indexOf(".") != -1) {
+            if (charCode === 110 || charCode === 190) {
+                if (val.indexOf(".") !== -1) {
                     e.preventDefault();
                     return false;
                 } else if (val && val.length - caretPos > maxFractionLength) {
@@ -447,7 +447,7 @@ var NRS = (function (NRS, $) {
             }
         } else {
             //do not allow period
-            if (charCode == 110 || charCode == 190 || charCode == 188) {
+            if (charCode === 110 || charCode === 190 || charCode === 188) {
                 $.growl($.t("error_fractions"), {
                     "type": "danger"
                 });
@@ -470,7 +470,7 @@ var NRS = (function (NRS, $) {
         // example with 2 decimals and val 97.65 allow typing 8 after the 9
         var selectedText = NRS.getSelectedText();
         if (mantissa && mantissa[1].length - selectedText.length > maxFractionLength && isCaretAfterDot) {
-            if (selectedText != val) {
+            if (selectedText !== val) {
                 errorMessage = $.t("error_decimals", {
                     "count": maxFractionLength
                 });
@@ -484,11 +484,11 @@ var NRS = (function (NRS, $) {
         }
 
         //numeric characters, left/right key, backspace, delete, home, end
-        if (charCode == 8 || charCode == 35 || charCode == 36 || charCode == 37 || charCode == 39 || charCode == 46 || (charCode >= 48 && charCode <= 57 && !isNaN(String.fromCharCode(charCode)))) {
+        if (charCode === 8 || charCode === 35 || charCode === 36 || charCode === 37 || charCode === 39 || charCode === 46 || (charCode >= 48 && charCode <= 57 && !isNaN(String.fromCharCode(charCode)))) {
             return true;
         } else {
             //comma
-            if (charCode == 188) {
+            if (charCode === 188) {
                 $.growl($.t("error_comma_not_allowed"), {
                     "type": "danger"
                 });
@@ -496,6 +496,79 @@ var NRS = (function (NRS, $) {
             e.preventDefault();
             return false;
         }
+    };
+
+    NRS.checkTextDecimals = function (val, maxFractionLength) {
+        if (val.indexOf(",") !== -1) {
+            $.growl($.t("error_comma_not_allowed"), {
+                "type": "danger"
+            });
+            return false;
+        }
+        if (/^[0-9]+$/.test(val)) {
+            return true;
+        }
+        if (/^[0-9]*\.[0-9]*$/.test(val)) {
+            if (maxFractionLength === 0) {
+                $.growl($.t("error_fractions"), {
+                    "type": "danger"
+                });
+                return false;
+            }
+            var decPos = val.indexOf(".");
+            if (val.length - decPos - 1 > maxFractionLength) {
+                errorMessage = $.t("error_decimals", {
+                    "count": maxFractionLength
+                });
+                $.growl(errorMessage, {
+                    "type": "danger"
+                });
+                return false;
+            }
+            return true;
+        } else {
+            return false;
+        }
+    };
+
+    var userAgent = navigator.userAgent, isAndroid = /android/i.test(userAgent);
+    $.fn.decimalValidation = function (getMaxFractionLength) {
+        return this.each(function () {
+            $(this).focusin(function() {
+                var maxFractionLength = $.proxy(getMaxFractionLength, this).call();
+                var prevVal = $(this).val();
+                $(this).on("keydown.dec_validation", function (e) {
+                    var charCode = !e.charCode ? e.which : e.charCode;
+                    if (NRS.isControlKey(charCode) || e.ctrlKey || e.metaKey) {
+                        return;
+                    }
+                    var caretPos = $(this)[0].selectionStart;
+                    NRS.validateDecimals(maxFractionLength, charCode, $(this).val(), caretPos, e);
+                    prevVal = $(this).val();
+                });
+                $(this).on("paste.dec_validation", function() {
+                    var input = $(this);
+                    setTimeout(function() {
+                        if (NRS.checkTextDecimals(input.val(), maxFractionLength)) {
+                            prevVal = input.val();
+                        } else {
+                            input.val(prevVal);
+                        }
+                    }, 0);
+                });
+                if (isAndroid) {
+                    $(this).on("input.dec_validation", function() {
+                        if (NRS.checkTextDecimals($(this).val(), maxFractionLength)) {
+                            prevVal = $(this).val();
+                        } else {
+                            $(this).val(prevVal);
+                        }
+                    });
+                }
+            }).focusout(function () {
+                $(this).off(".dec_validation");
+            });
+        });
     };
 
     NRS.getOneCoin = function(decimals) {

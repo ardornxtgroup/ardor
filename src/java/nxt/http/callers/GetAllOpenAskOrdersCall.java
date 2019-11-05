@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetAllOpenAskOrdersCall extends APICall.Builder<GetAllOpenAskOrdersCall> {
     private GetAllOpenAskOrdersCall() {
-        super("getAllOpenAskOrders");
+        super(ApiSpec.getAllOpenAskOrders);
     }
 
     public static GetAllOpenAskOrdersCall create(int chain) {

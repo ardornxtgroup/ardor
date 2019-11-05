@@ -29,18 +29,23 @@ import org.junit.BeforeClass;
 import java.util.Collections;
 
 public abstract class AbstractHttpApiSuite extends SafeShutdownSuite {
+
+    private static Helper.BlockListener listener;
+
     @BeforeClass
     public static void init() {
         SafeShutdownSuite.safeSuiteInit();
         BlockchainTest.initNxt(Collections.emptyMap());
         Nxt.getTransactionProcessor().clearUnconfirmedTransactions();
-        Nxt.getBlockchainProcessor().addListener(new Helper.BlockListener(), BlockchainProcessor.Event.BLOCK_GENERATED);
+        listener = new Helper.BlockListener();
+        Nxt.getBlockchainProcessor().addListener(listener, BlockchainProcessor.Event.BLOCK_GENERATED);
         Assert.assertEquals(0, Helper.getCount("unconfirmed_transaction"));
     }
 
     @AfterClass
     public static void shutdown() {
         Assert.assertEquals(0, Helper.getCount("unconfirmed_transaction"));
+        Nxt.getBlockchainProcessor().removeListener(listener, BlockchainProcessor.Event.BLOCK_GENERATED);
         SafeShutdownSuite.safeSuiteShutdown();
     }
 }

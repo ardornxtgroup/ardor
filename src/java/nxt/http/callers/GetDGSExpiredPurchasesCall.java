@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetDGSExpiredPurchasesCall extends APICall.Builder<GetDGSExpiredPurchasesCall> {
     private GetDGSExpiredPurchasesCall() {
-        super("getDGSExpiredPurchases");
+        super(ApiSpec.getDGSExpiredPurchases);
     }
 
     public static GetDGSExpiredPurchasesCall create(int chain) {

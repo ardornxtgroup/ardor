@@ -16,6 +16,7 @@
 package nxt.http;
 
 import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
@@ -24,6 +25,7 @@ import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 import nxt.Nxt;
 import nxt.configuration.Setup;
+import nxt.http.callers.ApiSpec;
 
 import javax.lang.model.element.Modifier;
 import java.io.IOException;
@@ -56,13 +58,14 @@ public class APICallGenerator {
     private static Predicate<String> CHAIN_IDENTIFIERS = exactMatch("chain", "exchange");
 
     private static Predicate<String> INT_IDENTIFIERS = exactMatch("height", "timestamp", "firstIndex", "lastIndex",
-            "type", "subtype", "deadline", "ecBlockHeight", "totalPieces", "minimumPieces")
+            "type", "subtype", "deadline", "ecBlockHeight", "totalPieces", "minimumPieces", "minParticipants")
             .or(phasingParamWhich(endsWith("FinishHeight")));
 
-    private static Predicate<String> BYTE_IDENTIFIERS = phasingParamWhich(endsWith("VotingModel", "MinBalanceModel", "HashedSecretAlgorithm"));
+    private static Predicate<String> BYTE_IDENTIFIERS = exactMatch("holdingType")
+            .or(phasingParamWhich(endsWith("VotingModel", "MinBalanceModel", "HashedSecretAlgorithm")));
 
 
-    private static Predicate<String> BOOLEAN_IDENTIFIERS = exactMatch("executedOnly", "phased", "broadcast", "voucher", "retrieve", "add", "remove")
+    private static Predicate<String> BOOLEAN_IDENTIFIERS = exactMatch("executedOnly", "phased", "broadcast", "voucher", "retrieve", "add", "remove", "validate")
             .or(startsWith("include", "is"))
             .or(contains("Is"));
 
@@ -81,7 +84,7 @@ public class APICallGenerator {
     private final Set<String> parametersHandledInSuperClass = new HashSet<>(
             Arrays.asList("secretPhrase", "sharedPiece", "sharedPieceAccount", "chain", "feeNQT", "feeRateNQTPerFXT", "recipient"));
 
-    private static final String defaultAddOns = "nxt.addons.ContractRunner";
+    private static final String defaultAddOns = "nxt.addons.ContractRunner;nxt.addons.StandbyShuffling";
 
     private final String requestType;
     private final ClassName className;
@@ -106,21 +109,79 @@ public class APICallGenerator {
     }
 
     public static void main(String[] args) {
-        generate();
+        init();
+        generateApiCallers();
+        generateApiSpec();
     }
 
-    private static void generate() {
+    private static void init() {
         Properties properties = new Properties();
         properties.put("nxt.adminPassword", "password");
         properties.put("nxt.addOns", defaultAddOns);
         Nxt.init(Setup.NOT_INITIALIZED, properties);
         APIServlet.initClass();
-        new APICallGenerator(null, "CreateTransactionCallBuilder")
-                .generateCreateTransactionCallBuilder();
+    }
+
+    private static void generateApiCallers() {
+        new APICallGenerator(null, "CreateTransactionCallBuilder").generateCreateTransactionCallBuilder();
         Map<String, APIServlet.APIRequestHandler> apiRequestHandlers = APIServlet.getAPIRequestHandlers();
         for (String requestType : apiRequestHandlers.keySet()) {
-            new APICallGenerator(requestType).generateApiCall(apiRequestHandlers.get(requestType));
+            APIServlet.APIRequestHandler apiRequestHandler = apiRequestHandlers.get(requestType);
+            new APICallGenerator(requestType).generateApiCall(apiRequestHandler);
         }
+    }
+
+    private static void generateApiSpec() {
+        // Generate the API Specification enum
+        ClassName enumClass = ClassName.get(outputPackageName, "ApiSpec");
+        TypeSpec.Builder apiSpec = TypeSpec.enumBuilder(enumClass).addModifiers(Modifier.PUBLIC);
+        for (Map.Entry<String, APIServlet.APIRequestHandler> entry : APIServlet.getAPIRequestHandlers().entrySet()) {
+            String requestType = entry.getKey();
+            APIServlet.APIRequestHandler apiRequestHandler = entry.getValue();
+            String fileParameter = apiRequestHandler.getFileParameter();
+            CodeBlock.Builder codeBlockBuilder = CodeBlock.builder().add("$L", apiRequestHandler.isChainSpecific()).add(", ");
+            if (fileParameter != null) {
+                codeBlockBuilder.add("$S", fileParameter);
+            } else {
+                codeBlockBuilder.add("$L", (Object) null);
+            }
+            codeBlockBuilder.add(", ").add("\"$L\"", String.join("\", \"", apiRequestHandler.getParameters()));
+            apiSpec.addEnumConstant(requestType, TypeSpec.anonymousClassBuilder(codeBlockBuilder.build()).build());
+        }
+
+        // Generate fields and constructor
+        apiSpec.addField(TypeName.BOOLEAN, "isChainSpecific", Modifier.PRIVATE, Modifier.FINAL);
+        apiSpec.addField(TypeName.get(String.class), "fileParameter", Modifier.PRIVATE, Modifier.FINAL);
+        apiSpec.addField(ParameterizedTypeName.get(List.class, String.class), "parameters", Modifier.PRIVATE, Modifier.FINAL);
+        CodeBlock codeBlock = CodeBlock.builder().add("this.$L = $T.asList($L);", "parameters", Arrays.class, "parameters").build();
+        apiSpec.addMethod(MethodSpec.constructorBuilder().
+                addParameter(TypeName.BOOLEAN, "isChainSpecific").
+                addParameter(TypeName.get(String.class), "fileParameter").
+                addParameter(TypeName.get(String[].class), "parameters").varargs().
+                addStatement("this.$L = $L", "isChainSpecific", "isChainSpecific").
+                addStatement("this.$L = $L", "fileParameter", "fileParameter").
+                addCode(codeBlock).
+                build());
+
+        // Generate getter
+        apiSpec.addMethod(MethodSpec.methodBuilder("isChainSpecific")
+                .addModifiers(Modifier.PUBLIC)
+                .returns(boolean.class)
+                .addStatement("return isChainSpecific")
+                .build());
+        apiSpec.addMethod(MethodSpec.methodBuilder("getFileParameter")
+                .addModifiers(Modifier.PUBLIC)
+                .returns(String.class)
+                .addStatement("return fileParameter")
+                .build());
+        apiSpec.addMethod(MethodSpec.methodBuilder("getParameters")
+                .addModifiers(Modifier.PUBLIC)
+                .returns(ParameterizedTypeName.get(List.class, String.class))
+                .addStatement("return parameters")
+                .build());
+
+        // Create source file
+        writeToFile(apiSpec.build());
     }
 
     private void generateApiCall(APIServlet.APIRequestHandler apiRequestHandler) {
@@ -168,9 +229,9 @@ public class APICallGenerator {
 
     private MethodSpec createBuilderConstructor() {
         return MethodSpec.constructorBuilder()
-                .addParameter(String.class, "requestType")
+                .addParameter(ApiSpec.class, "apiSpec")
                 .addModifiers(Modifier.PROTECTED)
-                .addStatement("super(requestType)")
+                .addStatement("super(apiSpec)")
                 .build();
     }
 
@@ -246,7 +307,7 @@ public class APICallGenerator {
     private MethodSpec createCallerConstructor() {
         return MethodSpec.constructorBuilder()
                 .addModifiers(Modifier.PRIVATE)
-                .addStatement("super($S)", requestType)
+                .addStatement("super($T." + requestType + ")", ApiSpec.class)
                 .build();
     }
 

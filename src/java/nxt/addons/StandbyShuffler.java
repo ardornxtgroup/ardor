@@ -23,12 +23,15 @@ import nxt.blockchain.BlockchainProcessorImpl;
 import nxt.blockchain.ChildChain;
 import nxt.crypto.Crypto;
 import nxt.http.callers.StartShufflerCall;
+import nxt.shuffling.Shuffler;
 import nxt.shuffling.ShufflingHome;
+import nxt.shuffling.ShufflingParticipantHome;
 import nxt.util.Convert;
 import nxt.util.Filter;
 import nxt.util.Logger;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -73,6 +76,22 @@ public final class StandbyShuffler {
                 }
             }
         }, BlockchainProcessor.Event.AFTER_BLOCK_ACCEPT);
+
+        ShufflingParticipantHome.addListener(participant -> {
+            for (List<StandbyShuffler> standbyShufflerList : standbyShufflers.values()) {
+                for (StandbyShuffler standbyShuffler : standbyShufflerList) {
+                    standbyShuffler.onParticipantProcessed(participant);
+                }
+            }
+        }, ShufflingParticipantHome.Event.PARTICIPANT_PROCESSED);
+
+        Shuffler.addListener(shuffler -> {
+            for (List<StandbyShuffler> standbyShufflerList : standbyShufflers.values()) {
+                for (StandbyShuffler standbyShuffler : standbyShufflerList) {
+                    standbyShuffler.onShufflerStopped(shuffler);
+                }
+            }
+        }, Shuffler.Event.SHUFFLER_STOPPED);
     }
 
     static StandbyShuffler start(ChildChain chain, String secretPhrase, HoldingType holdingType, long holdingId,
@@ -188,6 +207,9 @@ public final class StandbyShuffler {
     /** List of unused public keys */
     private final LinkedList<byte[]> recipientPublicKeys;
 
+    /** Map of shufflingFullHash->publicKey assigned to Shufflers but not yet discarded (we wait until the processed stage) */
+    private final Map<String,byte[]> shufflersPublicKeys;
+
     /**
      * Creates a StandbyShuffler.
      *
@@ -215,6 +237,7 @@ public final class StandbyShuffler {
         this.minParticipants = minParticipants;
         this.feeRateNQTPerFXT = feeRateNQTPerFXT;
         this.recipientPublicKeys = new LinkedList<>(recipientPublicKeys);
+        this.shufflersPublicKeys = new HashMap<>();
     }
 
     public boolean matches(ChildChain chain, long account, HoldingType holdingType, long holdingId) {
@@ -232,6 +255,10 @@ public final class StandbyShuffler {
         Logger.logDebugMessage("Found potential shuffling for configured StandbyShuffler. Chain %s, Holding %s %d",
                 chain.getName(), holdingType.name(), holdingId);
 
+        if (recipientPublicKeys.isEmpty()) {
+            Logger.logDebugMessage("No unused public key available.");
+            return false;
+        }
         if ((minAmount > 0 && minAmount > shuffling.getAmount()) ||
             (maxAmount > 0 && maxAmount < shuffling.getAmount()) ||
             (minParticipants > 0 && minParticipants > shuffling.getParticipantCount())) {
@@ -253,11 +280,24 @@ public final class StandbyShuffler {
 
         Logger.logInfoMessage("Shuffling created that matches a StandbyShuffler. Will try to join with unused key.");
 
+        try {
+            return startShuffler(shuffling);
+        } finally {
+            stopIfEmpty();
+        }
+    }
+
+    private void stopIfEmpty() {
+        if (recipientPublicKeys.isEmpty() && shufflersPublicKeys.isEmpty()) {
+            Logger.logWarningMessage("StandbyShuffler without any unused key left. Removing it.");
+            remove(this);
+        }
+    }
+
+    private boolean startShuffler(ShufflingHome.Shuffling shuffling) {
         byte[] recipientPublicKey = getNextRecipientPublicKey();
 
         if (recipientPublicKey == null) {
-            Logger.logWarningMessage("StandbyShuffler without any unused key left. Removing it.");
-            remove(this);
             return false;
         }
 
@@ -268,13 +308,20 @@ public final class StandbyShuffler {
                 .feeRateNQTPerFXT(feeRateNQTPerFXT)
                 .call();
 
-        if (Objects.equals(response.getString("shufflingFullHash"), Convert.toHexString(shuffling.getFullHash()))) {
+        String shufflingFullHash = Convert.toHexString(shuffling.getFullHash());
+        if (Objects.equals(response.getString("shufflingFullHash"), shufflingFullHash)) {
             Logger.logInfoMessage("Started a shuffler for shuffling %s through StandbyShuffler add-on.",
                     Long.toUnsignedString(shuffling.getId()));
+            shufflersPublicKeys.put(shufflingFullHash, recipientPublicKey);
             return true;
         } else if (response.isExist("errorCode")) {
-            Logger.logErrorMessage("Start shuffler from standby shuffler failed: %d %s",
-                    response.getString("errorCode"), response.getString("errorDescription"));
+            String errorCode = response.getString("errorCode");
+            Logger.logErrorMessage("Start shuffler from standby shuffler failed: %s %s",
+                    errorCode, response.getString("errorDescription"));
+            if (!"8".equals(errorCode)) {
+                // Failed for a reason other than InvalidRecipientException, don't throw away the public key
+                recipientPublicKeys.offer(recipientPublicKey);
+            }
         }
         return false;
     }
@@ -290,12 +337,22 @@ public final class StandbyShuffler {
             }
         } while (key == null && !recipientPublicKeys.isEmpty());
 
-        if (key != null) {
-            // queue this key to the end for reuse in case the shuffling doesn't work
-            recipientPublicKeys.offer(key);
-        }
-
         return key;
+    }
+
+    private void onParticipantProcessed(ShufflingParticipantHome.ShufflingParticipant participant) {
+        if (participant.getAccountId() == this.accountId) {
+            shufflersPublicKeys.remove(Convert.toHexString(participant.getShufflingFullHash()));
+            stopIfEmpty();
+        }
+    }
+
+    private void onShufflerStopped(Shuffler shuffler) {
+        byte[] recipientPublicKey = shufflersPublicKeys.remove(Convert.toHexString(shuffler.getShufflingFullHash()));
+        if (recipientPublicKey != null && Arrays.equals(recipientPublicKey, shuffler.getRecipientPublicKey())) {
+            recipientPublicKeys.offer(recipientPublicKey);
+        }
+        stopIfEmpty();
     }
 
     public long getAccountId() {
@@ -332,5 +389,9 @@ public final class StandbyShuffler {
 
     public LinkedList<byte[]> getRecipientPublicKeys() {
         return recipientPublicKeys;
+    }
+
+    public int getReservedPublicKeysCount() {
+        return shufflersPublicKeys.size();
     }
 }

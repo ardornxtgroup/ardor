@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class CanDeleteCurrencyCall extends APICall.Builder<CanDeleteCurrencyCall> {
     private CanDeleteCurrencyCall() {
-        super("canDeleteCurrency");
+        super(ApiSpec.canDeleteCurrency);
     }
 
     public static CanDeleteCurrencyCall create() {

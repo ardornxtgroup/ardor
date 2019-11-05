@@ -16,7 +16,7 @@
 
 package nxt.addons;
 
-import nxt.http.APICall;
+import nxt.http.callers.StartStandbyShufflerCall;
 import nxt.util.Logger;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -41,7 +41,7 @@ public final class StartStandbyShuffling extends StartAuto {
 
     static JSONArray startStandbyShufflers(JSONObject standbyShufflersJSON) {
         JSONArray result = new JSONArray();
-        JSONArray standbyShufflers = (JSONArray)standbyShufflersJSON.get("standbyShufflers");
+        JSONArray standbyShufflers = (JSONArray) standbyShufflersJSON.get("standbyShufflers");
         for (Object standbyShufflerJSON : standbyShufflers) {
             JSONObject standbyShuffler = startStandbyShuffler(new JO(standbyShufflerJSON)).toJSONObject();
             result.add(standbyShuffler);
@@ -56,14 +56,13 @@ public final class StartStandbyShuffling extends StartAuto {
             throw new RuntimeException("StandbyShuffler secretPhrase not defined");
         }
 
-        return new APICall.Builder("startStandbyShuffler")
-                .chain(standbyShufflerJSON.getInt("chain"))
+        return StartStandbyShufflerCall.create(standbyShufflerJSON.getInt("chain"))
                 .secretPhrase(secretPhrase)
-                .param("holdingType", standbyShufflerJSON.getByte("holdingType"))
-                .param("holding", standbyShufflerJSON.getString("holding"))
-                .param("minAmount", standbyShufflerJSON.getString("minAmount"))
-                .param("maxAmount", standbyShufflerJSON.getString("maxAmount"))
-                .param("minParticipants", standbyShufflerJSON.getInt("minParticipants"))
+                .holdingType(standbyShufflerJSON.getByte("holdingType"))
+                .holding(standbyShufflerJSON.getString("holding"))
+                .minAmount(standbyShufflerJSON.getString("minAmount"))
+                .maxAmount(standbyShufflerJSON.getString("maxAmount"))
+                .minParticipants(standbyShufflerJSON.getInt("minParticipants"))
                 .feeRateNQTPerFXT(standbyShufflerJSON.getLong("feeRateNQTPerFXT"))
                 .param("recipientPublicKeys", standbyShufflerJSON.getArray("recipientPublicKeys").values())
                 .call();

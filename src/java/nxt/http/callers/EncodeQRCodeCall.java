@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class EncodeQRCodeCall extends APICall.Builder<EncodeQRCodeCall> {
     private EncodeQRCodeCall() {
-        super("encodeQRCode");
+        super(ApiSpec.encodeQRCode);
     }
 
     public static EncodeQRCodeCall create() {

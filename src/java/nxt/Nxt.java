@@ -36,6 +36,7 @@ import nxt.env.ServerStatus;
 import nxt.http.API;
 import nxt.util.Convert;
 import nxt.util.Logger;
+import nxt.util.ResourceLookup;
 import nxt.util.Time;
 import nxt.util.security.BlockchainPermission;
 import org.json.simple.JSONObject;
@@ -61,7 +62,7 @@ import java.util.Properties;
 
 public final class Nxt {
 
-    public static final String VERSION = "2.2.5";
+    public static final String VERSION = "2.2.6";
     public static final String APPLICATION = "Ardor";
 
     private static volatile Time time = new Time.EpochTime();
@@ -84,6 +85,7 @@ public final class Nxt {
         printCommandLineArguments();
         String installerConfiguredMode = getInstallerConfiguredRuntimeMode();
         runtimeMode = RuntimeEnvironment.getRuntimeMode(installerConfiguredMode);
+
         System.out.printf("Runtime mode %s\n", runtimeMode.getClass().getName());
         dirProvider = RuntimeEnvironment.getDirProvider(installerConfiguredMode);
         System.out.println("User home folder " + dirProvider.getUserHomeDir());
@@ -166,7 +168,8 @@ public final class Nxt {
                     throw new IllegalArgumentException(String.format("Error loading %s from %s", propertiesFile, configFile));
                 }
             } else {
-                try (InputStream is = ClassLoader.getSystemResourceAsStream(propertiesFile)) {
+
+                try (InputStream is = ResourceLookup.getSystemResourceAsStream(propertiesFile)) {
                     // When running nxt.exe from a Windows installation we always have nxt.properties in the classpath but this is not the nxt properties file
                     // Therefore we first load it from the classpath and then look for the real nxt.properties in the user folder.
                     if (is != null) {
@@ -227,7 +230,7 @@ public final class Nxt {
                 return;
             }
             inputArguments.forEach(System.out::println);
-        } catch (AccessControlException e) {
+        } catch (AccessControlException | NoClassDefFoundError e) {
             System.out.println("Cannot read input arguments " + e.getMessage());
         }
     }
@@ -451,7 +454,14 @@ public final class Nxt {
         if (sm != null) {
             sm.checkPermission(new BlockchainPermission("sensitiveInfo"));
         }
-        String runtimeName = ManagementFactory.getRuntimeMXBean().getName();
+
+        String runtimeName;
+        try {
+            runtimeName = ManagementFactory.getRuntimeMXBean().getName();
+        } catch (NoClassDefFoundError ignore) {
+            return "";
+        }
+
         if (runtimeName == null) {
             return "";
         }

@@ -30,7 +30,7 @@ var NRS = (function(NRS, $) {
     function _updateBlockHeightEstimates($bhmElem) {
 		var $input = $bhmElem.find(' .bhm_ue_time_input');
 		var blockHeight = $input.val();
-		var output = "<i class='fa fa-clock-o'></i> " + NRS.getBlockHeightTimeEstimate(blockHeight) + " ";
+		var output = "<i class='far fa-clock'></i> " + NRS.getBlockHeightTimeEstimate(blockHeight) + " ";
 		$bhmElem.find(".bhm_ue_time_estimate").html(output);
 	}
 
@@ -225,7 +225,7 @@ var NRS = (function(NRS, $) {
 		}
 		$(this).closest(".modal").find(".error_message").html("").hide();
 		$.growl($.t("secret_phrase_reproduced"));
-		$secretPhraseInput.val(secretPhrase);
+		$secretPhraseInput.val(secretPhrase).change();
 	});
 
 	$body.on('click', '.modal div[data-modal-ui-element="multi_piece_modal_ui_element"] .scan-qr-code', function() {

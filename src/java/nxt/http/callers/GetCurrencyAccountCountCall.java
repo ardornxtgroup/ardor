@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetCurrencyAccountCountCall extends APICall.Builder<GetCurrencyAccountCountCall> {
     private GetCurrencyAccountCountCall() {
-        super("getCurrencyAccountCount");
+        super(ApiSpec.getCurrencyAccountCount);
     }
 
     public static GetCurrencyAccountCountCall create() {

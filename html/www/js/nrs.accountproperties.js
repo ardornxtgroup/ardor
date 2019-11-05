@@ -24,6 +24,22 @@ var NRS = (function(NRS, $) {
         NRS.renderAccountProperties($("#account_properties_page_type").find(".active").data("type"));
 	};
 
+    NRS.forms.setAccountPropertyComplete = function(response) {
+        if (!response.transactionJSON) {
+            return;
+        }
+        const key = response.transactionJSON.attachment.property;
+        const value = response.transactionJSON.attachment.value;
+        $.growl($.t("account_property_set", { key: key, value: value }));
+    };
+
+    NRS.forms.deleteAccountPropertyComplete = function(response, data) {
+        if (!response.transactionJSON) {
+            return;
+        }
+        $.growl($.t("account_property_deleted", { key: data.property }));
+    };
+
     NRS.renderAccountProperties = function(type) {
         NRS.hasMorePages = false;
         var view = NRS.simpleview.get('account_properties_section', {

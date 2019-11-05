@@ -26,6 +26,8 @@ import nxt.dbschema.Db;
 import nxt.ms.Currency;
 import nxt.util.Convert;
 import nxt.util.Logger;
+import nxt.util.ResourceLookup;
+
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -69,7 +71,7 @@ public final class Genesis {
 
     private static void importPublicKeys(MessageDigest digest) {
         try (InputStreamReader is = new InputStreamReader(new DigestInputStream(
-                ClassLoader.getSystemResourceAsStream("data/PUBLIC_KEY" + (Constants.isTestnet ? "-testnet.json" : ".json")), digest), "UTF-8")) {
+                ResourceLookup.getSystemResourceAsStream("data/PUBLIC_KEY" + (Constants.isTestnet ? "-testnet.json" : ".json")), digest), "UTF-8")) {
             JSONArray json = (JSONArray) JSONValue.parseWithException(is);
             Logger.logDebugMessage("Loading public keys");
             int count = 0;
@@ -99,7 +101,7 @@ public final class Genesis {
         chains.sort(Comparator.comparingInt(Chain::getId));
         for (Chain chain : chains) {
             try (InputStreamReader is = new InputStreamReader(new DigestInputStream(
-                    ClassLoader.getSystemResourceAsStream("data/" + chain.getName() + (Constants.isTestnet ? "-testnet.json" : ".json")), digest), "UTF-8")) {
+                    ResourceLookup.getSystemResourceAsStream("data/" + chain.getName() + (Constants.isTestnet ? "-testnet.json" : ".json")), digest), "UTF-8")) {
                 JSONObject chainBalances = (JSONObject) JSONValue.parseWithException(is);
                 loadBalances(chain, chainBalances);
             } catch (IOException|ParseException e) {
@@ -143,7 +145,7 @@ public final class Genesis {
 
     private static void importAliases(MessageDigest digest) {
         try (InputStreamReader is = new InputStreamReader(new DigestInputStream(
-                ClassLoader.getSystemResourceAsStream("data/IGNIS_ALIASES" + (Constants.isTestnet ? "-testnet.json" : ".json")), digest), "UTF-8")) {
+                ResourceLookup.getSystemResourceAsStream("data/IGNIS_ALIASES" + (Constants.isTestnet ? "-testnet.json" : ".json")), digest), "UTF-8")) {
             JSONObject aliases = (JSONObject) JSONValue.parseWithException(is);
             Logger.logDebugMessage("Loading aliases");
             int count = 0;
@@ -167,7 +169,7 @@ public final class Genesis {
 
     private static void importAssets(MessageDigest digest) {
         try (InputStreamReader is = new InputStreamReader(new DigestInputStream(
-                ClassLoader.getSystemResourceAsStream("data/ASSETS" + (Constants.isTestnet ? "-testnet.json" : ".json")), digest), "UTF-8")) {
+                ResourceLookup.getSystemResourceAsStream("data/ASSETS" + (Constants.isTestnet ? "-testnet.json" : ".json")), digest), "UTF-8")) {
             JSONObject assets = (JSONObject) JSONValue.parseWithException(is);
             Logger.logDebugMessage("Loading assets");
             int count = 0;
@@ -200,7 +202,7 @@ public final class Genesis {
 
     private static void importCurrencies(MessageDigest digest) {
         try (InputStreamReader is = new InputStreamReader(new DigestInputStream(
-                ClassLoader.getSystemResourceAsStream("data/IGNIS_CURRENCIES" + (Constants.isTestnet ? "-testnet.json" : ".json")), digest), "UTF-8")) {
+                ResourceLookup.getSystemResourceAsStream("data/IGNIS_CURRENCIES" + (Constants.isTestnet ? "-testnet.json" : ".json")), digest), "UTF-8")) {
             JSONObject currencies = (JSONObject) JSONValue.parseWithException(is);
             Logger.logDebugMessage("Loading currencies");
             int count = 0;
@@ -225,7 +227,7 @@ public final class Genesis {
 
     private static void importAccountInfo(MessageDigest digest) {
         try (InputStreamReader is = new InputStreamReader(new DigestInputStream(
-                ClassLoader.getSystemResourceAsStream("data/ACCOUNT_INFO" + (Constants.isTestnet ? "-testnet.json" : ".json")), digest), "UTF-8")) {
+                ResourceLookup.getSystemResourceAsStream("data/ACCOUNT_INFO" + (Constants.isTestnet ? "-testnet.json" : ".json")), digest), "UTF-8")) {
             JSONObject accountInfos = (JSONObject) JSONValue.parseWithException(is);
             Logger.logDebugMessage("Loading account info");
             int count = 0;
@@ -247,7 +249,7 @@ public final class Genesis {
 
     private static void importAccountProperties(MessageDigest digest) {
         try (InputStreamReader is = new InputStreamReader(new DigestInputStream(
-                ClassLoader.getSystemResourceAsStream("data/ACCOUNT_PROPERTIES" + (Constants.isTestnet ? "-testnet.json" : ".json")), digest), "UTF-8")) {
+                ResourceLookup.getSystemResourceAsStream("data/ACCOUNT_PROPERTIES" + (Constants.isTestnet ? "-testnet.json" : ".json")), digest), "UTF-8")) {
             JSONObject accountProperties = (JSONObject) JSONValue.parseWithException(is);
             Logger.logDebugMessage("Loading account properties");
             int count = 0;
@@ -277,7 +279,7 @@ public final class Genesis {
 
     private static void importAccountControls(MessageDigest digest) {
         try (InputStreamReader is = new InputStreamReader(new DigestInputStream(
-                ClassLoader.getSystemResourceAsStream("data/ACCOUNT_CONTROL" + (Constants.isTestnet ? "-testnet.json" : ".json")), digest), "UTF-8")) {
+                ResourceLookup.getSystemResourceAsStream("data/ACCOUNT_CONTROL" + (Constants.isTestnet ? "-testnet.json" : ".json")), digest), "UTF-8")) {
             JSONObject accountControls = (JSONObject) JSONValue.parseWithException(is);
             Logger.logDebugMessage("Loading account controls");
             int count = 0;

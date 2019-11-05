@@ -587,7 +587,7 @@ public class ContractManagerConfigurable extends SettingsEditor<ApplicationConfi
             @Override
             protected TreeClassChooser createClassChooser(ClassFilter.ClassFilterWithScope classFilter) {
                 final Module module = moduleSelector.getModule();
-                final GlobalSearchScope scope = module == null ? GlobalSearchScope.allScope(myProject) : GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module);
+                final GlobalSearchScope scope = module == null ? GlobalSearchScope.allScope(project) : GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module);
                 final PsiClass contractClass = JavaPsiFacade.getInstance(project).findClass("nxt.addons.AbstractContract", scope);
                 return TreeClassChooserFactory.getInstance(getProject()).createInheritanceClassChooser(title, classFilter.getScope(), contractClass, false, false, ConfigurationUtil.PUBLIC_INSTANTIATABLE_CLASS);
             }

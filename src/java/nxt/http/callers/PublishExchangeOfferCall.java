@@ -3,7 +3,7 @@ package nxt.http.callers;
 
 public class PublishExchangeOfferCall extends CreateTransactionCallBuilder<PublishExchangeOfferCall> {
     private PublishExchangeOfferCall() {
-        super("publishExchangeOffer");
+        super(ApiSpec.publishExchangeOffer);
     }
 
     public static PublishExchangeOfferCall create(int chain) {

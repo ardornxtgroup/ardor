@@ -3,7 +3,7 @@ package nxt.http.callers;
 
 public class SellAliasCall extends CreateTransactionCallBuilder<SellAliasCall> {
     private SellAliasCall() {
-        super("sellAlias");
+        super(ApiSpec.sellAlias);
     }
 
     public static SellAliasCall create(int chain) {

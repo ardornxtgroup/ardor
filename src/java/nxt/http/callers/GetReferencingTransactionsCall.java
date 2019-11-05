@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetReferencingTransactionsCall extends APICall.Builder<GetReferencingTransactionsCall> {
     private GetReferencingTransactionsCall() {
-        super("getReferencingTransactions");
+        super(ApiSpec.getReferencingTransactions);
     }
 
     public static GetReferencingTransactionsCall create(int chain) {

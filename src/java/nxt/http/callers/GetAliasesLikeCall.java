@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetAliasesLikeCall extends APICall.Builder<GetAliasesLikeCall> {
     private GetAliasesLikeCall() {
-        super("getAliasesLike");
+        super(ApiSpec.getAliasesLike);
     }
 
     public static GetAliasesLikeCall create(int chain) {

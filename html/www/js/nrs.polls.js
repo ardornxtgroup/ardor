@@ -219,7 +219,7 @@ var NRS = (function(NRS, $, undefined) {
 		var sidebarId = 'sidebar_voting_system';
 		var options = {
 			"id": sidebarId,
-			"titleHTML": '<i class="fa fa-check-square-o"></i><span data-i18n="voting_system">Voting</span>',
+			"titleHTML": '<i class="far fa-check-square"></i><span data-i18n="voting_system">Voting</span>',
 			"page": 'polls',
 			"desiredPosition": 50,
 			"depends": { tags: [ NRS.constants.API_TAGS.VS ] }

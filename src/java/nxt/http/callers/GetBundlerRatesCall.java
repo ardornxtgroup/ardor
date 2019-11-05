@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetBundlerRatesCall extends APICall.Builder<GetBundlerRatesCall> {
     private GetBundlerRatesCall() {
-        super("getBundlerRates");
+        super(ApiSpec.getBundlerRates);
     }
 
     public static GetBundlerRatesCall create() {

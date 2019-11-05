@@ -35,6 +35,7 @@ import nxt.db.VersionedEntityDbTable;
 import nxt.db.VersionedValuesDbTable;
 import nxt.messaging.EncryptedMessageAppendix;
 import nxt.messaging.MessageAppendix;
+import nxt.messaging.PrunablePlainMessageAppendix;
 import nxt.util.Convert;
 import nxt.util.Listener;
 import nxt.util.Listeners;
@@ -389,7 +390,16 @@ public final class DigitalGoodsHome {
             this.priceNQT = attachment.getPriceNQT();
             this.delisted = false;
             this.timestamp = Nxt.getBlockchain().getLastBlockTimestamp();
-            this.hasImage = transaction.getPrunablePlainMessage() != null;
+            boolean hasImage = false;
+            PrunablePlainMessageAppendix prunablePlainMessage = transaction.getPrunablePlainMessage();
+            if (!Constants.DISABLE_METADATA_DETECTION && prunablePlainMessage != null) {
+                byte[] image = prunablePlainMessage.getMessage();
+                if (image != null) {
+                    String mediaType = Search.detectMimeType(image);
+                    hasImage = mediaType != null && mediaType.startsWith("image/");
+                }
+            }
+            this.hasImage = hasImage;
         }
 
         private Goods(ResultSet rs, DbKey dbKey) throws SQLException {

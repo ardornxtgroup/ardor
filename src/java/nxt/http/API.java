@@ -72,6 +72,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static nxt.http.JSONResponses.INCORRECT_ADMIN_PASSWORD;
 import static nxt.http.JSONResponses.LOCKED_ADMIN_PASSWORD;
@@ -84,14 +86,16 @@ public final class API {
     public static final int TESTNET_API_SSLPORT = 26877;
     public static final int MIN_COMPRESS_SIZE = 256;
     private static final String[] DISABLED_HTTP_METHODS = {"TRACE", "HEAD"};
-    static Set<String> SENSITIVE_PARAMS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList("secretPhrase", "adminPassword", "sharedKey", "sharedPiece", "encryptionPassword")));
+    static final Set<String> SENSITIVE_PARAMS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList("secretPhrase", "adminPassword", "sharedKey", "sharedPiece", "encryptionPassword")));
+
+    private static boolean isInitialized = false;
 
     static final int openAPIPort;
     static final int openAPISSLPort;
     static final boolean isOpenAPI;
 
-    static final List<String> disabledAPIs;
-    static final List<APITag> disabledAPITags;
+    private static List<APIEnum> disabledAPIs;
+    private static List<APITag> disabledAPITags;
 
     private static final Set<String> allowedBotHosts;
     private static final List<NetworkAddress> allowedBotNets;
@@ -112,14 +116,6 @@ public final class API {
     private static volatile String paperWalletPage;
 
     static {
-        List<String> disabled = new ArrayList<>(Nxt.getStringListProperty("nxt.disabledAPIs"));
-        Collections.sort(disabled);
-        disabledAPIs = Collections.unmodifiableList(disabled);
-        disabled = Nxt.getStringListProperty("nxt.disabledAPITags");
-        Collections.sort(disabled);
-        List<APITag> apiTags = new ArrayList<>(disabled.size());
-        disabled.forEach(tagName -> apiTags.add(APITag.fromDisplayName(tagName)));
-        disabledAPITags = Collections.unmodifiableList(apiTags);
         List<String> allowedBotHostsList = Nxt.getStringListProperty("nxt.allowedBotHosts");
         if (! allowedBotHostsList.contains("*")) {
             Set<String> hosts = new HashSet<>();
@@ -180,7 +176,7 @@ public final class API {
                 https_config.setSecureScheme("https");
                 https_config.setSecurePort(sslPort);
                 https_config.addCustomizer(new SecureRequestCustomizer());
-                sslContextFactory = new SslContextFactory();
+                sslContextFactory = new SslContextFactory.Server();
                 String keyStorePath = Paths.get(Nxt.getUserHomeDir()).resolve(Paths.get(Nxt.getStringProperty("nxt.keyStorePath"))).toString();
                 Logger.logInfoMessage("Using keystore: " + keyStorePath);
                 sslContextFactory.setKeyStorePath(keyStorePath);
@@ -194,6 +190,13 @@ public final class API {
                 if (!ciphers.isEmpty()) {
                     sslContextFactory.setIncludeCipherSuites(ciphers.toArray(new String[0]));
                 }
+                ThreadPool.scheduleThread("JettySSLContextReloader", () -> {
+                    try {
+                        sslContextFactory.reload(scf -> Logger.logInfoMessage("Reloading SSL context and keyStore"));
+                    } catch (Exception e) {
+                        Logger.logWarningMessage("Couldn't reload SSLContextFactory", e);
+                    }
+                }, 1, TimeUnit.DAYS); // once a day should be enough
                 connector = new ServerConnector(apiServer, new SslConnectionFactory(sslContextFactory, "http/1.1"),
                         new HttpConnectionFactory(https_config));
                 connector.setPort(sslPort);
@@ -280,6 +283,16 @@ public final class API {
             }
             disableHttpMethods(apiHandler);
 
+            String customAPISetupImplClassName = Convert.emptyToNull(Nxt.getStringProperty("nxt.apiCustomSetupImpl"));
+            if (customAPISetupImplClassName != null) {
+                try {
+                    CustomAPISetup customAPISetup = (CustomAPISetup) Class.forName(customAPISetupImplClassName).newInstance();
+                    customAPISetup.apply(apiHandlers);
+                } catch (ReflectiveOperationException e) {
+                    Logger.logErrorMessage("Failed to load custom API setup", e);
+                }
+            }
+
             apiHandlers.addHandler(apiHandler);
             apiHandlers.addHandler(new DefaultHandler());
 
@@ -305,7 +318,7 @@ public final class API {
                     }
                     Logger.logMessage("Started API server at " + host + ":" + port + (enableSSL && port != sslPort ? ", " + host + ":" + sslPort : ""));
                 } catch (Exception e) {
-                    Logger.logErrorMessage("Failed to start API server", e);
+                    Logger.logErrorMessage("Failed to start API server at " + host + ":" + port + (enableSSL && port != sslPort ? ", " + host + ":" + sslPort : ""), e);
                     throw new RuntimeException(e.toString(), e);
                 }
 
@@ -322,7 +335,26 @@ public final class API {
 
     }
 
-    public static void init() {}
+    public static void init() {
+        if (!isInitialized) {
+            isInitialized = true;
+            List<String> disabled = new ArrayList<>(Nxt.getStringListProperty("nxt.disabledAPIs"));
+            disabledAPIs = disabled.stream().map(APIEnum::fromName).collect(Collectors.toCollection(ArrayList::new));
+            if (Constants.DISABLE_FULL_TEXT_SEARCH) {
+                disabledAPIs.add(APIEnum.SEARCH_ACCOUNTS);
+                disabledAPIs.add(APIEnum.SEARCH_ASSETS);
+                disabledAPIs.add(APIEnum.SEARCH_CURRENCIES);
+                disabledAPIs.add(APIEnum.SEARCH_DGS_GOODS);
+                disabledAPIs.add(APIEnum.SEARCH_POLLS);
+                disabledAPIs.add(APIEnum.SEARCH_TAGGED_DATA);
+            }
+            disabled = Nxt.getStringListProperty("nxt.disabledAPITags");
+            Collections.sort(disabled);
+            List<APITag> apiTags = new ArrayList<>(disabled.size());
+            disabled.forEach(tagName -> apiTags.add(APITag.fromDisplayName(tagName)));
+            disabledAPITags = Collections.unmodifiableList(apiTags);
+        }
+    }
 
     public static void shutdown() {
         if (apiServer != null) {
@@ -401,11 +433,12 @@ public final class API {
         return adminPassword;
     }
 
-    public static List<String> getDisabledApis() {
+    public static List<APIEnum> getDisabledApis() {
         SecurityManager sm = System.getSecurityManager();
         if (sm != null) {
             sm.checkPermission(API_PERMISSION);
         }
+        init();
         return disabledAPIs;
     }
 
@@ -414,6 +447,7 @@ public final class API {
         if (sm != null) {
             sm.checkPermission(API_PERMISSION);
         }
+        init();
         return disabledAPITags;
     }
 
@@ -479,6 +513,7 @@ public final class API {
             // can't resolve, disallow
             Logger.logMessage("Unknown remote host " + remoteHost);
         }
+        Logger.logDebugMessage("Not allowing " + remoteHost);
         return true;
 
     }

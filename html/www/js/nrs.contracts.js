@@ -56,7 +56,8 @@ var NRS = (function(NRS) {
                     "hasSecretPhrase": response.hasSecretPhrase,
                     "isValidator": response.isValidator,
                     "hasValidatorSecretPhrase": response.hasValidatorSecretPhrase,
-                    "hasRandomSeed": response.hasRandomSeed
+                    "hasRandomSeed": response.hasRandomSeed,
+                    "autoFeeRate": response.autoFeeRate
                 };
                 if (!response.supportedContracts) {
                     view.render(Object.assign({

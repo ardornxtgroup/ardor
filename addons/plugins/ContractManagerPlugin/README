@@ -1,3 +1,15 @@
 This is an IntelliJ plugin to manage Ardor contract deployment.
 Install This plugin from the IntelliJ settings plugins page.
-... more specific info needed ...
+
+To build the plugin:
+1. Checkout the IntelliJ community edition sources https://github.com/JetBrains/intellij-community
+2. Open the folder containing this readme file in IntelliJ as an IntelliJ project
+3. Follow the instructions here to setup the SDK for the project
+https://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/setting_up_environment.html
+4. Package a new plugin version by right clicking the ContractManagerPlugin module inside the IntelliJ project, 
+then choose "Prepare plugin module '...' for deployment" a new ContractManagerPlugin.zip is created.
+
+Note:
+The plugin configuration file is located in the META-INF folder. Inside this META-INF folder there is a second
+META-INF folder containing the plugin svg icon. 
+This is a workaround to get IntelliJ to package this icon correctly and might change in the future.

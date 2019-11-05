@@ -192,6 +192,9 @@ class ContractRunnerAPIs {
             response.put("isValidator", config.isValidator());
             response.put("hasValidatorSecretPhrase", config.getValidatorSecretPhrase() != null);
             response.put("hasRandomSeed", !Arrays.equals(config.getRunnerSeed(), config.getPublicKey()));
+            response.put("autoFeeRate", config.isAutoFeeRate());
+            response.put("minBundlerBalanceFXT", Long.toUnsignedString(config.getMinBundlerBalanceFXT()));
+            response.put("minBundlerFeeLimitFQT", Long.toUnsignedString(config.getMinBundlerFeeLimitFQT()));
             int chainId = 1;
             while (true) {
                 Chain chain = Chain.getChain(chainId);
@@ -239,20 +242,12 @@ class ContractRunnerAPIs {
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
             API.verifyPassword(req);
-            ContractRunnerConfig config = contractRunner.getConfig();
-            if (config instanceof NullContractRunnerConfig) {
-                return runnerNotInitializedResponse(config.getStatus()).toJSONObject();
-            }
             ParameterParser.FileData fileData = ParameterParser.getFileData(req, "config", true);
             if (fileData == null) {
                 return JSONResponses.INCORRECT_FILE;
             }
             byte[] data = fileData.getData();
-            JO configJson = JO.parse(new StringReader(new String(data, StandardCharsets.UTF_8)));
-            contractRunner.loadConfig(configJson);
-            JO response = new JO();
-            response.put("configLoaded", true);
-            return response.toJSONObject();
+            return contractRunner.parseConfig(new StringReader(new String(data, StandardCharsets.UTF_8)));
         }
 
         @Override

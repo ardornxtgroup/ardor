@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetDGSTagsCall extends APICall.Builder<GetDGSTagsCall> {
     private GetDGSTagsCall() {
-        super("getDGSTags");
+        super(ApiSpec.getDGSTags);
     }
 
     public static GetDGSTagsCall create(int chain) {

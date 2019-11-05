@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class BlacklistBundlerCall extends APICall.Builder<BlacklistBundlerCall> {
     private BlacklistBundlerCall() {
-        super("blacklistBundler");
+        super(ApiSpec.blacklistBundler);
     }
 
     public static BlacklistBundlerCall create() {

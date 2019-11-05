@@ -233,11 +233,11 @@ var NRS = (function(NRS, $) {
             NRS.accountRS = "";
             NRS.publicKey = "";
             NRS.accountInfo = {};
-            NRS.login(false, account, function() {
+            return NRS.login(false, account, function() {
                 $.growl($.t("switched_to_account", { account: account, chain: chainDescription }));
             }, { isAccountSwitch: true, chain: chainId });
         } else {
-            NRS.login(loginOptions.isPassphraseLogin, loginOptions.id, function() {
+            return NRS.login(loginOptions.isPassphraseLogin, loginOptions.id, function() {
 				$.growl($.t("switched_to_chain", { chain: chainDescription }));
             }, { isAccountSwitch: true, isSavedPassphrase: loginOptions.isSavedPassphrase, chain: chainId });
         }
@@ -302,6 +302,7 @@ var NRS = (function(NRS, $) {
 
     // id can be either account id or passphrase
     NRS.login = function(isPassphraseLogin, id, callback, options) {
+		var asyncCallsDefer = $.Deferred();
     	if (!options) {
     		options = {};
 		}
@@ -317,15 +318,15 @@ var NRS = (function(NRS, $) {
 					"type": "danger",
 					"offset": 10
 				});
-                NRS.spinner.stop();
-				return;
+				NRS.spinner.stop();
+				return asyncCallsDefer.resolve();
 			} else if (!NRS.isTestNet && id.length < 12 && loginCheckPasswordLength.val() == 1) {
 				loginCheckPasswordLength.val(0);
 				var loginError = $("#login_error");
 				loginError.find(".callout").html($.t("error_passphrase_login_length"));
 				loginError.show();
-                NRS.spinner.stop();
-				return;
+				NRS.spinner.stop();
+				return asyncCallsDefer.resolve();
 			}
 
 			$("#login_password, #registration_password, #registration_password_repeat").val("");
@@ -343,7 +344,7 @@ var NRS = (function(NRS, $) {
 			    NRS.connectionError(response.errorDescription, response.errorCode);
                 NRS.spinner.stop();
 				console.log("getBlockchainStatus returned error");
-				return;
+				return asyncCallsDefer.resolve();
 			}
 			console.log("getBlockchainStatus response received");
 			NRS.state = response;
@@ -362,7 +363,7 @@ var NRS = (function(NRS, $) {
 							"offset": 10
 						});
 						NRS.spinner.stop();
-						return;
+						return asyncCallsDefer.resolve(result.error);
 					}
 					id = result.id;
 				}
@@ -388,7 +389,7 @@ var NRS = (function(NRS, $) {
 
                         });
                         NRS.spinner.stop();
-                        return;
+                        return asyncCallsDefer.resolve();
                     } else {
                         NRS.account = NRS.escapeRespStr(response.account);
                         NRS.accountRS = NRS.escapeRespStr(response.accountRS);
@@ -403,7 +404,7 @@ var NRS = (function(NRS, $) {
                                     "offset": 10
                                 });
                     NRS.spinner.stop();
-                    return;
+                    return asyncCallsDefer.resolve();
 				}
 				if (!NRS.account) {
 					$.growl($.t("error_find_account_id", { accountRS: (data && data.account ? String(data.account).escapeHTML() : "") }), {
@@ -411,14 +412,14 @@ var NRS = (function(NRS, $) {
 						"offset": 10
 					});
                     NRS.spinner.stop();
-					return;
+					return asyncCallsDefer.resolve();
 				} else if (!NRS.accountRS) {
 					$.growl($.t("error_generate_account_id"), {
 						"type": "danger",
 						"offset": 10
 					});
                     NRS.spinner.stop();
-					return;
+					return asyncCallsDefer.resolve();
 				}
 
 				NRS.sendRequest("getAccountPublicKey", {
@@ -430,7 +431,7 @@ var NRS = (function(NRS, $) {
 							"offset": 10
 						});
                         NRS.spinner.stop();
-						return;
+						return asyncCallsDefer.resolve();
 					}
 
 					var rememberMe = $("#remember_me");
@@ -470,6 +471,11 @@ var NRS = (function(NRS, $) {
 							"type": "danger"
 						});
 					}
+					var startForgingDefer = $.Deferred();
+					var createDBDefer = $.Deferred();
+					$.when(startForgingDefer, createDBDefer).then(function() {
+						asyncCallsDefer.resolve();
+					})
 					NRS.getAccountInfo(true, function() {
 						if (NRS.accountInfo.currentLeasingHeightFrom) {
 							NRS.isLeased = (NRS.lastBlockHeight >= NRS.accountInfo.currentLeasingHeightFrom && NRS.lastBlockHeight <= NRS.accountInfo.currentLeasingHeightTo);
@@ -495,7 +501,10 @@ var NRS = (function(NRS, $) {
 									NRS.updateForgingTooltip(response.errorDescription);
 								}
 								forgingIndicator.show();
+								startForgingDefer.resolve();	
 							});
+						} else {
+							startForgingDefer.resolve();
 						}
 					}, options.isAccountSwitch);
 					NRS.initSidebarMenu();
@@ -516,17 +525,20 @@ var NRS = (function(NRS, $) {
 						navigator.userAgent.indexOf('Chrome') == -1 &&
 						navigator.userAgent.indexOf('JavaFX') == -1) {
 						// Don't use account based DB in Safari due to a buggy indexedDB implementation (2015-02-24)
-						NRS.createDatabase("NRS_USER_DB");
+						NRS.createDatabase("NRS_USER_DB").then(function() {
+							createDBDefer.resolve();
+						});
 						$.growl($.t("nrs_safari_no_account_based_db"), {
 							"type": "danger"
 						});
 					} else {
-						NRS.createDatabase("NRS_USER_DB_" + String(NRS.account));
+						NRS.createDatabase("NRS_USER_DB_" + String(NRS.account)).then(function() {
+							createDBDefer.resolve();
+						});
 					}
 					if (callback) {
 						callback();
 					}
-
 					$.each(NRS.pages, function(key) {
 						if(key in NRS.setup) {
 							NRS.setup[key]();
@@ -587,10 +599,11 @@ var NRS = (function(NRS, $) {
                     loginOptions.isPassphraseLogin = isPassphraseLogin;
                     loginOptions.id = id;
                     loginOptions.isSavedPassphrase = options.isSavedPassphrase;
-                    NRS.updateApprovalRequests();
+					NRS.updateApprovalRequests();
 				});
 			});
 		});
+		return asyncCallsDefer;
 	};
 
 	$("#logout_button_container").on("show.bs.dropdown", function() {
@@ -712,6 +725,7 @@ var NRS = (function(NRS, $) {
 		NRS.setServerPassword(password);
         NRS.setAccountDetailsPassword(password);
         NRS.setAdvancedModalPassword(password);
+		NRS.setApprovalModelsPassword(password);
         NRS.setTokenPassword(password);
 		if (NRS.mobileSettings.is_store_remembered_passphrase) {
 			NRS.setStrItem("savedPassphrase", password);

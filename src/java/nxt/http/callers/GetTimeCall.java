@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetTimeCall extends APICall.Builder<GetTimeCall> {
     private GetTimeCall() {
-        super("getTime");
+        super(ApiSpec.getTime);
     }
 
     public static GetTimeCall create() {

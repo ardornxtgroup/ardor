@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetBlockIdCall extends APICall.Builder<GetBlockIdCall> {
     private GetBlockIdCall() {
-        super("getBlockId");
+        super(ApiSpec.getBlockId);
     }
 
     public static GetBlockIdCall create() {

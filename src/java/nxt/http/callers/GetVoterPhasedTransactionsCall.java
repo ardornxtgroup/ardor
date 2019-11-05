@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetVoterPhasedTransactionsCall extends APICall.Builder<GetVoterPhasedTransactionsCall> {
     private GetVoterPhasedTransactionsCall() {
-        super("getVoterPhasedTransactions");
+        super(ApiSpec.getVoterPhasedTransactions);
     }
 
     public static GetVoterPhasedTransactionsCall create(int chain) {

@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class UploadContractRunnerConfigurationCall extends APICall.Builder<UploadContractRunnerConfigurationCall> {
     private UploadContractRunnerConfigurationCall() {
-        super("uploadContractRunnerConfiguration");
+        super(ApiSpec.uploadContractRunnerConfiguration);
     }
 
     public static UploadContractRunnerConfigurationCall create() {

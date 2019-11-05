@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetHashedSecretPhasedTransactionsCall extends APICall.Builder<GetHashedSecretPhasedTransactionsCall> {
     private GetHashedSecretPhasedTransactionsCall() {
-        super("getHashedSecretPhasedTransactions");
+        super(ApiSpec.getHashedSecretPhasedTransactions);
     }
 
     public static GetHashedSecretPhasedTransactionsCall create() {

@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class LongConvertCall extends APICall.Builder<LongConvertCall> {
     private LongConvertCall() {
-        super("longConvert");
+        super(ApiSpec.longConvert);
     }
 
     public static LongConvertCall create() {

@@ -192,11 +192,16 @@ public final class BlockImpl implements Block {
     @Override
     public List<FxtTransactionImpl> getFxtTransactions() {
         if (this.blockTransactions == null) {
-            List<FxtTransactionImpl> transactions = Collections.unmodifiableList(TransactionHome.findBlockTransactions(getId()));
-            for (FxtTransactionImpl transaction : transactions) {
-                transaction.setBlock(this);
+            BlockchainImpl.getInstance().writeLock();
+            try {
+                List<FxtTransactionImpl> transactions = Collections.unmodifiableList(TransactionHome.findBlockTransactions(getId()));
+                for (FxtTransactionImpl transaction : transactions) {
+                    transaction.setBlock(this);
+                }
+                this.blockTransactions = transactions;
+            } finally {
+                BlockchainImpl.getInstance().writeUnlock();
             }
-            this.blockTransactions = transactions;
         }
         return this.blockTransactions;
     }

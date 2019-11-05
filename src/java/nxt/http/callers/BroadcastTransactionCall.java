@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class BroadcastTransactionCall extends APICall.Builder<BroadcastTransactionCall> {
     private BroadcastTransactionCall() {
-        super("broadcastTransaction");
+        super(ApiSpec.broadcastTransaction);
     }
 
     public static BroadcastTransactionCall create() {

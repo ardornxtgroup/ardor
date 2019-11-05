@@ -3,7 +3,7 @@ package nxt.http.callers;
 
 public class DgsRefundCall extends CreateTransactionCallBuilder<DgsRefundCall> {
     private DgsRefundCall() {
-        super("dgsRefund");
+        super(ApiSpec.dgsRefund);
     }
 
     public static DgsRefundCall create(int chain) {

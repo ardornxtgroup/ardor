@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class EncryptToCall extends APICall.Builder<EncryptToCall> {
     private EncryptToCall() {
-        super("encryptTo");
+        super(ApiSpec.encryptTo);
     }
 
     public static EncryptToCall create() {

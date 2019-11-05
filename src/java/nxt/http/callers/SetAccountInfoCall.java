@@ -3,7 +3,7 @@ package nxt.http.callers;
 
 public class SetAccountInfoCall extends CreateTransactionCallBuilder<SetAccountInfoCall> {
     private SetAccountInfoCall() {
-        super("setAccountInfo");
+        super(ApiSpec.setAccountInfo);
     }
 
     public static SetAccountInfoCall create(int chain) {

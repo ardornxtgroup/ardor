@@ -113,6 +113,7 @@
                         <label for="m_shuffling_create_participant_count" data-i18n="participant_count">Participant Count</label>
                         <input type="text" name="participantCount" id="m_shuffling_create_participant_count" class="form-control" placeholder="Participant Count" data-i18n="[placeholder]participant_count" tabindex="3" min="3" max="30">
                     </div>
+                    <div data-replace-with-modal-template="add_message_modal_template"></div>
                     <div data-replace-with-modal-template="fee_calculation_modal_template"></div>
                     <div data-replace-with-modal-template="secret_phrase_modal_template"></div>
                     <div data-replace-with-modal-template="advanced_deadline_template"></div>
@@ -188,7 +189,7 @@
                     </div>
                     <div class="form-group">
                         <label data-i18n="fee_ratio">Fee Ratio</label>
-                        <i class="fa fa-question-circle show_popover"
+                        <i class="far fa-question-circle show_popover"
                            data-content="The bundling fee rate is required. Since StandbyShufflers will be running unattended and it can't be predicted what the feeRate should be at the time shuffling is triggered, you are advised to also configure a PersonalBundler, set the StandbyShuffler to submit transactions with zero fees and bundle them yourself."
                            data-i18n="[data-content]standbyshuffler_bundling_advice" data-container="body" style="color:#4CAA6E" ></i>
                         <div class="input-group">

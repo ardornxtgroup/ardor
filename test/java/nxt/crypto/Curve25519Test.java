@@ -26,7 +26,6 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.fail;
 
 public class Curve25519Test {
-
     /** Curve25519 test vectors from NaCl library: Alice's secret */
     private static final String ALICE_SECRET = "77076d0a7318a57d3c16c17251b26645df4c2f87ebc0992ab177fba51db92c2a";
 

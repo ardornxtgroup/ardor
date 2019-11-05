@@ -17,6 +17,7 @@
 package nxt.voting;
 
 import nxt.Constants;
+import nxt.Nxt;
 import nxt.NxtException;
 import nxt.account.Account;
 import nxt.account.AccountLedger;
@@ -117,8 +118,9 @@ public abstract class AccountControlTransactionType extends ChildTransactionType
                 if (childChain == null) {
                     throw new NxtException.NotValidException("Invalid child chain id " + entry.getKey());
                 }
-                long fees = Convert.nullToZero(entry.getValue());
-                if (fees <= 0 || fees > Constants.MAX_BALANCE_NQT) {
+                long fees = entry.getValue() == null ? -1 : entry.getValue();
+                long minFees = Nxt.getBlockchain().getHeight() >= Constants.MISSING_TX_SENDER_BLOCK ? 0 : 1;
+                if (fees < minFees || fees > Constants.MAX_BALANCE_NQT) {
                     throw new NxtException.NotValidException(String.format("Invalid max fees %f for chain %s", ((double) fees) / childChain.ONE_COIN,
                             childChain.getName()));
                 }

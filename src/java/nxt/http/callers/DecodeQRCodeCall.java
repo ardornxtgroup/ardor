@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class DecodeQRCodeCall extends APICall.Builder<DecodeQRCodeCall> {
     private DecodeQRCodeCall() {
-        super("decodeQRCode");
+        super(ApiSpec.decodeQRCode);
     }
 
     public static DecodeQRCodeCall create() {

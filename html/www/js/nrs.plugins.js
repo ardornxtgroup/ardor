@@ -362,11 +362,11 @@ var NRS = (function(NRS, $, undefined) {
         if (100 <= plugin['validity'] && plugin['validity'] < 200) {
             validityText = $.t('valid', 'Valid');
             validityHTML = "<span class='label label-success show_popover' " + validityPopoverHTML + " style='display:inline-block;min-width:85px;'>";
-            validityHTML += validityText + " <i class='fa fa-check'></i></span>";
+            validityHTML += validityText + " <i class='far fa-check'></i></span>";
         } else {
             validityText = $.t('invalid', 'Invalid');
             validityHTML = "<span class='label label-danger show_popover' " + validityPopoverHTML + " style='display:inline-block;min-width:85px;'>";
-            validityHTML += validityText + " <i class='fa fa-times-circle'></i></span>";
+            validityHTML += validityText + " <i class='far fa-times-circle'></i></span>";
         }
         html += "<td style='text-align:center;'>" + validityHTML + "</td>";
 

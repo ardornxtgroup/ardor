@@ -29,6 +29,7 @@ public class RuntimeEnvironment {
     public static final String DIRPROVIDER_ARG = "nxt.runtime.dirProvider";
 
     private static final String osname = System.getProperty("os.name").toLowerCase();
+    private static final String javaSpecVendor = System.getProperty("java.specification.vendor");
     private static final boolean isHeadless;
     private static final boolean hasJavaFX;
     static {
@@ -62,6 +63,10 @@ public class RuntimeEnvironment {
 
     private static boolean isMacRuntime() {
         return osname.contains("mac");
+    }
+
+    public static boolean isAndroidRuntime() {
+        return javaSpecVendor.equals("The Android Project");
     }
 
     private static boolean isWindowsService() {
@@ -104,6 +109,12 @@ public class RuntimeEnvironment {
             return new DesktopMode();
         } else if (isWindowsService()) {
             return new WindowsServiceMode();
+        } else if (isAndroidRuntime()) {
+            try {
+                return (RuntimeMode) Class.forName("nxt.env.AndroidServiceMode").newInstance();
+            } catch (ReflectiveOperationException e) {
+                throw new RuntimeException("Failed to instantiate nxt.env.AndroidServiceMode", e);
+            }
         } else {
             return new CommandLineMode();
         }
@@ -122,6 +133,9 @@ public class RuntimeEnvironment {
                 System.out.println("Failed to instantiate dirProvider " + dirProvider);
                 throw new RuntimeException(e.getMessage(), e);
             }
+        }
+        if (isAndroidRuntime()) {
+            return new AndroidDirProvider();
         }
         if (isDesktopEnabled(configuredMode)) {
             if (isWindowsRuntime()) {

@@ -3,7 +3,7 @@ package nxt.http.callers;
 
 public class CurrencyReserveClaimCall extends CreateTransactionCallBuilder<CurrencyReserveClaimCall> {
     private CurrencyReserveClaimCall() {
-        super("currencyReserveClaim");
+        super(ApiSpec.currencyReserveClaim);
     }
 
     public static CurrencyReserveClaimCall create(int chain) {

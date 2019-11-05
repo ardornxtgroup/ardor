@@ -3,7 +3,7 @@ package nxt.http.callers;
 
 public class DeleteContractReferenceCall extends CreateTransactionCallBuilder<DeleteContractReferenceCall> {
     private DeleteContractReferenceCall() {
-        super("deleteContractReference");
+        super(ApiSpec.deleteContractReference);
     }
 
     public static DeleteContractReferenceCall create(int chain) {

@@ -5,6 +5,9 @@ keystore "NONE", "Blockchain", "Jelurida";
 grant codeBase "file://untrustedContractCode" {
     permission java.io.FilePermission "${java.io.tmpdir}*", "read,write,delete";
     permission java.util.PropertyPermission "java.io.tmpdir", "read";
+	permission java.net.URLPermission "http:*", "*:*";
+    permission java.net.URLPermission "https:*", "*:*";
+    permission nxt.util.security.BlockchainPermission "getBundlerRates";
 };
 
 /*

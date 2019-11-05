@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetSupportedContractsCall extends APICall.Builder<GetSupportedContractsCall> {
     private GetSupportedContractsCall() {
-        super("getSupportedContracts");
+        super(ApiSpec.getSupportedContracts);
     }
 
     public static GetSupportedContractsCall create() {

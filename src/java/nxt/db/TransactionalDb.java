@@ -96,7 +96,7 @@ public class TransactionalDb extends BasicDb {
             con.setAutoCommit(true);
             con = new DbConnection(con, schema);
         } else {
-            con.setSchema(schema);
+            ((DbConnection)con).setSchema(schema);
         }
         return con;
     }

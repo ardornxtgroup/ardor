@@ -16,7 +16,7 @@
 
 <div id="simple_input_with_addon_modal_ui_element">
     <label for="{{modalName}}_{{labelI18n}}" data-i18n="{{labelI18n}}">{{labelText}}</label>
-    <i class="fa fa-question-circle modal-context-help" data-content="" data-toggle="popover" data-trigger="hover" data-container="#{{modalId}}" data-i18n="[data-content]{{helpI18n}}"></i>
+    <i class="far fa-question-circle modal-context-help" data-content="" data-toggle="popover" data-trigger="hover" data-container="#{{modalId}}" data-i18n="[data-content]{{helpI18n}}"></i>
     <div class="input-group">
         <input type="text" name="{{inputName}}" class="form-control" placeholder="{{labelText}}" data-i18n="[placeholder]{{labelI18n}}" tabindex="3">
         <span class="input-group-addon" data-i18n="{{addonI18n}}">{{addonText}}</span>
@@ -26,27 +26,27 @@
 <div id="block_height_modal_ui_element">
     <div style="float:right;font-size:12px;">
         <span class="bhm_ue_time_estimate"></span>
-        <i class="fa fa-question-circle modal-context-help" data-content="" data-toggle="popover" data-trigger="hover" data-container="#{{modalId}}" data-i18n="[data-content]block_height_estimate_help"></i>
+        <i class="far fa-question-circle modal-context-help" data-content="" data-toggle="popover" data-trigger="hover" data-container="#{{modalId}}" data-i18n="[data-content]block_height_estimate_help"></i>
     </div>
     <label for="{{modalName}}_{{labelI18n}}_{{phasingType}}" data-i18n="{{labelI18n}}">{{labelText}}</label>
-    <i class="fa fa-question-circle modal-context-help" data-content="" data-toggle="popover" data-trigger="hover" data-container="#{{modalId}}" data-i18n="[data-content]{{helpI18n}}"></i>
+    <i class="far fa-question-circle modal-context-help" data-content="" data-toggle="popover" data-trigger="hover" data-container="#{{modalId}}" data-i18n="[data-content]{{helpI18n}}"></i>
     <div class="input-group">
         <input type="text" name="{{inputName}}" id="{{modalName}}_{{labelI18n}}_{{phasingType}}" class="form-control bhm_ue_time_input" value="{{initBlockHeight}}" placeholder="{{labelText}}" data-i18n="{{labelI18n}}" />
         <span class="input-group-addon">
             <a href="#" class="bhm_ue_use_current_block_height" data-current-block-height="" style="color:#000;" data-content="" data-placement="bottom" data-toggle="popover" data-trigger="hover" data-container="#{{modalId}}" data-i18n="[data-content]current_block_height_help"><span class="bhm_ue_current_block_height"></span></a>
         </span>
         <span class="input-group-btn">
-            <button class="btn btn-default bhm_ue_reduce_height_btn" data-bhm-ue-num-blocks="{{changeHeightBlocks}}" data-content="-{{changeHeightBlocks}}" data-placement="bottom" data-toggle="popover" data-trigger="hover" data-container="#{{modalId}}" type="button"><i class="fa fa-minus-circle"></i></button>
+            <button class="btn btn-default bhm_ue_reduce_height_btn" data-bhm-ue-num-blocks="{{changeHeightBlocks}}" data-content="-{{changeHeightBlocks}}" data-placement="bottom" data-toggle="popover" data-trigger="hover" data-container="#{{modalId}}" type="button"><i class="far fa-minus-circle"></i></button>
         </span>
         <span class="input-group-btn">
-            <button class="btn btn-default bhm_ue_add_height_btn" data-bhm-ue-num-blocks="{{changeHeightBlocks}}" data-content="+{{changeHeightBlocks}}" data-placement="right" data-toggle="popover" data-trigger="hover" data-container="#{{modalId}}" type="button"><i class="fa fa-plus-circle"></i></button>
+            <button class="btn btn-default bhm_ue_add_height_btn" data-bhm-ue-num-blocks="{{changeHeightBlocks}}" data-content="+{{changeHeightBlocks}}" data-placement="right" data-toggle="popover" data-trigger="hover" data-container="#{{modalId}}" type="button"><i class="far fa-plus-circle"></i></button>
         </span>
     </div>
 </div>
 
 <div id="add_currency_modal_ui_element">
     <label for="{{modalName}}_{{labelI18n}}" data-i18n="{{labelI18n}}">{{labelText}}</label>
-    <i class="fa fa-question-circle modal-context-help" data-content="" data-toggle="popover" data-trigger="hover" data-container="#{{modalId}}" data-i18n="[data-content]{{helpI18n}}"></i>
+    <i class="far fa-question-circle modal-context-help" data-content="" data-toggle="popover" data-trigger="hover" data-container="#{{modalId}}" data-i18n="[data-content]{{helpI18n}}"></i>
     <div class="input-group">
         <input type="text"  class="form-control acm_ue_currency_code_input" name="{{inputCodeName}}" size="5" maxlength="5" id="{{modalName}}_{{labelI18n}}" placeholder="Code" data-i18n="[placeholder]code" tabindex="2" />
         <input type="hidden" class="acm_ue_currency_id_input" name="{{inputIdName}}" disabled>
@@ -59,7 +59,7 @@
 
 <div id="add_asset_modal_ui_element">
     <label for="{{modalName}}_{{labelI18n}}" data-i18n="{{labelI18n}}">{{labelText}}</label>
-    <i class="fa fa-question-circle modal-context-help" data-content="" data-toggle="popover" data-trigger="hover" data-container="#{{modalId}}" data-i18n="[data-content]{{helpI18n}}"></i>
+    <i class="far fa-question-circle modal-context-help" data-content="" data-toggle="popover" data-trigger="hover" data-container="#{{modalId}}" data-i18n="[data-content]{{helpI18n}}"></i>
     <div class="input-group">
         <input type="text"  class="form-control aam_ue_asset_id_input" name="{{inputIdName}}" size="20" maxlength="20" id="{{modalName}}_{{labelI18n}}" placeholder="Asset ID" data-i18n="[placeholder]asset_id" tabindex="2" />
         <input type="hidden" class="aam_ue_asset_decimals_input" name="{{inputDecimalsName}}" disabled>
@@ -74,13 +74,13 @@
     <div class="row">
         <div class="col-xs-12 multi_accounts_ue_added_account_list">
             <label data-i18n="{{labelI18n}}">{{labelText}}</label>
-            <i class="fa fa-question-circle modal-context-help" data-content="" data-toggle="popover" data-trigger="hover" data-container="#{{modalId}}" data-i18n="[data-content]{{helpI18n}}"></i>
+            <i class="far fa-question-circle modal-context-help" data-content="" data-toggle="popover" data-trigger="hover" data-container="#{{modalId}}" data-i18n="[data-content]{{helpI18n}}"></i>
             <div class="form-group form_group_multi_accounts_ue">
                 <div class="input-group">
                     <input type="text" class="form-control plain_address_selector_input" name="{{inputName}}" placeholder="Account" data-i18n="[placeholder]account" disabled />
                     <div class="pas_contact_info">&nbsp;</div>
                     <span class="input-group-btn">
-                        <button class="btn btn-default remove_account_btn" type="button"><i class="fa fa-minus"></i></button>
+                        <button class="btn btn-default remove_account_btn" type="button"><i class="far fa-minus"></i></button>
                     </span>
                     <span class="input-group-btn btn-group plain_address_selector">
                         <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown"><span class="glyphicon glyphicon-user"></span></button>
@@ -93,7 +93,7 @@
     </div>
     <div class="row form-group">
         <div class="col-xs-12">
-            <a href="#" class="btn btn-primary add_account_btn"><i class="fa fa-plus"></i> <span data-i18n="add_account">Add Account</span></a>
+            <a href="#" class="btn btn-primary add_account_btn"><i class="far fa-plus"></i> <span data-i18n="add_account">Add Account</span></a>
         </div>
     </div>
 </div>
@@ -102,16 +102,16 @@
     <div class="row">
         <div class="col-xs-12 multi_piece_list">
             <label data-i18n="{{labelI18n}}">{{labelText}}</label>
-            <i class="fa fa-question-circle modal-context-help" data-content="" data-toggle="popover" data-trigger="hover" data-container="#{{modalId}}" data-i18n="[data-content]{{helpI18n}}"></i>
+            <i class="far fa-question-circle modal-context-help" data-content="" data-toggle="popover" data-trigger="hover" data-container="#{{modalId}}" data-i18n="[data-content]{{helpI18n}}"></i>
             <div class="form-group form_group_multi_piece">
-                <div id="piece_secret_phrase_reader" class="input-group scan-qr-code-reader" style="display:none;width:384px;height:384px;"></div>
+                <div id="piece_secret_phrase_reader" class="input-group scan-qr-code-reader" style="display:none"></div>
                 <div class="input-group">
                     <input type="text" class="form-control piece-selector-input" placeholder="PIECE" data-i18n="[placeholder]piece" disabled />
                     <span class="input-group-btn">
                         <button id="piece_secret_phrase_scan" type="button" data-reader="piece_secret_phrase_reader" data-result="piece" class="scan-qr-code btn btn-default">
-                            <i class="fa fa-qrcode"></i>
+                            <i class="far fa-qrcode"></i>
                         </button>
-                        <button class="btn btn-default remove-piece-btn" type="button"><i class="fa fa-minus"></i></button>
+                        <button class="btn btn-default remove-piece-btn" type="button"><i class="far fa-minus"></i></button>
                     </span>
                 </div>
             </div>
@@ -119,7 +119,7 @@
     </div>
     <div class="row form-group">
         <div class="col-xs-12">
-            <a href="#" class="btn add-piece-btn"><i class="fa fa-plus"></i> <span data-i18n="add_piece">ADD PIECE</span></a>
+            <a href="#" class="btn add-piece-btn"><i class="far fa-plus"></i> <span data-i18n="add_piece">ADD PIECE</span></a>
             <a href="#" class="btn btn-primary combine-pieces-btn"><span data-i18n="combine">COMBINE</span></a>
         </div>
     </div>
@@ -127,7 +127,7 @@
 
 <div id="min_balance_model_modal_ui_element">
     <label for="{{modalName}}_{{labelI18n}}" data-i18n="{{labelI18n}}">{{labelText}}</label>
-    <i class="fa fa-question-circle modal-context-help" data-content="" data-toggle="popover" data-trigger="hover" data-container="#{{modalId}}" data-i18n="[data-content]{{helpI18n}}"></i>
+    <i class="far fa-question-circle modal-context-help" data-content="" data-toggle="popover" data-trigger="hover" data-container="#{{modalId}}" data-i18n="[data-content]{{helpI18n}}"></i>
     <div class="input-group">
         <select class="form-control" name="{{selectName}}" id="{{modalName}}_{{labelI18n}}">
             <option value="0" selected data-i18n="min_balance_none">No min balance necessary</option>

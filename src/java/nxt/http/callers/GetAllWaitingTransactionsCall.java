@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetAllWaitingTransactionsCall extends APICall.Builder<GetAllWaitingTransactionsCall> {
     private GetAllWaitingTransactionsCall() {
-        super("getAllWaitingTransactions");
+        super(ApiSpec.getAllWaitingTransactions);
     }
 
     public static GetAllWaitingTransactionsCall create() {

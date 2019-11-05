@@ -47,6 +47,7 @@
                             <span class="at_min_balance_amount"></span>
                         </div>
                     </div>
+                    <div data-replace-with-modal-template="add_message_modal_template"></div>
                     <div data-replace-with-modal-template="fee_calculation_modal_template"></div>
                     <div data-replace-with-modal-template="secret_phrase_modal_template"></div>
                     <div data-replace-with-modal-template="advanced_deadline_template"></div>
@@ -82,6 +83,7 @@
                         <label for="reveal_secret_secret" data-i18n="secret">Secret</label>
                         <input type="password" class="form-control" id="reveal_secret_secret" name="revealedSecret" tabindex="1">
                     </div>
+                    <div data-replace-with-modal-template="add_message_modal_template"></div>
                     <div data-replace-with-modal-template="fee_calculation_modal_template"></div>
                     <div data-replace-with-modal-template="secret_phrase_modal_template"></div>
                     <div data-replace-with-modal-template="advanced_deadline_template"></div>
@@ -126,6 +128,7 @@
                             </div>
                         </div>
                     </div>
+                    <div data-replace-with-modal-template="add_message_modal_template"></div>
                     <div data-replace-with-modal-template="fee_calculation_modal_template"></div>
                     <div data-replace-with-modal-template="secret_phrase_modal_template"></div>
                     <div data-replace-with-modal-template="advanced_broadcast_template"></div>
@@ -154,9 +157,9 @@
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                 <h4 class="modal-title">
-                    <a href='#' class="fa fa-arrow-circle-left back-link"></a>
+                    <a href='#' class="far fa-arrow-circle-left back-link"></a>
                     <span data-i18n="transaction">Transaction</span>&nbsp;<span data-i18n="info">Info</span>
-                    <span><a class='btn btn-default btn-xs copy_link' href="#" data-clipboard-target="#transaction_info_data"><span class="fa fa-copy"></span></a></span>
+                    <span><a class='btn btn-default btn-xs copy_link' href="#" data-clipboard-target="#transaction_info_data"><span class="far fa-copy"></span></a></span>
                 </h4>
             </div>
             <div class="modal-body">
@@ -251,7 +254,7 @@
                     </div>
                     <label for="raw_transaction_modal_transaction_json" id="raw_transaction_modal_transaction_json_label"></label>
                     <a href="#" id="raw_transaction_modal_transaction_json_download">
-                        <i class="fa fa-download"></i>
+                        <i class="far fa-download"></i>
                     </a>
                     <div class="form-group">
                         <textarea name="transactionJSON" class="form-control" id="raw_transaction_modal_transaction_json" rows="9" readonly></textarea>
@@ -259,10 +262,10 @@
                     <div id="raw_transaction_modal_signature_container" class="form-group">
                         <label for="raw_transaction_modal_signature" data-i18n="signature">SIGNATURE</label>
                         <a href="#" class="qr_code_reader_link" id="raw_transaction_modal_signature_reader_link">
-                            <i class="fa fa-qrcode"></i>
+                            <i class="far fa-qrcode"></i>
                         </a>
                         <textarea name="signature" class="form-control" tabindex="1" id="raw_transaction_modal_signature" rows="2"></textarea>
-                        <div id="raw_transaction_modal_signature_reader" style="width:384px;height:384px;"></div>
+                        <div id="raw_transaction_modal_signature_reader"></div>
                     </div>
                     <div id="raw_transaction_modal_transaction_bytes_container">
                         <label for="raw_transaction_modal_transaction_bytes" data-i18n="signed_transaction_bytes">SIGNED TRANSACTION BYTES</label>
@@ -306,7 +309,7 @@
                     <div class="callout callout-danger error_message" style="display:none"></div>
                     <label for="voucher_json" data-i18n="voucher_data">Voucher Data</label>
                     <a href="#" id="voucher_json_download">
-                        <i class="fa fa-download"></i>
+                        <i class="far fa-download"></i>
                     </a>
                     <div class="form-group">
                         <pre><code class="json hljs" id="generated_voucher_json"></code></pre>
@@ -347,7 +350,7 @@
                         <div class="form-group">
                             <label for="voucher_json" data-i18n="voucher_json">VOUCHER JSON</label>
                             <label for="voucher_json_file">
-                                <i class="fa fa-upload"></i>
+                                <i class="far fa-upload"></i>
                             </label>
                             <div class="upload_container">
                                 <input type="file" id="voucher_json_file">
@@ -357,9 +360,9 @@
                     <div id="voucher_reader_container" class="form-group video-support">
                         <label for="voucher_reader_link" data-i18n="voucher_reader">Voucher Reader</label>
                         <a href="#" id="voucher_reader_link">
-                            <i class="fa fa-qrcode"></i>
+                            <i class="far fa-qrcode"></i>
                         </a>
-                        <div id="voucher_reader" style="width:384px;height:384px;"></div>
+                        <div id="voucher_reader"></div>
                     </div>
                     <div class="form-group">
                         <textarea class="form-control" name="voucher" id="voucher_json" rows="10" placeholder="VOUCHER JSON" data-i18n="[placeholder]voucher_json"></textarea>
@@ -426,16 +429,16 @@
                         <div class="form-group">
                             <label for="unsigned_transaction_bytes" data-i18n="unsigned_transaction_bytes">UNSIGNED TRANSACTION BYTES</label>
                             <a href="#" class="qr_code_reader_link" id="unsigned_transaction_bytes_reader_link">
-                                <i class="fa fa-qrcode"></i>
+                                <i class="far fa-qrcode"></i>
                             </a>
                             <textarea class="form-control" name="unsignedTransactionBytes" id="unsigned_transaction_bytes" tabindex="1" rows="6" placeholder="Unsigned Transaction Bytes" data-i18n="[placeholder]unsigned_transaction_bytes"></textarea>
-                            <div id="unsigned_transaction_bytes_reader" style="width:384px;height:384px;"></div>
+                            <div id="unsigned_transaction_bytes_reader"></div>
                         </div>
                         <div class="form-group">
                             <div class="form-group">
                                 <label for="unsigned_transaction_json" data-i18n="unsigned_transaction_json">UNSIGNED TRANSACTION JSON</label>
                                 <label for="unsigned_transaction_json_file">
-                                    <i class="fa fa-upload"></i>
+                                    <i class="far fa-upload"></i>
                                 </label>
                                 <div class="upload_container">
                                     <input type="file" id="unsigned_transaction_json_file">
@@ -459,7 +462,7 @@
                         <div id="signed_json_output" class="output">
                             <label for="signed_transaction_json" data-i18n="signed_transaction_json">SIGNED TRANSACTION JSON</label>
                             <a href="#" id="signed_transaction_json_download">
-                                <i class="fa fa-download"></i>
+                                <i class="far fa-download"></i>
                             </a>
                             <div class="form-group">
                                 <textarea class="form-control" id="signed_transaction_json" readonly rows="10"></textarea>
@@ -481,7 +484,7 @@
                             <div class="form-group">
                                 <label for="broadcast_transaction_json" data-i18n="signed_transaction_json">SIGNED TRANSACTION JSON</label>
                                 <label for="broadcast_transaction_json_file">
-                                    <i class="fa fa-upload"></i>
+                                    <i class="far fa-upload"></i>
                                 </label>
                                 <div class="upload_container">
                                     <input type="file" id="broadcast_transaction_json_file">

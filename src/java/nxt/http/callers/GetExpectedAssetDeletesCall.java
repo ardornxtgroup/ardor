@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetExpectedAssetDeletesCall extends APICall.Builder<GetExpectedAssetDeletesCall> {
     private GetExpectedAssetDeletesCall() {
-        super("getExpectedAssetDeletes");
+        super(ApiSpec.getExpectedAssetDeletes);
     }
 
     public static GetExpectedAssetDeletesCall create(int chain) {

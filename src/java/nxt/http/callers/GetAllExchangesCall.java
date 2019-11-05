@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetAllExchangesCall extends APICall.Builder<GetAllExchangesCall> {
     private GetAllExchangesCall() {
-        super("getAllExchanges");
+        super(ApiSpec.getAllExchanges);
     }
 
     public static GetAllExchangesCall create(int chain) {

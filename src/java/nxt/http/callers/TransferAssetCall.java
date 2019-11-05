@@ -3,7 +3,7 @@ package nxt.http.callers;
 
 public class TransferAssetCall extends CreateTransactionCallBuilder<TransferAssetCall> {
     private TransferAssetCall() {
-        super("transferAsset");
+        super(ApiSpec.transferAsset);
     }
 
     public static TransferAssetCall create(int chain) {

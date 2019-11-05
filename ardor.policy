@@ -7,6 +7,7 @@ grant codeBase "file://untrustedContractCode" {
     permission java.util.PropertyPermission "java.io.tmpdir", "read";
 	permission java.net.URLPermission "http:*", "*:*";
     permission java.net.URLPermission "https:*", "*:*";
+    permission nxt.util.security.BlockchainPermission "getBundlerRates";
 };
 
 /*

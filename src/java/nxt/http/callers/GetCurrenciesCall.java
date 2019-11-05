@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetCurrenciesCall extends APICall.Builder<GetCurrenciesCall> {
     private GetCurrenciesCall() {
-        super("getCurrencies");
+        super(ApiSpec.getCurrencies);
     }
 
     public static GetCurrenciesCall create() {

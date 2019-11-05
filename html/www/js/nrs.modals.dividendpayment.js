@@ -80,15 +80,9 @@ var NRS = (function(NRS, $) {
         $(this).find(".dividend_payment_info").first().hide();
     });
 
-    $("#dividend_payment_amount_per_share").keydown(function(e) {
-        var decimals = NRS.getCurrentAsset().decimals;
-        var charCode = !e.charCode ? e.which : e.charCode;
-        if (NRS.isControlKey(charCode) || e.ctrlKey || e.metaKey) {
-            return;
-        }
-        var caretPos = $(this)[0].selectionStart;
-        return NRS.validateDecimals(8-decimals, charCode, $(this).val(), caretPos, e);
-   	});
+    $("#dividend_payment_amount_per_share").decimalValidation(function() {
+        return 8-NRS.getCurrentAsset().decimals;
+    });
 
     $("#dividend_payment_amount_per_share, #dividend_payment_height").on("blur", function() {
         var $modal = $(this).closest(".modal");

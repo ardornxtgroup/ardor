@@ -3,7 +3,7 @@ package nxt.http.callers;
 
 public class UploadTaggedDataCall extends CreateTransactionCallBuilder<UploadTaggedDataCall> {
     private UploadTaggedDataCall() {
-        super("uploadTaggedData");
+        super(ApiSpec.uploadTaggedData);
     }
 
     public static UploadTaggedDataCall create(int chain) {

@@ -3,7 +3,7 @@ package nxt.http.callers;
 
 public class SendMoneyCall extends CreateTransactionCallBuilder<SendMoneyCall> {
     private SendMoneyCall() {
-        super("sendMoney");
+        super(ApiSpec.sendMoney);
     }
 
     public static SendMoneyCall create(int chain) {

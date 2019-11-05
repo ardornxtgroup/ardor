@@ -45,56 +45,56 @@
                             <li role="presentation">
                                 <a href="#approve_tab_accounts" aria-controls="approve_tab_accounts" class="at_accounts" role="tab" data-toggle="tab">
                                     <span class="label label-warning">
-                                        <i class="fa fa-group"></i>
+                                        <i class="far fa-users"></i>
                                     </span>
                                 </a>
                             </li>
                             <li role="presentation">
                                 <a href="#approve_tab_balance" aria-controls="approve_tab_balance" class="at_balance" role="tab" data-toggle="tab">
                                     <span class="label label-warning">
-                                        <i class="fa fa-money"></i>
+                                        <i class="far fa-money-bill-alt"></i>
                                     </span>
                                 </a>
                             </li>
                             <li role="presentation">
                                 <a href="#approve_tab_asset_holders" aria-controls="approve_tab_asset_holders" class="at_asset_holders" role="tab" data-toggle="tab">
                                     <span class="label label-warning">
-                                        <i class="fa fa-signal"></i>
+                                        <i class="far fa-signal"></i>
                                     </span>
                                 </a>
                             </li>
                             <li role="presentation">
                                 <a href="#approve_tab_currency_holders" aria-controls="approve_tab_currency_holders" class="at_currency_holders" role="tab" data-toggle="tab">
                                     <span class="label label-warning">
-                                        <i class="fa fa-bank"></i>
+                                        <i class="fa fa-university"></i>
                                     </span>
                                 </a>
                             </li>
                             <li role="presentation">
                                 <a href="#approve_tab_account_property" aria-controls="approve_tab_account_property" role="tab" data-toggle="tab">
                                     <span class="label label-warning">
-                                        <i class="fa fa-address-card"></i>
+                                        <i class="far fa-address-card"></i>
                                     </span>
                                 </a>
                             </li>
                             <li role="presentation">
                                 <a href="#approve_tab_transaction" aria-controls="approve_tab_transaction" class="at_transaction" role="tab" data-toggle="tab">
                                     <span class="label label-warning">
-                                        <i class="fa fa-thumbs-up"></i>
+                                        <i class="far fa-thumbs-up"></i>
                                     </span>
                                 </a>
                             </li>
                             <li role="presentation">
                                 <a href="#approve_tab_hash" aria-controls="approve_tab_hash" class="at_hash" role="tab" data-toggle="tab">
                                     <span class="label label-warning">
-                                        <i class="fa fa-question"></i>
+                                        <i class="far fa-question"></i>
                                     </span>
                                 </a>
                             </li>
                             <li role="presentation">
                                 <a href="#approve_tab_composite" aria-controls="approve_tab_composite" class="at_composite" role="tab" data-toggle="tab">
                                     <span class="label label-warning">
-                                        <i class="fa fa-cubes"></i>
+                                        <i class="far fa-cubes"></i>
                                     </span>
                                 </a>
                             </li>
@@ -119,7 +119,7 @@
                                     <div class="col-xs-6">
                                         <div class="form-group phasing_number_accounts_group">
                                             <label data-i18n="approve_number_accounts">Number Accounts</label>
-                                            <i class="fa fa-question-circle modal-context-help" data-content="" data-toggle="popover" data-trigger="hover" data-i18n="[data-content]approve_transaction_amount_help"></i>
+                                            <i class="far fa-question-circle modal-context-help" data-content="" data-toggle="popover" data-trigger="hover" data-i18n="[data-content]approve_transaction_amount_help"></i>
                                             <input name="phasingQuorum" type="number" min="1" class="form-control" disabled />
                                         </div>
                                     </div>
@@ -225,7 +225,7 @@
                                     <div class="col-xs-6">
                                         <div class="form-group">
                                             <label for="approved_by_sender_property_setter" data-i18n="approved_by_sender_property_setter">Sender Property Setter</label>
-                                            <i class="fa fa-question-circle modal-context-help" data-content="" data-toggle="popover" data-trigger="hover" data-i18n="[data-content]approve_transaction_sender_property_help"></i>
+                                            <i class="far fa-question-circle modal-context-help" data-content="" data-toggle="popover" data-trigger="hover" data-i18n="[data-content]approve_transaction_sender_property_help"></i>
                                             <input name="phasingSenderPropertySetter" id="approved_by_sender_property_setter" type="text" class="form-control account_id_mask"
                                                    placeholder="Account ID" data-i18n="[placeholder]account_id" />
                                         </div>
@@ -233,7 +233,7 @@
                                     <div class="col-xs-6">
                                         <div class="form-group">
                                             <label for="approved_by_recipient_property_setter" data-i18n="approved_by_recipient_property_setter">Recipient Property Setter</label>
-                                            <i class="fa fa-question-circle modal-context-help" data-content="" data-toggle="popover" data-trigger="hover" data-i18n="[data-content]approve_transaction_recipient_property_help"></i>
+                                            <i class="far fa-question-circle modal-context-help" data-content="" data-toggle="popover" data-trigger="hover" data-i18n="[data-content]approve_transaction_recipient_property_help"></i>
                                             <input name="phasingRecipientPropertySetter" id="approved_by_recipient_property_setter" type="text" class="form-control account_id_mask"
                                                    placeholder="Account ID" data-i18n="[placeholder]account_id"/>
                                         </div>
@@ -292,14 +292,7 @@
                                 <div class="form-group">
                                     <span data-i18n="approve_modal_by_hash_tab_help"></span>
                                 </div>
-                                <div class="form-group secret_phrase">
-                                    <div id="approved_by_hashed_secret_secret_phrase_reader" class="input-group scan-qr-code-reader" style="display:none;margin:auto;width:384px;height:384px;"></div>
-                                    <label for="approved_by_hashed_secret_password" data-i18n="passphrase">PASSPHRASE</label>
-                                    <button id="approved_by_hashed_secret_secret_phrase_scan" type="button" data-reader="approved_by_hashed_secret_secret_phrase_reader" data-result="approved_by_hashed_secret_password" class="scan-qr-code btn btn-default btn-xs ">
-                                        <i class="fa fa-qrcode"></i>
-                                    </button>
-                                    <input type="password" id="approved_by_hashed_secret_password" class="form-control" placeholder="Secret Phrase" data-i18n="[placeholder]secret_phrase">
-                                </div>
+                                <div data-replace-with-modal-template="secret_phrase_modal_template"></div>
                                 <div class="form-group">
                                     <label for="approved_by_hashed_secret_nonce" data-i18n="nonce">Nonce</label>
                                     <input type="text" class="form-control" name="secretNonce" id="approved_by_hashed_secret_nonce" readonly/>
@@ -363,7 +356,7 @@
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                 <h4 class="modal-title">
-                    <a href='#' class="fa fa-arrow-circle-left back-link"></a>
+                    <a href='#' class="far fa-arrow-circle-left back-link"></a>
                     <span data-i18n="view_approval_model">View Approval Model</span>
                 </h4>
             </div>
@@ -479,14 +472,7 @@
                         <label for="reproduce_secret_name" data-i18n="name"></label>
                         <input type="text" class="form-control" id="reproduce_secret_name" readonly/>
                     </div>
-                    <div class="form-group">
-                        <div id="reproduce_secret_password_secret_phrase_reader" class="input-group scan-qr-code-reader" style="display:none;margin:auto;width:384px;height:384px;"></div>
-                        <label for="reproduce_secret_password" data-i18n="passphrase">PASSPHRASE</label>
-                        <button id="reproduce_secret_password_secret_phrase_scan" type="button" data-reader="reproduce_secret_password_secret_phrase_reader" data-result="reproduce_secret_password" class="scan-qr-code btn btn-default btn-xs ">
-                            <i class="fa fa-qrcode"></i>
-                        </button>
-                        <input type="password" id="reproduce_secret_password" class="form-control" placeholder="Secret Phrase" data-i18n="[placeholder]secret_phrase">
-                    </div>
+                    <div data-replace-with-modal-template="secret_phrase_modal_template"></div>
                     <div class="form-group">
                         <label for="reproduce_secret_nonce" data-i18n="nonce">Nonce</label>
                         <input type="text" class="form-control" name="secretNonce" id="reproduce_secret_nonce" readonly/>

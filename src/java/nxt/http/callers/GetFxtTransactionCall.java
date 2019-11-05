@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetFxtTransactionCall extends APICall.Builder<GetFxtTransactionCall> {
     private GetFxtTransactionCall() {
-        super("getFxtTransaction");
+        super(ApiSpec.getFxtTransaction);
     }
 
     public static GetFxtTransactionCall create() {

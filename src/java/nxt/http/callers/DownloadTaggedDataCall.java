@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class DownloadTaggedDataCall extends APICall.Builder<DownloadTaggedDataCall> {
     private DownloadTaggedDataCall() {
-        super("downloadTaggedData");
+        super(ApiSpec.downloadTaggedData);
     }
 
     public static DownloadTaggedDataCall create(int chain) {

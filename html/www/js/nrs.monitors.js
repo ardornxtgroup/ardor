@@ -23,32 +23,36 @@ var NRS = (function(NRS, $) {
     NRS.jsondata = NRS.jsondata||{};
 
     NRS.jsondata.monitors = function (response) {
+        const monitorJSON = JSON.stringify(response);
         return {
             accountFormatted: NRS.getAccountLink(response, "account"),
             property: NRS.escapeRespStr(response.property),
-            amountFormatted: NRS.formatAmount(response.amount),
-            thresholdFormatted: NRS.formatAmount(response.threshold),
+            holdingFormatted: NRS.escapeRespStr(response.holdingInfo.name),
+            amountFormatted: NRS.formatAmountDecimals(response.amount, false, false, false, response.holdingInfo.decimals),
+            thresholdFormatted: NRS.formatAmountDecimals(response.threshold, false, false, false, response.holdingInfo.decimals),
             interval: NRS.escapeRespStr(response.interval),
             statusLinkFormatted: "<a href='#' class='btn btn-xs' " +
-                        "onclick='NRS.goToMonitor(" + JSON.stringify(response) + ");'>" +
+                        "onclick='NRS.goToMonitor(" + monitorJSON + ");'>" +
                          $.t("status") + "</a>",
-            stopLinkFormatted: "<a href='#' class='btn btn-xs' data-toggle='modal' data-target='#stop_funding_monitor_modal' " +
-                        "data-account='" + NRS.escapeRespStr(response.accountRS) + "' " +
-                        "data-property='" + NRS.escapeRespStr(response.property) + "'>" + $.t("stop") + "</a>"
+            stopLinkFormatted: "<a href='#' class='btn btn-xs' data-toggle='modal' " +
+                        "data-target='#stop_funding_monitor_modal' " +
+                        "data-monitor='" + monitorJSON + "'>" + $.t("stop") + "</a>"
         };
     };
 
     NRS.jsondata.monitoredAccount = function (response) {
         try {
-            var value = JSON.parse(response.value);
+            var value = JSON.parse(NRS.unescapeRespStr(response.value)); // all strings on a response are escaped (NRS.escapeResponseObjStrings)
         } catch (e) {
             NRS.logConsole(e.message);
         }
+        const fmt = x => NRS.formatAmountDecimals(x, false, false, false, currentMonitor.holdingInfo.decimals);
         return {
             accountFormatted: NRS.getAccountLink(response, "recipient"),
             property: NRS.escapeRespStr(response.property),
-            amountFormatted: (value && value.amount) ? "<b>" + NRS.formatAmount(value.amount) : NRS.formatAmount(currentMonitor.amount),
-            thresholdFormatted: (value && value.threshold) ? "<b>" + NRS.formatAmount(value.threshold) : NRS.formatAmount(currentMonitor.threshold),
+            holdingFormatted: NRS.escapeRespStr(currentMonitor.holdingInfo.name),
+            amountFormatted: (value && value.amount) ? "<b>" + fmt(value.amount) : fmt(currentMonitor.amount),
+            thresholdFormatted: (value && value.threshold) ? "<b>" + fmt(value.threshold) : fmt(currentMonitor.threshold),
             intervalFormatted: (value && value.interval) ? "<b>" + NRS.escapeRespStr(value.interval) : NRS.escapeRespStr(currentMonitor.interval),
             removeLinkFormatted: "<a href='#' class='btn btn-xs' data-toggle='modal' data-target='#remove_monitored_account_modal' " +
                         "data-recipient='" + NRS.escapeRespStr(response.recipientRS) + "' " +
@@ -74,7 +78,8 @@ var NRS = (function(NRS, $) {
             "adminPassword": NRS.getAdminPassword(),
             "firstIndex": NRS.pageNumber * NRS.itemsPerPage - NRS.itemsPerPage,
             "lastIndex": NRS.pageNumber * NRS.itemsPerPage,
-            "holding": NRS.getActiveChainId()
+            "holding": NRS.getActiveChainId(),
+            "includeHoldingInfo": true
         };
         NRS.sendRequest("getFundingMonitor", params,
             function (response) {
@@ -105,9 +110,67 @@ var NRS = (function(NRS, $) {
         )
     };
 
+    $("#start_funding_monitor_modal").on("show.bs.modal", function() {
+        let context = {
+            labelText: "Currency",
+            labelI18n: "currency",
+            inputCodeName: "funding_monitor_ms_code",
+            inputIdName: "holding",
+            inputDecimalsName: "funding_monitor_ms_decimals",
+            helpI18n: "add_currency_modal_help"
+        };
+        NRS.initModalUIElement($(this), '.funding_monitor_holding_currency', 'add_currency_modal_ui_element', context);
+
+        context = {
+            labelText: "Asset",
+            labelI18n: "asset",
+            inputIdName: "holding",
+            inputDecimalsName: "funding_monitor_asset_decimals",
+            helpI18n: "add_asset_modal_help"
+        };
+        NRS.initModalUIElement($(this), '.funding_monitor_holding_asset', 'add_asset_modal_ui_element', context);
+
+        if (NRS.getActiveChainId() === "1") {
+            $('#funding_monitor_holding_type').change().parent().hide();
+        } else {
+            $('#funding_monitor_holding_type').change().parent().show();
+        }
+
+        // Activating context help popovers - from some reason this code is activated
+        // after the same event in nrs.modals.js which doesn't happen for create pool thus it's necessary
+        // to explicitly enable the popover here. strange ...
+        $(function () {
+            $("[data-toggle='popover']").popover({
+                "html": true
+            });
+        });
+    });
+
+    $('#funding_monitor_holding_type').change(function () {
+        const holdingType = $("#funding_monitor_holding_type");
+        if(holdingType.val() === "0") {
+            $("#funding_monitor_asset_id_group").css("display", "none");
+            $("#funding_monitor_ms_currency_group").css("display", "none");
+            $("#start_monitor_amount").attr('name', 'monitorAmountNXT');
+            $("#start_monitor_threshold").attr('name', 'monitorThresholdNXT');
+        } if(holdingType.val() === "1") {
+            $("#funding_monitor_asset_id_group").css("display", "inline");
+            $("#funding_monitor_ms_currency_group").css("display", "none");
+            $("#start_monitor_amount").attr('name', 'amountQNTf');
+            $("#start_monitor_threshold").attr('name', 'thresholdQNTf');
+        } else if(holdingType.val() === "2") {
+            $("#funding_monitor_asset_id_group").css("display", "none");
+            $("#funding_monitor_ms_currency_group").css("display", "inline");
+            $("#start_monitor_amount").attr('name', 'amountQNTf');
+            $("#start_monitor_threshold").attr('name', 'thresholdQNTf');
+        }
+    });
+
     NRS.forms.startFundingMonitor = function($modal) {
         var data = NRS.getFormData($modal.find("form:first"));
-        data.holding = NRS.getActiveChainId();
+        if (data.holdingType === "0") {
+            data.holding = NRS.getActiveChainId();
+        }
         data.feeRateNQTPerFXT = NRS.convertToNQT(data.feeRateNXTPerFXT);
         delete data.feeRateNXTPerFXT;
         return {
@@ -122,26 +185,15 @@ var NRS = (function(NRS, $) {
 
     $("#stop_funding_monitor_modal").on("show.bs.modal", function(e) {
         var $invoker = $(e.relatedTarget);
-        var account = $invoker.data("account");
-        if (account) {
-            $("#stop_monitor_account").val(account);
-        }
-        var property = $invoker.data("property");
-        if (property) {
-            $("#stop_monitor_property").val(property);
-        }
+        const monitor = $invoker.data("monitor");
+        $("#stop_monitor_account").val(monitor.accountRS);
+        $("#stop_monitor_property").val(monitor.property);
+        $("#stop_monitor_holdingType").val(monitor.holdingType);
+        $("#stop_monitor_holding").val(monitor.holding);
         if (NRS.getAdminPassword()) {
             $("#stop_monitor_admin_password").val(NRS.getAdminPassword());
         }
     });
-
-    NRS.forms.stopFundingMonitor = function($modal) {
-        var data = NRS.getFormData($modal.find("form:first"));
-        data.holding = NRS.getActiveChainId();
-        return {
-            "data": data
-        };
-    };
 
     NRS.forms.stopFundingMonitorComplete = function() {
         $.growl($.t("monitor_stopped"));
@@ -208,10 +260,11 @@ var NRS = (function(NRS, $) {
 
     $("#add_monitored_account_modal").on("show.bs.modal", function() {
         $("#add_monitored_account_property").val(currentMonitor.property);
-        $("#add_monitored_account_amount").val(NRS.convertToNXT(currentMonitor.amount));
-        $("#add_monitored_account_threshold").val(NRS.convertToNXT(currentMonitor.threshold));
+        $("#add_monitored_account_amount").val(NRS.intToFloat(currentMonitor.amount, currentMonitor.holdingInfo.decimals));
+        $("#add_monitored_account_threshold").val(NRS.intToFloat(currentMonitor.threshold, currentMonitor.holdingInfo.decimals));
         $("#add_monitored_account_interval").val(currentMonitor.interval);
         $("#add_monitored_account_value").val("");
+        $(this).find(".holding-name").text(currentMonitor.holdingInfo.name);
     });
 
     $(".add_monitored_account_value").on('change', function() {
@@ -219,24 +272,29 @@ var NRS = (function(NRS, $) {
             return;
         }
         var value = {};
-        var amount = NRS.convertToNQT($("#add_monitored_account_amount").val());
-        if (currentMonitor.amount != amount) {
-            value.amount = amount;
+        try {
+            const amount = NRS.convertToQNT($("#add_monitored_account_amount").val(), currentMonitor.holdingInfo.decimals);
+            if (currentMonitor.amount !== amount) {
+                value.amount = amount;
+            }
+            const threshold = NRS.convertToQNT($("#add_monitored_account_threshold").val(), currentMonitor.holdingInfo.decimals);
+            if (currentMonitor.threshold !== threshold) {
+                value.threshold = threshold;
+            }
+            const interval = $("#add_monitored_account_interval").val();
+            if (currentMonitor.interval != interval) {
+                value.interval = interval;
+            }
+            if (jQuery.isEmptyObject(value)) {
+                value = "";
+            } else {
+                value = JSON.stringify(value);
+            }
+            $("#add_monitored_account_value").val(value);
+            $(".error_message").hide();
+        } catch (e) {
+            $(".error_message").text(e).show();
         }
-        var threshold = NRS.convertToNQT($("#add_monitored_account_threshold").val());
-        if (currentMonitor.threshold != threshold) {
-            value.threshold = threshold;
-        }
-        var interval = $("#add_monitored_account_interval").val();
-        if (currentMonitor.interval != interval) {
-            value.interval = interval;
-        }
-        if (jQuery.isEmptyObject(value)) {
-            value = "";
-        } else {
-            value = JSON.stringify(value);
-        }
-        $("#add_monitored_account_value").val(value);
     });
 
     $("#remove_monitored_account_modal").on("show.bs.modal", function(e) {

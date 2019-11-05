@@ -3,7 +3,7 @@ package nxt.http.callers;
 
 public class ShufflingVerifyCall extends CreateTransactionCallBuilder<ShufflingVerifyCall> {
     private ShufflingVerifyCall() {
-        super("shufflingVerify");
+        super(ApiSpec.shufflingVerify);
     }
 
     public static ShufflingVerifyCall create(int chain) {

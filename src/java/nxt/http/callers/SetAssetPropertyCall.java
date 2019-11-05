@@ -3,7 +3,7 @@ package nxt.http.callers;
 
 public class SetAssetPropertyCall extends CreateTransactionCallBuilder<SetAssetPropertyCall> {
     private SetAssetPropertyCall() {
-        super("setAssetProperty");
+        super(ApiSpec.setAssetProperty);
     }
 
     public static SetAssetPropertyCall create(int chain) {

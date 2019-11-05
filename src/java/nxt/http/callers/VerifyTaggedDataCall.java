@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class VerifyTaggedDataCall extends APICall.Builder<VerifyTaggedDataCall> {
     private VerifyTaggedDataCall() {
-        super("verifyTaggedData");
+        super(ApiSpec.verifyTaggedData);
     }
 
     public static VerifyTaggedDataCall create(int chain) {

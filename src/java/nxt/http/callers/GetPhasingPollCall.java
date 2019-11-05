@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetPhasingPollCall extends APICall.Builder<GetPhasingPollCall> {
     private GetPhasingPollCall() {
-        super("getPhasingPoll");
+        super(ApiSpec.getPhasingPoll);
     }
 
     public static GetPhasingPollCall create(int chain) {

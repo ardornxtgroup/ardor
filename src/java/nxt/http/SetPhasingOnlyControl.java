@@ -101,7 +101,7 @@ public final class SetPhasingOnlyControl extends CreateTransaction {
                     return JSONResponses.UNKNOWN_CHAIN;
                 }
                 long maxFee = Long.parseLong(s[1]);
-                if (maxFee <= 0 || maxFee > Constants.MAX_BALANCE_NQT) {
+                if (maxFee < 0 || maxFee > Constants.MAX_BALANCE_NQT) {
                     return JSONResponses.incorrect("controlMaxFees");
                 }
                 maxFees.put(chainId, maxFee);

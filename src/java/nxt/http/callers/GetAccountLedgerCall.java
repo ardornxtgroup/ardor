@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetAccountLedgerCall extends APICall.Builder<GetAccountLedgerCall> {
     private GetAccountLedgerCall() {
-        super("getAccountLedger");
+        super(ApiSpec.getAccountLedger);
     }
 
     public static GetAccountLedgerCall create() {
@@ -36,7 +36,7 @@ public class GetAccountLedgerCall extends APICall.Builder<GetAccountLedgerCall> 
         return param("includeHoldingInfo", includeHoldingInfo);
     }
 
-    public GetAccountLedgerCall holdingType(String holdingType) {
+    public GetAccountLedgerCall holdingType(byte holdingType) {
         return param("holdingType", holdingType);
     }
 

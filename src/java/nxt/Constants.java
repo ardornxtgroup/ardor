@@ -313,6 +313,7 @@ public final class Constants {
     public static final byte MAX_NUMBER_OF_SHUFFLING_PARTICIPANTS = 30; // max possible at current block payload limit is 51
     public static final short MAX_SHUFFLING_REGISTRATION_PERIOD = (short) 1440 * 7;
     public static final short SHUFFLING_PROCESSING_DEADLINE = (short) (isTestnet ? 10 : 100);
+    public static final int SHUFFLER_EXPIRATION_DELAY_BLOCKS = isAutomatedTest ? 1 : 720;
 
     public static final int MAX_TAGGED_DATA_NAME_LENGTH = 100;
     public static final int MAX_TAGGED_DATA_DESCRIPTION_LENGTH = 1000;
@@ -333,11 +334,13 @@ public final class Constants {
     public static final int MPG_BLOCK = Constants.isTestnet ? Constants.isAutomatedTest ? 1 : 455000 : 543000;
     public static final int CHECKSUM_BLOCK_3 = Constants.isTestnet ? 974000 : 545555;
     public static final int CHECKSUM_BLOCK_4 = Constants.isTestnet ? 1738000 : 695000;
+    public static final int CHECKSUM_BLOCK_5 = Constants.isTestnet ? 3214500 : 983000;
+    public static final int MISSING_TX_SENDER_BLOCK = Constants.isTestnet ? Constants.isAutomatedTest ? 0 : 3250000 : Integer.MAX_VALUE;
 
-    public static final int LAST_CHECKSUM_BLOCK = CHECKSUM_BLOCK_4;
+    public static final int LAST_CHECKSUM_BLOCK = CHECKSUM_BLOCK_5;
 
-    public static final int LAST_KNOWN_BLOCK = CHECKSUM_BLOCK_4;
-    public static final long LAST_KNOWN_BLOCK_ID = Convert.parseUnsignedLong(isTestnet ? "932872672786447209" : "14504276941151118625");
+    public static final int LAST_KNOWN_BLOCK = CHECKSUM_BLOCK_5;
+    public static final long LAST_KNOWN_BLOCK_ID = Convert.parseUnsignedLong(isTestnet ? "5657621390974142748" : "11295165462625039807");
 
     public static final int[] MIN_VERSION = new int[]{2, 2, 1};
     public static final int[] MIN_PROXY_VERSION = new int[]{2, 2, 1};
@@ -351,6 +354,9 @@ public final class Constants {
     public static final String ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyz";
     public static final String ALLOWED_CURRENCY_CODE_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     public static final long BURN_ACCOUNT_ID = Convert.parseAccountId("ARDOR-Q9KZ-74XD-WERK-CV6GB");
+
+    public static final boolean DISABLE_FULL_TEXT_SEARCH = Nxt.getBooleanProperty("nxt.disableFullTextSearch");
+    public static final boolean DISABLE_METADATA_DETECTION = Nxt.getBooleanProperty("nxt.disableMetadataDetection");
 
     private Constants() {
     } // never

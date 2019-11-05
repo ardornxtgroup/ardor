@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class DumpPeersCall extends APICall.Builder<DumpPeersCall> {
     private DumpPeersCall() {
-        super("dumpPeers");
+        super(ApiSpec.dumpPeers);
     }
 
     public static DumpPeersCall create() {

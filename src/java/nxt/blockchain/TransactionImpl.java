@@ -760,6 +760,9 @@ public abstract class TransactionImpl implements Transaction {
 
     final void undoUnconfirmed() {
         Account senderAccount = Account.getAccount(getSenderId());
+        if (getAmount() == 0 && getFee() == 0 && senderAccount == null) {
+            return;
+        }
         getType().undoUnconfirmed(this, senderAccount);
     }
 

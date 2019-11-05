@@ -26,6 +26,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import nxt.Constants;
+
 public final class Search {
 
     private static final Analyzer analyzer = new StandardAnalyzer();
@@ -53,6 +55,9 @@ public final class Search {
     }
 
     public static String detectMimeType(byte[] data, String filename) {
+        if (Constants.DISABLE_METADATA_DETECTION) {
+            throw new UnsupportedOperationException("Metadata detection is disabled");
+        }
         Tika tika = new Tika();
         try {
             return tika.detect(data, filename);
@@ -63,6 +68,9 @@ public final class Search {
     }
 
     public static String detectMimeType(byte[] data) {
+        if (Constants.DISABLE_METADATA_DETECTION) {
+            throw new UnsupportedOperationException("Metadata detection is disabled");
+        }
         Tika tika = new Tika();
         try {
             return tika.detect(data);

@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class TriggerContractByVoucherCall extends APICall.Builder<TriggerContractByVoucherCall> {
     private TriggerContractByVoucherCall() {
-        super("triggerContractByVoucher");
+        super(ApiSpec.triggerContractByVoucher);
     }
 
     public static TriggerContractByVoucherCall create() {

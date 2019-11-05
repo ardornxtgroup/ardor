@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetExpectedCurrencyTransfersCall extends APICall.Builder<GetExpectedCurrencyTransfersCall> {
     private GetExpectedCurrencyTransfersCall() {
-        super("getExpectedCurrencyTransfers");
+        super(ApiSpec.getExpectedCurrencyTransfers);
     }
 
     public static GetExpectedCurrencyTransfersCall create(int chain) {

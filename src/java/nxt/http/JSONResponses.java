@@ -445,6 +445,14 @@ public final class JSONResponses {
         PEER_NOT_OPEN_API = JSON.prepare(response);
     }
 
+    public static final JSONStreamAware PEERS_NETWORKING_DISABLED;
+    static {
+        JSONObject response = new JSONObject();
+        response.put("errorCode", 24);
+        response.put("errorDescription", "Network connection to peers is disabled");
+        PEERS_NETWORKING_DISABLED = JSON.prepare(response);
+    }
+
     static JSONStreamAware missing(String... paramNames) {
         JSONObject response = new JSONObject();
         response.put("errorCode", 3);
@@ -528,7 +536,7 @@ public final class JSONResponses {
         JSONObject response = new JSONObject();
         BooleanExpression.BadSyntaxException exception = expression.getSyntaxException();
         if (exception != null) {
-            response.put("errorCode", 21);
+            response.put("errorCode", 23);
             response.put("errorDescription", "Boolean expression syntax error at position " + exception.getPosition() + ": " + exception.getMessage());
             return JSON.prepare(response);
         } else {
@@ -574,6 +582,15 @@ public final class JSONResponses {
 
     public static final JSONStreamAware INCORRECT_RECIPIENTS_PUBLIC_KEY = incorrect("recipientsPublicKey",
             "all specified recipient accounts are used");
+
+    public static final JSONStreamAware INCORRECT_PROCESS_FILE;
+    static {
+        JSONObject response = new JSONObject();
+        response.put("errorCode", 10);
+        response.put("errorDescription", "Encrypted configuration data does not exist");
+        INCORRECT_PROCESS_FILE = JSON.prepare(response);
+    }
+
 
     private JSONResponses() {} // never
 

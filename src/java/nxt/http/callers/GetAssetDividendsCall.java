@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetAssetDividendsCall extends APICall.Builder<GetAssetDividendsCall> {
     private GetAssetDividendsCall() {
-        super("getAssetDividends");
+        super(ApiSpec.getAssetDividends);
     }
 
     public static GetAssetDividendsCall create(int chain) {

@@ -3,7 +3,7 @@ package nxt.http.callers;
 
 public class ExchangeCoinsCall extends CreateTransactionCallBuilder<ExchangeCoinsCall> {
     private ExchangeCoinsCall() {
-        super("exchangeCoins");
+        super(ApiSpec.exchangeCoins);
     }
 
     public static ExchangeCoinsCall create(int chain) {

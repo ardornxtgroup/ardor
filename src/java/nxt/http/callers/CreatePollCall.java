@@ -3,7 +3,7 @@ package nxt.http.callers;
 
 public class CreatePollCall extends CreateTransactionCallBuilder<CreatePollCall> {
     private CreatePollCall() {
-        super("createPoll");
+        super(ApiSpec.createPoll);
     }
 
     public static CreatePollCall create(int chain) {

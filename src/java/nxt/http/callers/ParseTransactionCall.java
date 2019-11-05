@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class ParseTransactionCall extends APICall.Builder<ParseTransactionCall> {
     private ParseTransactionCall() {
-        super("parseTransaction");
+        super(ApiSpec.parseTransaction);
     }
 
     public static ParseTransactionCall create() {

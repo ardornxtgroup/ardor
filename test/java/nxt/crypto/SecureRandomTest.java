@@ -23,7 +23,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 
 public class SecureRandomTest {
-
     @Test
     public void simpleSecureRandom() {
         SecureRandom secureRandom = new SecureRandom();
@@ -49,6 +48,8 @@ public class SecureRandomTest {
     @Test
     public void strongSecureRandom() {
         try {
+            //If too slow, generate more randomness for /dev/random, or change "securerandom.strongAlgorithms" to
+            // NativePRNGNonBlocking:SUN in ${java.home}/jre/lib/security/java.security
             SecureRandom secureRandom = SecureRandom.getInstanceStrong();
             byte[] iv = new byte[32];
             for (int i=0; i<30; i++) {

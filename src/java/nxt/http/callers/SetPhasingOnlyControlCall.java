@@ -3,7 +3,7 @@ package nxt.http.callers;
 
 public class SetPhasingOnlyControlCall extends CreateTransactionCallBuilder<SetPhasingOnlyControlCall> {
     private SetPhasingOnlyControlCall() {
-        super("setPhasingOnlyControl");
+        super(ApiSpec.setPhasingOnlyControl);
     }
 
     public static SetPhasingOnlyControlCall create(int chain) {

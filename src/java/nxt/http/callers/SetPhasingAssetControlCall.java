@@ -3,7 +3,7 @@ package nxt.http.callers;
 
 public class SetPhasingAssetControlCall extends CreateTransactionCallBuilder<SetPhasingAssetControlCall> {
     private SetPhasingAssetControlCall() {
-        super("setPhasingAssetControl");
+        super(ApiSpec.setPhasingAssetControl);
     }
 
     public static SetPhasingAssetControlCall create(int chain) {

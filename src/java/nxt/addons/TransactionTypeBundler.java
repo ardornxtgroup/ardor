@@ -25,9 +25,9 @@ public class TransactionTypeBundler implements Bundler.Filter {
     @Override
     public String getDescription() {
         return "Bundles only transaction types provided as parameter. The parameter must be comma separated string, " +
-                "which contains the <type>:<subtype> pairs specifying the \"type\" and \"subtype\" identifier of the" +
+                "which contains <type>:<subtype> pairs specifying the \"type\" and \"subtype\" identifier of the" +
                 "whitelisted transaction types. The \"type\" and \"subtype\" identifiers can be found in the " +
-                "transactionSubTypes field of the getConstants result";
+                "transactionSubTypes field of the getConstants result.";
     }
 
     @Override

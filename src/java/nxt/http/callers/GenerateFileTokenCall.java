@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GenerateFileTokenCall extends APICall.Builder<GenerateFileTokenCall> {
     private GenerateFileTokenCall() {
-        super("generateFileToken");
+        super(ApiSpec.generateFileToken);
     }
 
     public static GenerateFileTokenCall create() {

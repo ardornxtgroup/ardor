@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class PopOffCall extends APICall.Builder<PopOffCall> {
     private PopOffCall() {
-        super("popOff");
+        super(ApiSpec.popOff);
     }
 
     public static PopOffCall create() {

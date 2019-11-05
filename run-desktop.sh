@@ -1,4 +1,10 @@
 #!/bin/sh
+
+echo "************************************************"
+echo "** DEPRECATED: Use 'run.sh --desktop' instead **"
+echo "************************************************"
+sleep 1
+
 if [ -x jdk/bin/java ]; then
     JAVA=./jdk/bin/java
 else

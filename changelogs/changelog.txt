@@ -1,3 +1,19 @@
+ardor-client-2.2.5, released 2019-06-16:
+
+This is a bugfix release, addressing an issue with the Standby Shuffler add-on.
+The recipient public keys were incorrectly generated with an \r character
+appended to the user-supplied secret phrases, resulting in actual recipient
+accounts different from what was displayed in the UI.
+
+For users of the Standby Shuffler add-on who already had their shuffling
+recipient account affected by this issue, a simple RecoverFunds API has been
+added. Use that API with the secretPhrase of the intended shuffling recipient
+account to automatically transfer your shuffled coins to the correct recipient.
+
+Fixed version update hash validation.
+
+
+--------------------------------------------------------------------------------
 ardor-client-2.2.4, released 2019-06-13:
 
 This release introduces the StandbyShuffler add-on, a new feature intended to

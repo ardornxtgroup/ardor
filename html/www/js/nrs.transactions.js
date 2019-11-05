@@ -418,31 +418,31 @@ var NRS = (function(NRS, $, undefined) {
 							"template": template
 						};
 
-						if (vm == -1) {
-							icon = '<i class="fa ion-load-a"></i>';
+						if (vm === -1) {
+							icon = '<i class="far ion-load-a"></i>';
 						}
-						if (vm == 0) {
-							icon = '<i class="fa fa-group"></i>';
+						if (vm === 0) {
+							icon = '<i class="far fa-users"></i>';
 						}
-						if (vm == 1) {
-							icon = '<i class="fa fa-money"></i>';
+						if (vm === 1) {
+							icon = '<i class="far fa-money-bill-alt"></i>';
 						}
-						if (vm == 2) {
-							icon = '<i class="fa fa-signal"></i>';
+						if (vm === 2) {
+							icon = '<i class="far fa-signal"></i>';
 						}
-						if (vm == 3) {
-							icon = '<i class="fa fa-bank"></i>';
+						if (vm === 3) {
+							icon = '<i class="fa fa-university"></i>';
 						}
-						if (vm == 4) {
-							icon = '<i class="fa fa-thumbs-up"></i>';
+						if (vm === 4) {
+							icon = '<i class="far fa-thumbs-up"></i>';
 						}
-						if (vm == 5) {
-							icon = '<i class="fa fa-question"></i>';
+						if (vm === 5) {
+							icon = '<i class="far fa-question"></i>';
 						}
-						if (vm == 6) {
-							icon = '<i class="fa fa-cubes"></i>';
+						if (vm === 6) {
+							icon = '<i class="far fa-cubes"></i>';
 						}
-						if (vm == 7) {
+						if (vm === 7) {
 							icon = '<i class="fa fa-address-card"></i>';
 						}
 						var phasingDiv = "";
@@ -450,9 +450,9 @@ var NRS = (function(NRS, $, undefined) {
 	 				 	phasingDiv += 'data-toggle="popover" data-container="body">';
 						phasingDiv += "<div class='label label-" + state + "' style='display:inline-block;margin-right:5px;'>" + icon + "</div>";
 
-						if (vm == -1) {
+						if (vm === -1) {
 							phasingDiv += '<span style="color:' + color + '">' + $.t("none") + '</span>';
-						} else if (vm == 0) {
+						} else if (vm === 0) {
 							phasingDiv += '<span style="color:' + color + '">' + String(responsePoll.result) + '</span> / <span>' + String(attachment.phasingQuorum) + '</span>';
 						} else {
 							phasingDiv += '<div class="progress" style="display:inline-block;height:10px;width: 50px;">';
@@ -468,37 +468,41 @@ var NRS = (function(NRS, $, undefined) {
 						$phasingDiv.popover(popoverConfig);
 						$phasingDiv.appendTo($tdPhasing);
                         var votesFormatted;
-						if (vm == 0) {
+                        if (vm === -1) {
+							$popoverTypeTR.find("td:first").html($.t("type") + ":");
+							$popoverTypeTR.find("td:last").html($.t('deferred'));
+						}
+						if (vm === 0) {
 							$popoverTypeTR.find("td:first").html($.t('accounts', 'Accounts') + ":");
 							$popoverTypeTR.find("td:last").html(String(attachment.phasingWhitelist ? attachment.phasingWhitelist.length : ""));
 							votesFormatted = String(responsePoll.result) + " / " + String(attachment.phasingQuorum);
 							$popoverVotesTR.find("td:last").html(votesFormatted);
 						}
-						if (vm == 1) {
+						if (vm === 1) {
 							$popoverTypeTR.find("td:first").html($.t('accounts', 'Accounts') + ":");
 							$popoverTypeTR.find("td:last").html(String(attachment.phasingWhitelist ? attachment.phasingWhitelist.length : ""));
 							votesFormatted = NRS.convertToNXT(responsePoll.result) + " / " + NRS.convertToNXT(attachment.phasingQuorum) + " " + NRS.getActiveChainName();
 							$popoverVotesTR.find("td:last").html(votesFormatted);
 						}
-						if (mbModel == 1) {
+						if (mbModel === 1) {
 							if (minBalance > 0) {
 								minBalanceFormatted = NRS.convertToNXT(minBalance) + " " + NRS.getActiveChainName();
 								$approveBtn.data('minBalanceFormatted', minBalanceFormatted.escapeHTML());
 							}
 						}
-						if (vm == 2 || mbModel == 2) {
+						if (vm === 2 || mbModel === 2) {
 							NRS.sendRequest("getAsset", {
 								"asset": attachment.phasingHolding
 							}, function(phResponse) {
 								if (phResponse && phResponse.asset) {
-									if (vm == 2) {
+									if (vm === 2) {
 										$popoverTypeTR.find("td:first").html($.t('asset', 'Asset') + ":");
 										$popoverTypeTR.find("td:last").html(String(phResponse.name));
 										var votesFormatted = NRS.convertToQNTf(responsePoll.result, phResponse.decimals) + " / ";
 										votesFormatted += NRS.convertToQNTf(attachment.phasingQuorum, phResponse.decimals) + " QNT";
 										$popoverVotesTR.find("td:last").html(votesFormatted);
 									}
-									if (mbModel == 2) {
+									if (mbModel === 2) {
 										if (minBalance > 0) {
 											minBalanceFormatted = NRS.convertToQNTf(minBalance, phResponse.decimals) + " QNT (" + phResponse.name + ")";
 											$approveBtn.data('minBalanceFormatted', minBalanceFormatted.escapeHTML());
@@ -507,19 +511,19 @@ var NRS = (function(NRS, $, undefined) {
 								}
 							}, { isAsync: false });
 						}
-						if (vm == 3 || mbModel == 3) {
+						if (vm === 3 || mbModel === 3) {
 							NRS.sendRequest("getCurrency", {
 								"currency": attachment.phasingHolding
 							}, function(phResponse) {
 								if (phResponse && phResponse.currency) {
-									if (vm == 3) {
+									if (vm === 3) {
 										$popoverTypeTR.find("td:first").html($.t('currency', 'Currency') + ":");
 										$popoverTypeTR.find("td:last").html(String(phResponse.code));
 										var votesFormatted = NRS.convertToQNTf(responsePoll.result, phResponse.decimals) + " / ";
 										votesFormatted += NRS.convertToQNTf(attachment.phasingQuorum, phResponse.decimals) + " Units";
 										$popoverVotesTR.find("td:last").html(votesFormatted);
 									}
-									if (mbModel == 3) {
+									if (mbModel === 3) {
 										if (minBalance > 0) {
 											minBalanceFormatted = NRS.convertToQNTf(minBalance, phResponse.decimals) + " Units (" + phResponse.code + ")";
 											$approveBtn.data('minBalanceFormatted', minBalanceFormatted.escapeHTML());
@@ -527,6 +531,25 @@ var NRS = (function(NRS, $, undefined) {
 									}
 								}
 							}, { isAsync: false });
+						}
+						if (vm === 4) {
+							$popoverTypeTR.find("td:first").html($.t("transactions") + ":");
+							const totalTxs = Array.isArray(responsePoll.linkedTransactions) ? responsePoll.linkedTransactions.length : "";
+							$popoverTypeTR.find("td:last").html(String(totalTxs));
+							votesFormatted = `${String(responsePoll.result)} / ${String(attachment.phasingQuorum)} ${$.t("transactions")}`;
+							$popoverVotesTR.find("td:last").html(votesFormatted);
+						}
+						if (vm === 5) {
+							$popoverTypeTR.find("td:first").html($.t("type") + ":");
+							$popoverTypeTR.find("td:last").html($.t("hashed_secret"));
+						}
+						if (vm === 6) {
+							$popoverTypeTR.find("td:first").html($.t("composite") + ":");
+							$popoverTypeTR.find("td:last").html(String(attachment.phasingExpression));
+						}
+						if (vm === 7) {
+							$popoverTypeTR.find("td:first").html($.t("type") + ":");
+							$popoverTypeTR.find("td:last").html($.t("property"));
 						}
 					});
 				} else {
@@ -652,7 +675,7 @@ var NRS = (function(NRS, $, undefined) {
 		html += "<td style='vertical-align:middle;'>";
 		html += NRS.getTransactionLink(NRS.escapeRespStr(t.fullHash), NRS.formatTimestamp(t.timestamp));
 		html += "</td>";
-  		html += "<td style='vertical-align:middle;text-align:center;'>" + (hasMessage ? "&nbsp; <i class='fa fa-envelope-o'></i>&nbsp;" : "&nbsp;") + "</td>";
+  		html += "<td style='vertical-align:middle;text-align:center;'>" + (hasMessage ? "&nbsp; <i class='far fa-envelope'></i>&nbsp;" : "&nbsp;") + "</td>";
 		html += '<td style="vertical-align:middle;">';
 		html += NRS.getTransactionIconHTML(t.type, t.subtype) + '&nbsp; ';
 		html += '<span style="font-size:11px;display:inline-block;margin-top:5px;">' + transactionType + '</span>';
@@ -706,7 +729,7 @@ var NRS = (function(NRS, $, undefined) {
                 balanceEntity = response.name;
                 change = NRS.formatQuantity(change, response.decimals);
                 balance = NRS.formatQuantity(balance, response.decimals);
-                holdingIcon = "<i class='fa fa-signal'></i> ";
+                holdingIcon = "<i class='far fa-signal'></i> ";
             }, { isAsync: false });
         } else if (/CURRENCY_BALANCE/i.test(entry.holdingType)) {
             NRS.sendRequest("getCurrency", {"currency": entry.holding}, function (response) {
@@ -714,7 +737,7 @@ var NRS = (function(NRS, $, undefined) {
                 balanceEntity = response.name;
                 change = NRS.formatQuantity(change, response.decimals);
                 balance = NRS.formatQuantity(balance, response.decimals);
-                holdingIcon =  "<i class='fa fa-bank'></i> ";
+                holdingIcon =  "<i class='fa fa-university'></i> ";
             }, { isAsync: false });
         } else {
         	linkedChain = entry.holding;
@@ -744,7 +767,7 @@ var NRS = (function(NRS, $, undefined) {
 		html += '<td style="vertical-align:middle;">';
         html += '<span style="font-size:11px;display:inline-block;margin-top:5px;">' + eventType + '</span>';
         html += "<a class='" + linkClass + "' href='#' data-timestamp='" + NRS.escapeRespStr(entry.timestamp) + "' " + dataToken + ">";
-        html += " <i class='fa fa-info'></i></a>";
+        html += " <i class='far fa-info'></i></a>";
 		html += '</td>';
 		html += "<td>" + NRS.getChainLink(linkedChain) + "</td>";
 		if (balanceType == "nxt") {
@@ -789,17 +812,17 @@ var NRS = (function(NRS, $, undefined) {
 
 		html  = '<li role="presentation"><a href="#" data-transaction-type="unconfirmed" ';
 		html += 'data-toggle="popover" data-placement="top" data-content="Unconfirmed (Account)" data-container="body" data-i18n="[data-content]unconfirmed_account">';
-		html += '<i class="fa fa-circle-o"></i>&nbsp; <span data-i18n="unconfirmed">Unconfirmed</span></a></li>';
+		html += '<i class="far fa-circle"></i>&nbsp; <span data-i18n="unconfirmed">Unconfirmed</span></a></li>';
 		typeNavi.append(html);
 
 		html  = '<li role="presentation"><a href="#" data-transaction-type="phasing" ';
 		html += 'data-toggle="popover" data-placement="top" data-content="Phasing (Pending)" data-container="body" data-i18n="[data-content]phasing_pending">';
-		html += '<i class="fa fa-gavel"></i>&nbsp; <span data-i18n="phasing">Phasing</span></a></li>';
+		html += '<i class="far fa-gavel"></i>&nbsp; <span data-i18n="phasing">Phasing</span></a></li>';
 		typeNavi.append(html);
 
 		html  = '<li role="presentation"><a href="#" data-transaction-type="all_unconfirmed" ';
 		html += 'data-toggle="popover" data-placement="top" data-content="Unconfirmed (Everyone)" data-container="body" data-i18n="[data-content]unconfirmed_everyone">';
-		html += '<i class="fa fa-circle-o"></i>&nbsp; <span data-i18n="all_unconfirmed">Unconfirmed (Everyone)</span></a></li>';
+		html += '<i class="far fa-circle"></i>&nbsp; <span data-i18n="all_unconfirmed">Unconfirmed (Everyone)</span></a></li>';
 		typeNavi.append(html);
 
         typeNavi.find('a[data-toggle="popover"]').popover({
@@ -1080,7 +1103,7 @@ var NRS = (function(NRS, $, undefined) {
 		var sidebarId = 'dashboard_link';
 		var options = {
 			"id": sidebarId,
-			"titleHTML": '<i class="fa fa-dashboard"></i> <span data-i18n="dashboard">Dashboard</span>',
+			"titleHTML": '<i class="fa fa-tachometer-alt"></i> <span data-i18n="dashboard">Dashboard</span>',
 			"page": 'dashboard',
 			"desiredPosition": 10
 		};

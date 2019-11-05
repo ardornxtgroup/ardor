@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetLinkedPhasedTransactionsCall extends APICall.Builder<GetLinkedPhasedTransactionsCall> {
     private GetLinkedPhasedTransactionsCall() {
-        super("getLinkedPhasedTransactions");
+        super(ApiSpec.getLinkedPhasedTransactions);
     }
 
     public static GetLinkedPhasedTransactionsCall create() {

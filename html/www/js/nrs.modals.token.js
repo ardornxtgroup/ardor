@@ -117,7 +117,7 @@ var NRS = (function(NRS, $) {
 		}
         var token = NRS.generateToken(website, secretPhrase);
         tokenOutput.html($.t("generated_token_is") + "<br/><br/><textarea id='generated_token_is' readonly style='width:100%' rows='3'>" + token + "</textarea><br>" +
-            "<span><a class='btn btn-default btn-xs copy_link' href='#' data-clipboard-target='#generated_token_is'><span class='fa fa-copy'></span></a></span>");
+            "<span><a class='btn btn-default btn-xs copy_link' href='#' data-clipboard-target='#generated_token_is'><span class='far fa-copy'></span></a></span>");
         tokenOutput.addClass("callout-info").removeClass("callout-danger").show();
         NRS.generateQRCode("#generate_token_output_qr_code", token, 14);
         outputQrCodeContainer.show();

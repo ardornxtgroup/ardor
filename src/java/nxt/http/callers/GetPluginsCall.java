@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetPluginsCall extends APICall.Builder<GetPluginsCall> {
     private GetPluginsCall() {
-        super("getPlugins");
+        super(ApiSpec.getPlugins);
     }
 
     public static GetPluginsCall create() {

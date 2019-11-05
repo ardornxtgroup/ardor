@@ -19,6 +19,7 @@ package nxt.http.shuffling;
 import nxt.BlockchainTest;
 import nxt.Tester;
 import nxt.account.HoldingType;
+import nxt.addons.JO;
 import nxt.blockchain.ChildChain;
 import nxt.http.APICall;
 import nxt.util.Convert;
@@ -42,11 +43,11 @@ public class ShufflingUtil {
     static final long SHUFFLING_TOTAL_FEE = 2 * SHUFFLING_REGISTER_FEE + SHUFFLING_PROCESSING_FEE;
     static final long SHUFFLING_RECIPIENTS_FEE = (ChildChain.IGNIS.ONE_COIN * 11)/100;
 
-    static JSONObject create(Tester creator) {
+    static JO create(Tester creator) {
         return create(creator, 4);
     }
 
-    public static JSONObject create(Tester creator, int participantCount) {
+    public static JO create(Tester creator, int participantCount) {
         APICall apiCall = new APICall.Builder("shufflingCreate").
                 secretPhrase(creator.getSecretPhrase()).
                 feeRateNQTPerFXT(ChildChain.IGNIS.ONE_COIN).
@@ -56,7 +57,7 @@ public class ShufflingUtil {
                 build();
         JSONObject response = apiCall.invoke();
         Logger.logMessage("shufflingCreateResponse: " + response.toJSONString());
-        return response;
+        return JO.valueOf(response);
     }
 
     static JSONObject createAssetShuffling(Tester creator) {
@@ -189,22 +190,22 @@ public class ShufflingUtil {
         return response;
     }
 
-    public static JSONObject getShuffling(String shufflingFullHash) {
+    public static JO getShuffling(String shufflingFullHash) {
         APICall apiCall = new APICall.Builder("getShuffling").
                 param("shufflingFullHash", shufflingFullHash).
                 build();
         JSONObject getShufflingResponse = apiCall.invoke();
         Logger.logMessage("getShufflingResponse: " + getShufflingResponse.toJSONString());
-        return getShufflingResponse;
+        return JO.valueOf(getShufflingResponse);
     }
 
-    public static JSONObject getShufflingParticipants(String shufflingFullHash) {
+    public static JO getShufflingParticipants(String shufflingFullHash) {
         APICall apiCall = new APICall.Builder("getShufflingParticipants").
                 param("shufflingFullHash", shufflingFullHash).
                 build();
         JSONObject getParticipantsResponse = apiCall.invoke();
         Logger.logMessage("getShufflingParticipantsResponse: " + getParticipantsResponse.toJSONString());
-        return getParticipantsResponse;
+        return JO.valueOf(getParticipantsResponse);
     }
 
     static JSONObject process(String shufflingFullHash, Tester tester, Tester recipient) {
@@ -279,7 +280,7 @@ public class ShufflingUtil {
         return response;
     }
 
-    static JSONObject startShuffler(Tester tester, Tester recipient, String shufflingFullHash) {
+    public static JSONObject startShuffler(Tester tester, Tester recipient, String shufflingFullHash) {
         APICall apiCall = new APICall.Builder("startShuffler").
                 secretPhrase(tester.getSecretPhrase()).
                 param("recipientPublicKey", Convert.toHexString(recipient.getPublicKey())).

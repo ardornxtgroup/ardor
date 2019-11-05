@@ -11,10 +11,9 @@ CHANGELOG=ardor-client-${VERSION}.changelog.txt
 OBFUSCATE=$2
 
 FILES="changelogs conf html lib testlib resource contrib"
-FILES="${FILES} ardor.exe ardorservice.exe"
 FILES="${FILES} 3RD-PARTY-LICENSES.txt LICENSE.txt"
 FILES="${FILES} DEVELOPERS-GUIDE.md OPERATORS-GUIDE.md README.md README.txt USERS-GUIDE.md"
-FILES="${FILES} mint.bat mint.sh run.bat run.sh run-desktop.sh start.sh stop.sh compact.sh compact.bat sign.sh sign.bat passphraseRecovery.sh passphraseRecovery.bat contractManager.sh contractManager.bat"
+FILES="${FILES} mint.bat mint.sh run.bat run.sh run-desktop.sh start.sh stop.sh compact.sh compact.bat sign.sh sign.bat passphraseRecovery.sh passphraseRecovery.bat contractManager.sh contractManager.bat pem.to.pkcs12.keystore.certbot.hook.sh"
 FILES="${FILES} ardor.policy ardordesktop.policy contractManager.policy Ardor_Wallet.url Dockerfile"
 
 unix2dos *.bat
@@ -82,7 +81,7 @@ unix2dos changelog-full.txt
 #../jarsigner.sh ${PACKAGE}.jar
 
 echo creating sh package
-echo "#!/bin/sh\nexec java -jar \"\${0}\"\n\n" > ${PACKAGE}.sh
+echo "#!/bin/sh\nexec java -jar \"\${0}\" \"\$@\"\n\n" > ${PACKAGE}.sh
 cat ${PACKAGE}.jar >> ${PACKAGE}.sh
 chmod a+rx ${PACKAGE}.sh
 rm -f ${PACKAGE}.jar
@@ -90,7 +89,7 @@ rm -f ${PACKAGE}.jar
 echo creating change log ${CHANGELOG}
 echo "Release $1" > ${CHANGELOG}
 echo >> ${CHANGELOG}
-echo "https://www.jelurida.com/" >> ${CHANGELOG}
+echo "https://www.jelurida.com/ardor/downloads" >> ${CHANGELOG}
 echo >> ${CHANGELOG}
 echo "sha256 checksums:" >> ${CHANGELOG}
 echo >> ${CHANGELOG}
@@ -101,7 +100,7 @@ sha256sum ${PACKAGE}.sh >> ${CHANGELOG}
 
 echo >> ${CHANGELOG}
 
-echo "The exe and dmg packages must have a digital signature by \"Jelurida Swiss SA\"." >> ${CHANGELOG}
+echo "The exe package must have a digital signature by \"Jelurida Swiss SA\"." >> ${CHANGELOG}
 
 if [ "${OBFUSCATE}" = "obfuscate" ];
 then

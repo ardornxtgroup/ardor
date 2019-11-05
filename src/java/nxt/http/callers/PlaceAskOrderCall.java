@@ -3,7 +3,7 @@ package nxt.http.callers;
 
 public class PlaceAskOrderCall extends CreateTransactionCallBuilder<PlaceAskOrderCall> {
     private PlaceAskOrderCall() {
-        super("placeAskOrder");
+        super(ApiSpec.placeAskOrder);
     }
 
     public static PlaceAskOrderCall create(int chain) {

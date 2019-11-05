@@ -80,7 +80,7 @@ public final class Generator implements Comparable<Generator> {
                     try {
                         Block lastBlock = Nxt.getBlockchain().getLastBlock();
                         if (lastBlock == null || lastBlock.getHeight() < Constants.LAST_KNOWN_BLOCK
-                                || (PAUSE_ON_NO_CONNECTION && !Constants.isOffline && Peers.getConnectedPeersCount() <= Constants.DEFAULT_NUMBER_OF_FORK_CONFIRMATIONS)) {
+                                || (PAUSE_ON_NO_CONNECTION && !Constants.isOffline && (! Peers.isNetworkingEnabled() || Peers.getConnectedPeersCount() <= Constants.DEFAULT_NUMBER_OF_FORK_CONFIRMATIONS))) {
                             return;
                         }
                         final int generationLimit = now - delayTime;

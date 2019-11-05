@@ -129,7 +129,7 @@ public abstract class CreateTransaction extends APIServlet.APIRequestHandler {
         final Attachment attachment = parameters.getAttachment();
         final long amountNQT = parameters.getAmountNQT();
         final long recipientId = parameters.getRecipientId();
-        final Account senderAccount = parameters.getSenderAccount();
+        final long senderId = parameters.getSenderId() == 0 ? parameters.getSenderAccount().getId() : parameters.getSenderId();
 
         String secretPhrase = ParameterParser.getSecretPhrase(req, false);
         boolean isVoucher = "true".equalsIgnoreCase(req.getParameter("voucher"));
@@ -255,7 +255,7 @@ public abstract class CreateTransaction extends APIServlet.APIRequestHandler {
             }
             Transaction transaction = builder.build(secretPhrase, isVoucher);
             try {
-                long balance = chain.getBalanceHome().getBalance(senderAccount.getId()).getUnconfirmedBalance();
+                long balance = chain.getBalanceHome().getBalance(senderId).getUnconfirmedBalance();
                 if (Math.addExact(amountNQT, transaction.getFee()) > balance) {
                     JSONObject infoJson = new JSONObject();
                     infoJson.put("errorCode", 6);
@@ -337,6 +337,7 @@ public abstract class CreateTransaction extends APIServlet.APIRequestHandler {
     protected class CreateTransactionParameters {
         private final HttpServletRequest req;
         private Account senderAccount;
+        private long senderId;
         private long recipientId;
         private long amountNQT;
         private Attachment attachment;
@@ -349,6 +350,11 @@ public abstract class CreateTransaction extends APIServlet.APIRequestHandler {
 
         public CreateTransactionParameters setSenderAccount(Account senderAccount) {
             this.senderAccount = senderAccount;
+            return this;
+        }
+
+        public CreateTransactionParameters setSenderId(long senderId) {
+            this.senderId = senderId;
             return this;
         }
 
@@ -400,6 +406,10 @@ public abstract class CreateTransaction extends APIServlet.APIRequestHandler {
                 return senderAccount;
             }
             return ParameterParser.getSenderAccount(req);
+        }
+
+        public long getSenderId() {
+            return senderId;
         }
 
         public Attachment getAttachment() {

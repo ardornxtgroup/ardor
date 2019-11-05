@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class RetrievePrunedTransactionCall extends APICall.Builder<RetrievePrunedTransactionCall> {
     private RetrievePrunedTransactionCall() {
-        super("retrievePrunedTransaction");
+        super(ApiSpec.retrievePrunedTransaction);
     }
 
     public static RetrievePrunedTransactionCall create(int chain) {

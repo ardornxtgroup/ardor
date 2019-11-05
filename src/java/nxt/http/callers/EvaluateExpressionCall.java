@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class EvaluateExpressionCall extends APICall.Builder<EvaluateExpressionCall> {
     private EvaluateExpressionCall() {
-        super("evaluateExpression");
+        super(ApiSpec.evaluateExpression);
     }
 
     public static EvaluateExpressionCall create() {

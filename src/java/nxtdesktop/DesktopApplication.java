@@ -55,6 +55,7 @@ import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -64,6 +65,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -377,7 +379,10 @@ public class DesktopApplication extends Application {
     }
 
     private void downloadFile(byte[] data, String filename) {
-        Path folderPath = Paths.get(System.getProperty("user.home"), "downloads");
+        Path folderPath = Paths.get(System.getProperty("user.home"), "Downloads");
+        if (!Files.exists(folderPath)) {
+            folderPath = Paths.get(System.getProperty("user.home"));
+        }
         Path path = Paths.get(folderPath.toString(), filename);
         Logger.logInfoMessage("Before downloading file %s to default path %s", filename, path.toAbsolutePath());
         FileChooser fileChooser = new FileChooser();
@@ -394,6 +399,27 @@ public class DesktopApplication extends Application {
             }
         } else {
             growl("File download cancelled");
+        }
+    }
+
+    void downloadFile(String text, String filename) {
+        downloadFile(text.getBytes(StandardCharsets.UTF_8), filename);
+    }
+
+    Optional<String> readTextfile(Path folderPath, String filename) throws IOException {
+        Logger.logInfoMessage("Before loading file %s from path %s", filename, folderPath.toAbsolutePath());
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Load File");
+        fileChooser.setInitialDirectory(folderPath.toFile());
+        fileChooser.setInitialFileName(filename);
+        File file = fileChooser.showOpenDialog(stage);
+        if (file != null) {
+            String fileContent = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
+            growl(String.format("File %s loaded", file.getAbsolutePath()));
+            return Optional.of(fileContent);
+        } else {
+            growl("File load cancelled");
+            return Optional.empty();
         }
     }
 

@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetAllPhasingOnlyControlsCall extends APICall.Builder<GetAllPhasingOnlyControlsCall> {
     private GetAllPhasingOnlyControlsCall() {
-        super("getAllPhasingOnlyControls");
+        super(ApiSpec.getAllPhasingOnlyControls);
     }
 
     public static GetAllPhasingOnlyControlsCall create() {

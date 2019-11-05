@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetAvailableToBuyCall extends APICall.Builder<GetAvailableToBuyCall> {
     private GetAvailableToBuyCall() {
-        super("getAvailableToBuy");
+        super(ApiSpec.getAvailableToBuy);
     }
 
     public static GetAvailableToBuyCall create(int chain) {

@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetContractReferencesCall extends APICall.Builder<GetContractReferencesCall> {
     private GetContractReferencesCall() {
-        super("getContractReferences");
+        super(ApiSpec.getContractReferences);
     }
 
     public static GetContractReferencesCall create() {

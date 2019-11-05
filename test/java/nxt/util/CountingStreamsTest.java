@@ -24,7 +24,6 @@ import java.io.StringReader;
 import java.io.StringWriter;
 
 public class CountingStreamsTest {
-
     @Test
     public void countingInputReader() {
         String s = "abcdefgh";

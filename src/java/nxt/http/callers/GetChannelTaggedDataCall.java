@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetChannelTaggedDataCall extends APICall.Builder<GetChannelTaggedDataCall> {
     private GetChannelTaggedDataCall() {
-        super("getChannelTaggedData");
+        super(ApiSpec.getChannelTaggedData);
     }
 
     public static GetChannelTaggedDataCall create(int chain) {

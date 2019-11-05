@@ -21,9 +21,7 @@ import org.junit.runners.Suite;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
-        Curve25519Test.class,
-        SecureRandomTest.class,
-        SecretSharingGeneratorTest.class,
+        NoDbCryptoSuite.class,
         SimpleShamirSecretSharingTest.class
 })
 public class CryptoSuite {

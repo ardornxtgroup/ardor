@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GenerateTokenCall extends APICall.Builder<GenerateTokenCall> {
     private GenerateTokenCall() {
-        super("generateToken");
+        super(ApiSpec.generateToken);
     }
 
     public static GenerateTokenCall create() {

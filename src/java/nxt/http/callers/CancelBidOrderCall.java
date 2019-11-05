@@ -3,7 +3,7 @@ package nxt.http.callers;
 
 public class CancelBidOrderCall extends CreateTransactionCallBuilder<CancelBidOrderCall> {
     private CancelBidOrderCall() {
-        super("cancelBidOrder");
+        super(ApiSpec.cancelBidOrder);
     }
 
     public static CancelBidOrderCall create(int chain) {

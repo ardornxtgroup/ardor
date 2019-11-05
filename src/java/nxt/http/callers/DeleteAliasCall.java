@@ -3,7 +3,7 @@ package nxt.http.callers;
 
 public class DeleteAliasCall extends CreateTransactionCallBuilder<DeleteAliasCall> {
     private DeleteAliasCall() {
-        super("deleteAlias");
+        super(ApiSpec.deleteAlias);
     }
 
     public static DeleteAliasCall create(int chain) {

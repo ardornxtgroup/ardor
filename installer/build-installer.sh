@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 PATHSEP=":"
 if [ "$OSTYPE" = "cygwin" ] ; then

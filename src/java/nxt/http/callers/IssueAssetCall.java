@@ -3,7 +3,7 @@ package nxt.http.callers;
 
 public class IssueAssetCall extends CreateTransactionCallBuilder<IssueAssetCall> {
     private IssueAssetCall() {
-        super("issueAsset");
+        super(ApiSpec.issueAsset);
     }
 
     public static IssueAssetCall create(int chain) {

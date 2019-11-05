@@ -78,7 +78,7 @@ public class APIProxy {
             return false;
         });
         List<String> currentPeersHosts = instance.peersHosts;
-        if (currentPeersHosts != null) {
+        if (currentPeersHosts != null && Peers.isNetworkingEnabled()) {
             for (String host : currentPeersHosts) {
                 Peer peer = Peers.getPeer(host);
                 if (peer != null) {

@@ -48,7 +48,17 @@ public final class Convert {
     public static final byte[] EMPTY_BYTE = new byte[0];
     public static final byte[][] EMPTY_BYTES = new byte[0][];
     public static final String[] EMPTY_STRING = new String[0];
+    private static final boolean BIG_INTEGER_HAS_LONG_VALUE_EXACT;
 
+    static {
+        boolean hasMethod = true;
+        try {
+            BigInteger.class.getMethod("longValueExact");
+        } catch (NoSuchMethodException e) {
+            hasMethod = false;
+        }
+        BIG_INTEGER_HAS_LONG_VALUE_EXACT = hasMethod;
+    }
     private Convert() {} //never
 
     public static byte[] parseHexString(String hex) {
@@ -152,8 +162,14 @@ public final class Convert {
         if (hash == null || hash.length < 8) {
             throw new IllegalArgumentException("Invalid hash: " + Arrays.toString(hash));
         }
-        BigInteger bigInteger = new BigInteger(1, new byte[] {hash[7], hash[6], hash[5], hash[4], hash[3], hash[2], hash[1], hash[0]});
-        return bigInteger.longValue();
+        return ((((long) hash[7]) << 56) |
+                (((long) hash[6] & 0xff) << 48) |
+                (((long) hash[5] & 0xff) << 40) |
+                (((long) hash[4] & 0xff) << 32) |
+                (((long) hash[3] & 0xff) << 24) |
+                (((long) hash[2] & 0xff) << 16) |
+                (((long) hash[1] & 0xff) << 8) |
+                (((long) hash[0] & 0xff)));
     }
 
     public static long fromEpochTime(int epochTime) {
@@ -354,10 +370,10 @@ public final class Convert {
     };
 
     public static long unitRateToAmount(long unitsQNT, int unitsDecimals, long rateNQT, int rateDecimals) {
-        return BigDecimal.valueOf(unitsQNT, unitsDecimals)
+        return longValueExact(BigDecimal.valueOf(unitsQNT, unitsDecimals)
                 .multiply(BigDecimal.valueOf(rateNQT, rateDecimals))
                 .movePointRight(rateDecimals)
-                .toBigInteger().longValueExact();
+                .toBigInteger());
     }
 
     public static byte[] longToBytes(long l) {
@@ -376,5 +392,19 @@ public final class Convert {
             result |= (b[i] & 0xFF);
         }
         return result;
+    }
+
+    public static long longValueExact(BigInteger bigInteger) {
+        if (BIG_INTEGER_HAS_LONG_VALUE_EXACT) {
+            return bigInteger.longValueExact();
+        } else {
+            long result = bigInteger.longValue();
+            if (BigInteger.valueOf(result).equals(bigInteger)) {
+                return result;
+            } else {
+                throw new ArithmeticException("BigInteger out of long range");
+            }
+
+        }
     }
 }

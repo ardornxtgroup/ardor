@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetBundlingOptionsCall extends APICall.Builder<GetBundlingOptionsCall> {
     private GetBundlingOptionsCall() {
-        super("getBundlingOptions");
+        super(ApiSpec.getBundlingOptions);
     }
 
     public static GetBundlingOptionsCall create() {

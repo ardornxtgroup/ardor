@@ -3,7 +3,7 @@ package nxt.http.callers;
 
 public class IssueCurrencyCall extends CreateTransactionCallBuilder<IssueCurrencyCall> {
     private IssueCurrencyCall() {
-        super("issueCurrency");
+        super(ApiSpec.issueCurrency);
     }
 
     public static IssueCurrencyCall create(int chain) {

@@ -23,11 +23,14 @@ import nxt.account.HoldingType;
 import nxt.ae.Asset;
 import nxt.blockchain.ChildChain;
 import nxt.crypto.Crypto;
-import nxt.http.*;
-import nxt.http.callers.SendMoneyCall;
+import nxt.http.API;
+import nxt.http.APIServlet;
+import nxt.http.APITag;
+import nxt.http.JSONData;
+import nxt.http.JSONResponses;
+import nxt.http.ParameterParser;
 import nxt.ms.Currency;
 import nxt.util.Convert;
-import nxt.util.JSON;
 import nxt.util.Logger;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -242,37 +245,6 @@ public final class StandbyShuffling implements AddOn {
         }
     }
 
-    public static class RecoverFunds extends BaseAPIRequestHandler {
-        public RecoverFunds() {
-            super("secretPhrase");
-        }
-
-        @Override
-        protected JSONStreamAware processRequest(HttpServletRequest request) throws NxtException {
-            ChildChain childChain = ParameterParser.getChildChain(request);
-            String secretPhrase = ParameterParser.getSecretPhrase(request, true);
-            String badSecretPhrase = secretPhrase + "\r";
-            Account account = Account.getAccount(Crypto.getPublicKey(badSecretPhrase));
-            if (account != null) {
-                long balance = childChain.getBalanceHome().getBalance(account.getId()).getBalance();
-                if (balance != 0) {
-                    byte[] recipientPublicKey = Crypto.getPublicKey(secretPhrase);
-                    long recipientId = Account.getId(recipientPublicKey);
-                    long feeNQT = 3 * 100000000;
-                    JO response = SendMoneyCall.create(childChain.getId())
-                            .amountNQT(balance - feeNQT)
-                            .feeNQT(feeNQT)
-                            .recipient(recipientId)
-                            .recipientPublicKey(recipientPublicKey)
-                            .secretPhrase(badSecretPhrase)
-                            .call();
-                    return response.toJSONObject();
-                }
-            }
-            return JSON.emptyJSON;
-        }
-    }
-
     private Map<String, APIServlet.APIRequestHandler> apiRequests = new HashMap<>();
 
     @Override
@@ -280,7 +252,6 @@ public final class StandbyShuffling implements AddOn {
         apiRequests.put("startStandbyShuffler", new StartStandbyShuffler());
         apiRequests.put("stopStandbyShuffler", new StopStandbyShuffler());
         apiRequests.put("getStandbyShufflers", new GetStandbyShufflers());
-        apiRequests.put("recoverFunds", new RecoverFunds());
     }
 
     @Override

@@ -31,7 +31,6 @@ import java.io.Reader;
 import java.io.Writer;
 
 public class JsonMessageTest {
-
     @Test
     public void message() {
         validate("{\n  \"type\": \"dividend\",\n  \"contractId\": \"2112610727280991058\",\n  \"height\": 260315,\n  \"total\": \"42700000000\",\n  \"percentage\": \"0%\",\n  \"shares\": 50\n}");

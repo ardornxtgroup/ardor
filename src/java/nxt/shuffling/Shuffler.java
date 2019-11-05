@@ -32,6 +32,8 @@ import nxt.blockchain.UnconfirmedTransaction;
 import nxt.crypto.Crypto;
 import nxt.db.DbIterator;
 import nxt.util.Convert;
+import nxt.util.Listener;
+import nxt.util.Listeners;
 import nxt.util.Logger;
 
 import java.util.ArrayList;
@@ -44,9 +46,14 @@ import java.util.Set;
 
 public final class Shuffler {
 
+    public enum Event {
+        SHUFFLER_STARTED, SHUFFLER_STOPPED
+    }
+
     private static final int MAX_SHUFFLERS = Nxt.getIntProperty("nxt.maxNumberOfShufflers");
     private static final Map<String, Map<Long, Shuffler>> shufflingsMap = new HashMap<>();
     private static final Map<Integer, Set<String>> expirations = new HashMap<>();
+    private static final Listeners<Shuffler,Event> listeners = new Listeners<>();
 
     public static Shuffler addOrGetShuffler(ChildChain childChain, String secretPhrase, byte[] recipientPublicKey,
                 byte[] shufflingFullHash, long feeRateNQTPerFXT) throws ShufflerException {
@@ -59,7 +66,7 @@ public final class Shuffler {
             if (recipientPublicKey == null) {
                 return shuffler;
             }
-            if (shufflingsMap.size() > MAX_SHUFFLERS) {
+            if (shufflingsMap.values().stream().mapToInt(Map::size).sum() > MAX_SHUFFLERS) {
                 throw new ShufflerLimitException("Cannot run more than " + MAX_SHUFFLERS + " shufflers on the same node");
             }
             if (shuffler == null) {
@@ -83,6 +90,7 @@ public final class Shuffler {
                     clearExpiration(shuffling);
                 }
                 map.put(accountId, shuffler);
+                listeners.notify(shuffler, Event.SHUFFLER_STARTED);
                 Logger.logMessage(String.format("Started shuffler for account %s, shuffling %s",
                         Long.toUnsignedString(accountId), Long.toUnsignedString(Convert.fullHashToId(shufflingFullHash))));
             } else if (!Arrays.equals(shuffler.recipientPublicKey, recipientPublicKey)) {
@@ -155,9 +163,17 @@ public final class Shuffler {
     public static Shuffler stopShuffler(long accountId, byte[] shufflingFullHash) {
         BlockchainImpl.getInstance().writeLock();
         try {
-            Map<Long, Shuffler> shufflerMap = shufflingsMap.get(Convert.toHexString(shufflingFullHash));
+            String hash = Convert.toHexString(shufflingFullHash);
+            Map<Long, Shuffler> shufflerMap = shufflingsMap.get(hash);
             if (shufflerMap != null) {
-                return shufflerMap.remove(accountId);
+                Shuffler shuffler = shufflerMap.remove(accountId);
+                if (shuffler != null) {
+                    listeners.notify(shuffler, Event.SHUFFLER_STOPPED);
+                }
+                if (shufflerMap.isEmpty()) {
+                    shufflingsMap.remove(hash);
+                }
+                return shuffler;
             }
         } finally {
             BlockchainImpl.getInstance().writeUnlock();
@@ -168,10 +184,20 @@ public final class Shuffler {
     public static void stopAllShufflers() {
         BlockchainImpl.getInstance().writeLock();
         try {
+            shufflingsMap.values().forEach(shufflerMap -> shufflerMap.values()
+                    .forEach(shuffler -> listeners.notify(shuffler, Event.SHUFFLER_STOPPED)));
             shufflingsMap.clear();
         } finally {
             BlockchainImpl.getInstance().writeUnlock();
         }
+    }
+
+    public static boolean addListener(Listener<Shuffler> listener, Event eventType) {
+        return listeners.addListener(listener, eventType);
+    }
+
+    public static boolean removeListener(Listener<Shuffler> listener, Event eventType) {
+        return listeners.removeListener(listener, eventType);
     }
 
     private static Shuffler getRecipientShuffler(long recipientId) {
@@ -258,7 +284,12 @@ public final class Shuffler {
         BlockchainProcessorImpl.getInstance().addListener(block -> {
             Set<String> expired = expirations.get(block.getHeight());
             if (expired != null) {
-                expired.forEach(shufflingsMap::remove);
+                for (String shufflingFullHash : expired) {
+                    Map<Long, Shuffler> shufflers = shufflingsMap.remove(shufflingFullHash);
+                    if (shufflers != null) {
+                        shufflers.values().forEach(shuffler -> listeners.notify(shuffler, Event.SHUFFLER_STOPPED));
+                    }
+                }
                 expirations.remove(block.getHeight());
             }
         }, BlockchainProcessor.Event.AFTER_BLOCK_APPLY);
@@ -283,7 +314,7 @@ public final class Shuffler {
     }
 
     private static void scheduleExpiration(ShufflingHome.Shuffling shuffling) {
-        int expirationHeight = Nxt.getBlockchain().getHeight() + 720;
+        int expirationHeight = Nxt.getBlockchain().getHeight() + Constants.SHUFFLER_EXPIRATION_DELAY_BLOCKS;
         Set<String> shufflingFullHashes = expirations.computeIfAbsent(expirationHeight, k -> new HashSet<>());
         shufflingFullHashes.add(Convert.toHexString(shuffling.getFullHash()));
     }

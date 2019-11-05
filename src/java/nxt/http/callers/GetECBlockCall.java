@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetECBlockCall extends APICall.Builder<GetECBlockCall> {
     private GetECBlockCall() {
-        super("getECBlock");
+        super(ApiSpec.getECBlock);
     }
 
     public static GetECBlockCall create() {

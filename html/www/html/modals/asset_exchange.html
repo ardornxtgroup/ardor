@@ -33,9 +33,10 @@
                         <input type="hidden" name="priceNQTPerShare" id="asset_order_price" value="" />
                     </div>
                     <div class="form-group">
-                        <label><span data-i18n="total">TOTAL</span> <i id="asset_order_total_tooltip" class="fa fa-question-circle" style="color:#4CAA6E" data-toggle="popover" data-placement="right" data-content=""></i></label>
+                        <label><span data-i18n="total">TOTAL</span> <i id="asset_order_total_tooltip" class="far fa-question-circle" style="color:#4CAA6E" data-toggle="popover" data-placement="right" data-content=""></i></label>
                         <p id="asset_order_total"></p>
                     </div>
+                    <div data-replace-with-modal-template="add_message_modal_template"></div>
                     <div data-replace-with-modal-template="fee_calculation_modal_template"></div>
                     <div data-replace-with-modal-template="secret_phrase_modal_template"></div>
                     <div data-replace-with-modal-template="advanced_deadline_template"></div>
@@ -153,7 +154,7 @@
                 <form role="form" autocomplete="off">
                     <div class="callout callout-danger error_message" style="display:none"></div>
                     <div class="form-group">
-                        <label for="add_asset_bookmark_id" data-i18n="asset_or_account_id">ASSET OR ACCOUNT ID</label> <i class="fa fa-question-circle show_popover" style="color:#4CAA6E" data-content="Find the ID on the issuer's website or announcement page." data-container="body" data-i18n="[data-content]find_asset_id_help"></i>
+                        <label for="add_asset_bookmark_id" data-i18n="asset_or_account_id">ASSET OR ACCOUNT ID</label> <i class="far fa-question-circle show_popover" style="color:#4CAA6E" data-content="Find the ID on the issuer's website or announcement page." data-container="body" data-i18n="[data-content]find_asset_id_help"></i>
                         <input type="text" class="form-control" name="id" id="add_asset_bookmark_id" placeholder="ID" autofocus tabindex="1" />
                     </div>
                     <input type="hidden" name="request_type" value="addAssetBookmark" />
@@ -182,7 +183,7 @@
                     </div>
                     <div class="callout callout-danger error_message" style="display:none"></div>
                     <div class="form-group">
-                        <label for="issue_asset_name"><span data-i18n="asset_name">ASSET NAME</span> <i class="fa fa-question-circle show_popover" data-content="The asset name is non-unique. Should be between 3 and 10 characters long." data-i18n="[data-content]asset_name_help" data-container="body" style="color:#4CAA6E" ></i></label>
+                        <label for="issue_asset_name"><span data-i18n="asset_name">ASSET NAME</span> <i class="far fa-question-circle show_popover" data-content="The asset name is non-unique. Should be between 3 and 10 characters long." data-i18n="[data-content]asset_name_help" data-container="body" style="color:#4CAA6E" ></i></label>
                         <input type="text" class="form-control" name="name" id="issue_asset_name" placeholder="Asset Name" data-i18n="[placeholder]asset_name" autofocus tabindex="1" />
                     </div>
                     <div class="form-group">
@@ -202,11 +203,12 @@
                         </div>
                         <div class="col-xs-6 col-sm-6 col-md-6">
                             <div class="form-group">
-                                <label for="issue_asset_decimals"><span data-i18n="decimals">DECIMALS</span> <i class="fa fa-question-circle show_popover" data-content="The maximum allowed number of digits after the asset quantity decimal point." data-i18n="[data-content]asset_decimals_help" data-container="body" style="color:#4CAA6E" ></i></label>
+                                <label for="issue_asset_decimals"><span data-i18n="decimals">DECIMALS</span> <i class="far fa-question-circle show_popover" data-content="The maximum allowed number of digits after the asset quantity decimal point." data-i18n="[data-content]asset_decimals_help" data-container="body" style="color:#4CAA6E" ></i></label>
                                 <input type="number" name="decimals" id="issue_asset_decimals" class="form-control" min="0" max="8" placeholder="Decimals" data-i18n="decimals" data-default="0" value="0" tabindex="5">
                             </div>
                         </div>
                     </div>
+                    <div data-replace-with-modal-template="add_message_modal_template"></div>
                     <div data-replace-with-modal-template="fee_calculation_modal_template"></div>
                     <div data-replace-with-modal-template="secret_phrase_modal_template"></div>
                     <div data-replace-with-modal-template="advanced_deadline_template"></div>
@@ -391,7 +393,7 @@
                     <div class="row">
                         <div class="col-xs-6 col-sm-6 col-md-6">
                             <label for="dividend_payment_holding_type" data-18n="holding_type">Holding Type</label>
-                            <i class="fa fa-question-circle show_popover" data-content="The holding (coin/asset/currency) which will be distributed as dividend to the shareholders"
+                            <i class="far fa-question-circle show_popover" data-content="The holding (coin/asset/currency) which will be distributed as dividend to the shareholders"
                                 data-i18n="[data-content]holding_type_info" data-container="body" style="color:#4CAA6E" ></i>
                             <select name="holdingType" id="dividend_payment_holding_type" class="form-control" data-default="0" tabindex="1">
                                 <option selected value="0" class="coin-symbol"></option>
@@ -420,12 +422,12 @@
                     <div class="row">
                         <div class="col-xs-6 col-sm-6 col-md-6">
                             <div class="form-group">
-                                <label for="dividend_payment_height"><span data-i18n="height">HEIGHT</span></label> <i>Current Height: <span class="nrs_current_block"></span></i> <i class="fa fa-exclamation-circle show_popover" data-content="Dividend calculation height must be within the last 1440 blocks." data-i18n="[data-content]dividend_payment_height_help" data-container="body" style="color:red"></i>
+                                <label for="dividend_payment_height"><span data-i18n="height">HEIGHT</span></label> <i>Current Height: <span class="nrs_current_block"></span></i> <i class="far fa-exclamation-circle show_popover" data-content="Dividend calculation height must be within the last 1440 blocks." data-i18n="[data-content]dividend_payment_height_help" data-container="body" style="color:red"></i>
                                 <input type="number" name="height" id="dividend_payment_height" class="form-control" min="0" placeholder="Height" data-i18n="height" data-default="" value="" tabindex="3">
                             </div>
                         </div>
                     </div>
-                    <div data-replace-with-modal-template="add_public_message_modal_template"></div>
+                    <div data-replace-with-modal-template="add_message_modal_template"></div>
                     <div data-replace-with-modal-template="fee_calculation_modal_template"></div>
                     <div data-replace-with-modal-template="secret_phrase_modal_template"></div>
                     <div data-replace-with-modal-template="advanced_deadline_template"></div>

@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class StartFundingMonitorCall extends APICall.Builder<StartFundingMonitorCall> {
     private StartFundingMonitorCall() {
-        super("startFundingMonitor");
+        super(ApiSpec.startFundingMonitor);
     }
 
     public static StartFundingMonitorCall create(int chain) {
@@ -24,7 +24,7 @@ public class StartFundingMonitorCall extends APICall.Builder<StartFundingMonitor
         return param("amount", amount);
     }
 
-    public StartFundingMonitorCall holdingType(String holdingType) {
+    public StartFundingMonitorCall holdingType(byte holdingType) {
         return param("holdingType", holdingType);
     }
 

@@ -3,7 +3,7 @@ package nxt.http.callers;
 
 public class ApproveTransactionCall extends CreateTransactionCallBuilder<ApproveTransactionCall> {
     private ApproveTransactionCall() {
-        super("approveTransaction");
+        super(ApiSpec.approveTransaction);
     }
 
     public static ApproveTransactionCall create(int chain) {

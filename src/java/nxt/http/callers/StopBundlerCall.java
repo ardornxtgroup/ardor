@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class StopBundlerCall extends APICall.Builder<StopBundlerCall> {
     private StopBundlerCall() {
-        super("stopBundler");
+        super(ApiSpec.stopBundler);
     }
 
     public static StopBundlerCall create(int chain) {

@@ -97,7 +97,7 @@
                             <div class="input-group">
                                 <input type="text" class="form-control create_poll_answers" name="create_poll_answers[]" placeholder="Answer" data-i18n="[placeholder]answer" tabindex="5" />
                                 <span class="input-group-btn">
-                                    <button class="btn remove_answer" type="button"><i class="fa fa-minus" style="color:white"></i></button>
+                                    <button class="btn remove_answer" type="button"><i class="far fa-minus" style="color:white"></i></button>
                                 </span>
                             </div>
                         </div>
@@ -105,13 +105,13 @@
                             <div class="input-group">
                                 <input type="text" class="form-control create_poll_answers" name="create_poll_answers[]" placeholder="Answer" data-i18n="[placeholder]answer" tabindex="5" />
                                 <span class="input-group-btn">
-                                    <button class="btn remove_answer" type="button"><i class="fa fa-minus" style="color:white"></i></button>
+                                    <button class="btn remove_answer" type="button"><i class="far fa-minus" style="color:white"></i></button>
                                 </span>
                             </div>
                         </div>
                     </div>
                     <div class="form-group">
-                        <a href="#" class="btn btn-primary" id="create_poll_answers_add"><i class="fa fa-plus"></i> <span data-i18n="add_answer">Add answer</span></a>
+                        <a href="#" class="btn btn-primary" id="create_poll_answers_add"><i class="far fa-plus"></i> <span data-i18n="add_answer">Add answer</span></a>
                     </div>
                     <div class="row">
                         <div class="col-xs-6 col-sm-6 col-md-6">
@@ -142,6 +142,7 @@
                             </div>
                         </div>
                     </div>
+                    <div data-replace-with-modal-template="add_message_modal_template"></div>
                     <div data-replace-with-modal-template="fee_calculation_modal_template"></div>
                     <div data-replace-with-modal-template="secret_phrase_modal_template"></div>
                     <div data-replace-with-modal-template="advanced_deadline_template"></div>
@@ -192,6 +193,7 @@
                     <div class="form-group" id="cast_vote_answers">
                         <div id="cast_vote_answers_entry"></div>
                     </div>
+                    <div data-replace-with-modal-template="add_message_modal_template"></div>
                     <div data-replace-with-modal-template="fee_calculation_modal_template"></div>
                     <div data-replace-with-modal-template="secret_phrase_modal_template"></div>
                     <div data-replace-with-modal-template="advanced_deadline_template"></div>
@@ -275,7 +277,7 @@
                     <form role="form" autocomplete="off">
                         <div class="callout callout-danger error_message" style="display:none"></div>
                         <div class="form-group">
-                            <label for="add_followed_poll_id" data-i18n="poll_id">POLL ID</label> <i class="fa fa-question-circle show_popover" style="color:#4CAA6E" data-content="Find the ID on the issuer's website or announcement page." data-container="body" data-i18n="[data-content]find_asset_id_help"></i>
+                            <label for="add_followed_poll_id" data-i18n="poll_id">POLL ID</label> <i class="far fa-question-circle show_popover" style="color:#4CAA6E" data-content="Find the ID on the issuer's website or announcement page." data-container="body" data-i18n="[data-content]find_asset_id_help"></i>
                             <input type="text" class="form-control" name="id" id="add_followed_poll_id" placeholder="ID" autofocus tabindex="1" />
                         </div>
                         <input type="hidden" name="request_type" value="addFollowedPoll" />

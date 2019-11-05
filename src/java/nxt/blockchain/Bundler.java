@@ -42,6 +42,13 @@ public final class Bundler {
         default String getName() {
             return getClass().getSimpleName();
         }
+
+        /**
+         * For UI to work, the bundler description must also be added to transaction.json with key
+         * bundler_filter_help_*lowercase name*
+         *
+         * @return The bundler description.
+         */
         default String getDescription() {
             return null;
         }
@@ -81,8 +88,8 @@ public final class Bundler {
         @Override
         public long calculateFeeFQT(ChildTransactionImpl childTransaction, Rule rule) {
             long childFee = childTransaction.getFee();
-            long proportionalFeeFQT = BigInteger.valueOf(childFee).multiply(Constants.ONE_FXT_BIG_INTEGER)
-                    .divide(rule.minRateNQTPerFXTBigInteger).longValueExact();
+            long proportionalFeeFQT = Convert.longValueExact(BigInteger.valueOf(childFee).multiply(Constants.ONE_FXT_BIG_INTEGER)
+                    .divide(rule.minRateNQTPerFXTBigInteger));
             int blockchainHeight = Nxt.getBlockchain().getHeight();
             long feeFQT = Math.max(proportionalFeeFQT, childTransaction.getMinimumFeeFQT(blockchainHeight));
             return rule.overpay(feeFQT);
@@ -161,8 +168,8 @@ public final class Bundler {
         }
 
         public long overpay(long feeFQT) {
-            return Math.addExact(feeFQT, overpayFQTPerFXTBigInteger.multiply(BigInteger.valueOf(feeFQT))
-                    .divide(Constants.ONE_FXT_BIG_INTEGER).longValueExact());
+            return Math.addExact(feeFQT, Convert.longValueExact(overpayFQTPerFXTBigInteger
+                    .multiply(BigInteger.valueOf(feeFQT)).divide(Constants.ONE_FXT_BIG_INTEGER)));
         }
     }
 

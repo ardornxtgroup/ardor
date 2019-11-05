@@ -23,7 +23,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 public class ReedSolomonTest {
-
     private Object[][] testAccounts = {
             {8264278205416377583L, "K59H-9RMF-64CY-9X6E7"},
             {8301188658053077183L, "4Q7Z-5BEE-F5JZ-9ZXE8"},

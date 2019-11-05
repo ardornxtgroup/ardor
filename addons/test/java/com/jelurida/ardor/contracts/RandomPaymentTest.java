@@ -43,7 +43,7 @@ import static nxt.blockchain.ChildChain.IGNIS;
 
 public class RandomPaymentTest extends AbstractContractTest {
 
-    public static final String TOP_SECRET = "TopSecret";
+    private static final String TOP_SECRET = "TopSecret";
 
     @Test
     public void randomPayment() {
@@ -135,7 +135,7 @@ public class RandomPaymentTest extends AbstractContractTest {
         boolean isExceptionThrown = true;
         try {
             TriggerContractByTransactionCall.create(contractResultTransactionId.getChainId()).
-                    triggerFullHash(Convert.toHexString(contractResultTransactionId.getFullHash())).apply("true").validate("true").getCreatedTransactions();
+                    triggerFullHash(Convert.toHexString(contractResultTransactionId.getFullHash())).apply("true").validate(true).getCreatedTransactions();
             isExceptionThrown = false;
         } catch (IllegalStateException e) {
             JO response = JO.parse(e.getMessage());
@@ -157,7 +157,7 @@ public class RandomPaymentTest extends AbstractContractTest {
         isExceptionThrown = true;
         try {
             TriggerContractByTransactionCall.create(fxtTransaction.getChain().getId()).
-                    triggerFullHash(Convert.toHexString(fxtTransaction.getFullHash())).apply("true").validate("true").getCreatedTransactions();
+                    triggerFullHash(Convert.toHexString(fxtTransaction.getFullHash())).apply("true").validate(true).getCreatedTransactions();
             isExceptionThrown = false;
         } catch (IllegalStateException e) {
             JO response = JO.parse(e.getMessage());

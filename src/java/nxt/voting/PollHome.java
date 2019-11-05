@@ -143,6 +143,11 @@ public final class PollHome {
         return pollTable.getManyBy(new DbClause.IntClause("finish_height", DbClause.Op.LTE, height), from, to);
     }
 
+    public DbIterator<Poll> getPollsFinishingBetween(int minHeight, int height, int from, int to) {
+        return pollTable.getManyBy(new DbClause.IntClause("finish_height", DbClause.Op.LTE, height)
+                .and(new DbClause.IntClause("finish_height", DbClause.Op.GT, minHeight)), from, to);
+    }
+
     public DbIterator<Poll> getAllPolls(int from, int to) {
         return pollTable.getAll(from, to);
     }

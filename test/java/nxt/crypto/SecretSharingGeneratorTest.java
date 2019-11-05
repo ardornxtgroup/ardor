@@ -80,6 +80,33 @@ public class SecretSharingGeneratorTest {
     }
 
     @Test
+    public void splitAndCombineRedundantPieces() {
+        // Generate the pieces
+        String[] pieces = SecretSharingGenerator.split(chuckSecretPhrase, 7, 4, BigInteger.ZERO);
+
+        // Select pieces and combine
+        String[] selectedPieces = new String[]{pieces[1], pieces[2], pieces[3], pieces[5], pieces[6]};
+        String combinedSecret = SecretSharingGenerator.combine(selectedPieces);
+        Assert.assertEquals(chuckSecretPhrase, combinedSecret);
+    }
+
+    /**
+     * This should work assuming we do not validate and throw exception when the min number of pieces to combine is too small
+     * inside combine.
+     * Comment out this test and comment the check for min number of pieces inside combine.
+     */
+//    @Test
+//    public void splitAndCombineNotEnoughPieces() {
+//        // Generate the pieces
+//        String[] pieces = SecretSharingGenerator.split(chuckSecretPhrase, 7, 4, BigInteger.ZERO);
+//
+//        // Select pieces and combine
+//        String[] selectedPieces = new String[]{pieces[1], pieces[5], pieces[6]};
+//        String combinedSecret = SecretSharingGenerator.combine(selectedPieces);
+//        Assert.assertNotEquals(chuckSecretPhrase, combinedSecret);
+//    }
+
+    @Test
     public void shortPassphrase() {
         String[] pieces = SecretSharingGenerator.split("aaa", 7, 4, BigInteger.ZERO);
         System.out.println(Arrays.toString(pieces));

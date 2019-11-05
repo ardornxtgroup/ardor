@@ -20,6 +20,8 @@ import nxt.Constants;
 import nxt.account.HoldingType;
 import nxt.util.JSON;
 import nxt.util.Logger;
+import nxt.util.ResourceLookup;
+
 import org.json.simple.JSONValue;
 import org.json.simple.parser.ParseException;
 
@@ -78,7 +80,7 @@ public abstract class HoldingSnapshot {
     @SuppressWarnings("unchecked")
     private Map<String, Long> readSnapshot(HoldingMigration holdingMigration) {
         String fileName = "data/" + holdingMigration.getChildChain().getName() + (Constants.isTestnet ? "-testnet.json" : ".json");
-        InputStream stream = ClassLoader.getSystemResourceAsStream(fileName);
+        InputStream stream = ResourceLookup.getSystemResourceAsStream(fileName);
         if (stream == null) {
             return null;
         }

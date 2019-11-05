@@ -65,6 +65,9 @@ var NRS = (function(NRS, $) {
         if (coin === "BTC") {
             return "<a target='_blank' href='https://blockchain.info/address/" + address + "'>" + address + "</a>";
         }
+        if (coin === "ETH") {
+            return "<a target='_blank' href='https://etherscan.io/address/" + address + "'>" + address + "</a>";
+        }
         return address;
     };
 

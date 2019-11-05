@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class SplitSecretCall extends APICall.Builder<SplitSecretCall> {
     private SplitSecretCall() {
-        super("splitSecret");
+        super(ApiSpec.splitSecret);
     }
 
     public static SplitSecretCall create() {

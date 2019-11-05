@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class DetectMimeTypeCall extends APICall.Builder<DetectMimeTypeCall> {
     private DetectMimeTypeCall() {
-        super("detectMimeType");
+        super(ApiSpec.detectMimeType);
     }
 
     public static DetectMimeTypeCall create() {

@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class RetrievePrunedDataCall extends APICall.Builder<RetrievePrunedDataCall> {
     private RetrievePrunedDataCall() {
-        super("retrievePrunedData");
+        super(ApiSpec.retrievePrunedData);
     }
 
     public static RetrievePrunedDataCall create(int chain) {

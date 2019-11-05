@@ -68,7 +68,7 @@ var NRS = (function(NRS, $) {
 			"depends": { apis: [NRS.constants.REQUEST_TYPES.sendMessage] }
 		});
 		NRS.appendMenuItemToTSMenuItem('sidebar_messages', {
-			"titleHTML": '<i class="fa fa-comment"></i> <span data-i18n="chat">Chat</span>',
+			"titleHTML": '<i class="far fa-comment"></i> <span data-i18n="chat">Chat</span>',
 			"type": 'PAGE',
 			"page": 'messages'
 		});
@@ -314,15 +314,15 @@ var NRS = (function(NRS, $) {
             var escapedMessage = messageIsEscaped ? String(decoded.message) : String(decoded.message).escapeHTML();
             decoded.message = NRS.addEllipsis(escapedMessage.nl2br(), 100);
             if (decoded.extra == "to_decrypt") {
-                decoded.format = "<i class='fa fa-warning'></i>&nbsp";
+                decoded.format = "<i class='far fa-exclamation-triangle'></i>&nbsp";
             } else if (decoded.extra == "decrypted") {
-                decoded.format += "<i class='fa fa-unlock'></i>&nbsp";
+                decoded.format += "<i class='far fa-unlock'></i>&nbsp";
             } else if (decoded.extra == "pruned") {
-                decoded.format = "<i class='fa fa-scissors'></i>&nbsp";
+                decoded.format = "<i class='far fa-cut'></i>&nbsp";
             }
         } else {
             decoded.message = $.t("error_could_not_decrypt_message");
-            decoded.format = "<i class='fa fa-warning'></i>&nbsp";
+            decoded.format = "<i class='far fa-exclamation-triangle'></i>&nbsp";
             decoded.extra = "decryption_failed";
         }
         decoded.hash = message.attachment.messageHash || message.attachment.encryptedMessageHash;
@@ -355,7 +355,7 @@ var NRS = (function(NRS, $) {
                     var inverseIcon = messages[i].recipient == NRS.account ? "" : " fa-inverse";
 					sharedKeyTag = "<a href='#' class='btn btn-xs' data-toggle='modal' data-target='#shared_key_modal' " +
 						"data-sharedkey='" + decoded.sharedKey + "' data-fullhash='" + messages[i].fullHash +"'>" +
-						"<i class='fa fa-link" + inverseIcon + "'></i>" +
+						"<i class='far fa-link" + inverseIcon + "'></i>" +
 					"</a>";
 				}
                 output += "<dd class='" + messageClass + "'><p>" + decoded.format + decoded.message + sharedKeyTag + "</p></dd>";
@@ -473,7 +473,7 @@ var NRS = (function(NRS, $) {
 				$("#inline_message_text").val("");
                 NRS.addUnconfirmedTransaction(response.fullHash, function (alreadyProcessed) {
                     if (!alreadyProcessed) {
-                        $("#message_details").find("dl.chat").append("<dd class='to tentative" + (data.encryptedMessageData ? " decrypted" : "") + "'><p>" + (data.encryptedMessageData ? "<i class='fa fa-lock'></i> " : "") + (!data["_extra"].message ? $.t("message_empty") : String(data["_extra"].message).escapeHTML()) + "</p></dd>");
+                        $("#message_details").find("dl.chat").append("<dd class='to tentative" + (data.encryptedMessageData ? " decrypted" : "") + "'><p>" + (data.encryptedMessageData ? "<i class='far fa-lock'></i> " : "") + (!data["_extra"].message ? $.t("message_empty") : String(data["_extra"].message).escapeHTML()) + "</p></dd>");
                         var splitter = $('#messages_page').find('.content-splitter-right-inner');
                         splitter.scrollTop(splitter[0].scrollHeight);
                     }

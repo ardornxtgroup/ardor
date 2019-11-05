@@ -15,12 +15,14 @@
 
 package nxt.addons;
 
+import nxt.Constants;
 import nxt.Nxt;
 import nxt.account.Account;
 import nxt.blockchain.Chain;
 import nxt.blockchain.ChildChain;
 import nxt.crypto.Crypto;
 import nxt.crypto.EncryptedData;
+import nxt.peer.Peers;
 import nxt.util.Convert;
 import nxt.util.Logger;
 
@@ -39,6 +41,9 @@ class ActiveContractRunnerConfig implements ContractRunnerConfig {
     private long accountId;
     private String account;
     private String accountRs;
+    private boolean autoFeeRate;
+    private long minBundlerBalanceFXT;
+    private long minBundlerFeeLimitFQT;
     private Map<Integer, Long> feeRatePerChain;
     private JO params;
     private boolean isValidator;
@@ -74,12 +79,8 @@ class ActiveContractRunnerConfig implements ContractRunnerConfig {
                 throw new IllegalArgumentException(String.format(ERROR_PREFIX + "account %s does not have a public key", accountRS));
             }
         } else {
-            long id = Account.getId(Crypto.getPublicKey(secretPhrase));
-            if (accountId != 0 && accountId != id) {
-                throw new IllegalArgumentException(ERROR_PREFIX + String.format("Cannot switch contract runner id from %s to %s during runtime", Convert.rsAccount(accountId), Convert.rsAccount(id)));
-            }
-            accountId = id;
             publicKey = Crypto.getPublicKey(secretPhrase);
+            accountId = Account.getId(publicKey);
         }
         publicKeyHexString = Convert.toHexString(publicKey);
         account = Long.toUnsignedString(accountId);
@@ -87,6 +88,9 @@ class ActiveContractRunnerConfig implements ContractRunnerConfig {
     }
 
     private void initFee(JO config) {
+        autoFeeRate = Boolean.parseBoolean(getProperty(config, "autoFeeRate"));
+        minBundlerBalanceFXT = getLongProperty(config, "minBundlerBalanceFXT", 0, Constants.MAX_BALANCE_FXT, Constants.minBundlerBalanceFXT);
+        minBundlerFeeLimitFQT = getLongProperty(config, "minBundlerFeeLimitFQT", 0, Constants.MAX_BALANCE_FXT * Constants.ONE_FXT, Constants.minBundlerFeeLimitFXT * Constants.ONE_FXT);
         feeRatePerChain = new HashMap<>();
         for (Chain chain : ChildChain.getAll()) {
             String stringProperty = getProperty(config, "feeRateNQTPerFXT." + chain.getName());
@@ -96,8 +100,8 @@ class ActiveContractRunnerConfig implements ContractRunnerConfig {
             long fee = Long.parseLong(stringProperty);
             feeRatePerChain.put(chain.getId(), fee);
         }
-        if (secretPhrase != null && feeRatePerChain.size() == 0) {
-            throw new IllegalArgumentException(ERROR_PREFIX + "feeRateNQTPerFXT not specified for any chain");
+        if (secretPhrase != null && !autoFeeRate && feeRatePerChain.size() == 0) {
+            throw new IllegalArgumentException(ERROR_PREFIX + "feeRateNQTPerFXT not specified for any chain and autoFeeRate isn't enabled");
         }
     }
 
@@ -154,6 +158,19 @@ class ActiveContractRunnerConfig implements ContractRunnerConfig {
         }
     }
 
+    @SuppressWarnings("SameParameterValue")
+    private long getLongProperty(JO config, String key, long min, long max, long defaultValue) {
+        String sValue = Convert.emptyToNull(getProperty(config, key));
+        if (sValue == null) {
+            return defaultValue;
+        }
+        long lValue = Long.parseLong(sValue);
+        if (lValue < min || lValue > max) {
+            throw new IllegalArgumentException(ERROR_PREFIX + String.format("value %d for property %s not in range [%d-%d]", lValue, key, min, max));
+        }
+        return lValue;
+    }
+
     @Override
     public String getSecretPhrase() {
         SecurityManager sm = System.getSecurityManager();
@@ -198,11 +215,38 @@ class ActiveContractRunnerConfig implements ContractRunnerConfig {
     }
 
     @Override
+    public boolean isAutoFeeRate() {
+        return autoFeeRate;
+    }
+
+    @Override
+    public long getMinBundlerBalanceFXT() {
+        return minBundlerBalanceFXT;
+    }
+
+    @Override
+    public long getMinBundlerFeeLimitFQT() {
+        return minBundlerFeeLimitFQT;
+    }
+
+    @Override
     public long getFeeRateNQTPerFXT(int chainId) {
         if (feeRatePerChain.get(chainId) == null) {
             return -1;
         }
         return feeRatePerChain.get(chainId);
+    }
+
+    @Override
+    public long getCurrentFeeRateNQTPerFXT(int chainId) {
+        long feeRatio = -1;
+        if (autoFeeRate) {
+            feeRatio = Peers.getBestBundlerRate(Chain.getChain(chainId), minBundlerBalanceFXT, minBundlerFeeLimitFQT, Peers.getBestBundlerRateWhitelist());
+        }
+        if (feeRatio == -1) {
+            feeRatio = getFeeRateNQTPerFXT(chainId);
+        }
+        return feeRatio;
     }
 
     @Override

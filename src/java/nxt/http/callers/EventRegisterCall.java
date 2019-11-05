@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class EventRegisterCall extends APICall.Builder<EventRegisterCall> {
     private EventRegisterCall() {
-        super("eventRegister");
+        super(ApiSpec.eventRegister);
     }
 
     public static EventRegisterCall create() {

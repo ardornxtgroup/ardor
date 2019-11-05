@@ -326,11 +326,11 @@ var NRS = (function (NRS, $, undefined) {
                     rows += (coin.groupName != "Ignore List" ? " data-context='coin_exchange_sidebar_group_context' " : "data-context=''");
                     rows += " data-groupname='" + NRS.escapeRespStr(coin.groupName) + "' data-closed='" + isClosedGroup + "'>";
                     rows += "<h4 class='list-group-item-heading'>" + NRS.unescapeRespStr(coin.groupName).toUpperCase().escapeHTML() + "</h4>";
-                    rows += "<i class='fa fa-angle-" + (isClosedGroup ? "right" : "down") + " group_icon'></i></h4></a>";
+                    rows += "<i class='far fa-angle-" + (isClosedGroup ? "right" : "down") + " group_icon'></i></h4></a>";
                 } else {
                     ungrouped = true;
                     rows += "<a href='#' class='list-group-item list-group-item-header no-context' data-closed='" + isClosedGroup + "'>";
-                    rows += "<h4 class='list-group-item-heading'>UNGROUPED <i class='fa pull-right fa-angle-" + (isClosedGroup ? "right" : "down") + "'></i></h4>";
+                    rows += "<h4 class='list-group-item-heading'>UNGROUPED <i class='far pull-right fa-angle-" + (isClosedGroup ? "right" : "down") + "'></i></h4>";
                     rows += "</a>";
                 }
                 lastGroup = coin.groupName.toLowerCase();
@@ -531,6 +531,14 @@ var NRS = (function (NRS, $, undefined) {
             $("#buy_nxt_with_coin").html($.t("buy_nxt_with_coin", {
                 base: NRS.getChainDisplayName(coin.name), counter: NRS.getActiveChainName()
             }));
+            $("#buy_nxt_with_coin_button").off("click").on("click", function() {
+                var coinToBuy = NRS.getActiveChain();
+                NRS.switchAccount(NRS.accountRS, coinId).always(function() {
+                    NRS.goToPage("coin_exchange", function() {
+                        NRS.loadCoin(coinToBuy);
+                    });
+                });
+            });
             $("#buy_coin_price").val("");
             $("#buy_coin_price_inverse").val("");
             $("#buy_coin_quantity, #buy_coin_total").val("0");
@@ -830,16 +838,10 @@ var NRS = (function (NRS, $, undefined) {
     });
 
     var buyCoinFields = $("#buy_coin_quantity, #buy_coin_price");
-    buyCoinFields.keydown(function (e) {
-        var charCode = !e.charCode ? e.which : e.charCode;
-        if (NRS.isControlKey(charCode) || e.ctrlKey || e.metaKey) {
-            return;
-        }
+    buyCoinFields.decimalValidation(function () {
         var isQuantityField = /_quantity/i.test($(this).attr("id"));
         var decimals = currentCoin.decimals;
-        var maxFractionLength = (isQuantityField ? decimals : NRS.getActiveChainDecimals());
-        var caretPos = $(this)[0].selectionStart;
-        NRS.validateDecimals(maxFractionLength, charCode, $(this).val(), caretPos, e);
+        return isQuantityField ? decimals : NRS.getActiveChainDecimals();
     });
 
     buyCoinFields.keyup(function () {
@@ -1275,7 +1277,7 @@ var NRS = (function (NRS, $, undefined) {
         var sidebarId = 'sidebar_coin_exchange';
         var options = {
             "id": sidebarId,
-            "titleHTML": '<i class="fa fa-money"></i><span data-i18n="coin_exchange">Coin Exchange</span>',
+            "titleHTML": '<i class="far fa-money-bill-alt"></i><span data-i18n="coin_exchange">Coin Exchange</span>',
             "page": 'coin_exchange',
             "desiredPosition": 30,
             "depends": { tags: [ NRS.constants.API_TAGS.CE ] }

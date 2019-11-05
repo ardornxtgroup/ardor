@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class TriggerContractByRequestCall extends APICall.Builder<TriggerContractByRequestCall> {
     private TriggerContractByRequestCall() {
-        super("triggerContractByRequest");
+        super(ApiSpec.triggerContractByRequest);
     }
 
     public static TriggerContractByRequestCall create() {

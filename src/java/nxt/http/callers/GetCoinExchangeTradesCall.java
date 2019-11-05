@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetCoinExchangeTradesCall extends APICall.Builder<GetCoinExchangeTradesCall> {
     private GetCoinExchangeTradesCall() {
-        super("getCoinExchangeTrades");
+        super(ApiSpec.getCoinExchangeTrades);
     }
 
     public static GetCoinExchangeTradesCall create(int chain) {

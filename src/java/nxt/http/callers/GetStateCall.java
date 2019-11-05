@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetStateCall extends APICall.Builder<GetStateCall> {
     private GetStateCall() {
-        super("getState");
+        super(ApiSpec.getState);
     }
 
     public static GetStateCall create(int chain) {

@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class ReadMessageCall extends APICall.Builder<ReadMessageCall> {
     private ReadMessageCall() {
-        super("readMessage");
+        super(ApiSpec.readMessage);
     }
 
     public static ReadMessageCall create(int chain) {

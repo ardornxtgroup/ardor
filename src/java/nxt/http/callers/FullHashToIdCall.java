@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class FullHashToIdCall extends APICall.Builder<FullHashToIdCall> {
     private FullHashToIdCall() {
-        super("fullHashToId");
+        super(ApiSpec.fullHashToId);
     }
 
     public static FullHashToIdCall create() {

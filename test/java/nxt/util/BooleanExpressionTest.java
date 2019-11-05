@@ -28,7 +28,6 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class BooleanExpressionTest {
-
     @Test
     public void testAnd() throws BooleanExpression.BadSyntaxException {
         BooleanExpression expression = parseExpression("A & B", null);
@@ -120,7 +119,7 @@ public class BooleanExpressionTest {
         BooleanExpression expression = parseExpression("A & !C | !A & B", null);
 
         // Test unknown results
-        Assert.assertEquals(BooleanExpression.Value.UNKNOWN, expression.evaluate(Collections.EMPTY_MAP));
+        Assert.assertEquals(BooleanExpression.Value.UNKNOWN, expression.evaluate(Collections.emptyMap()));
         Assert.assertEquals(BooleanExpression.Value.UNKNOWN, expression.evaluate(Stream.of(
                 val("A", BooleanExpression.Value.FALSE)
         ).collect(valuesToMap())));
@@ -274,11 +273,11 @@ public class BooleanExpressionTest {
                 parseExpression("B & C | B & !C | !B & C")));
     }
 
-    protected BooleanExpression parseExpression(String expression){
+    private BooleanExpression parseExpression(String expression){
         return parseExpression(expression, null);
     }
 
-    protected BooleanExpression parseExpression(String expression, BooleanExpression.BooleanExpressionException expectedException) {
+    private BooleanExpression parseExpression(String expression, BooleanExpression.BooleanExpressionException expectedException) {
 
         BooleanExpression booleanExpression = new BooleanExpression(expression);
 
@@ -303,7 +302,7 @@ public class BooleanExpressionTest {
         return booleanExpression;
     }
 
-    protected void checkOptimality(String expression, BooleanExpression.SemanticWarning expectedWarning) {
+    private void checkOptimality(String expression, BooleanExpression.SemanticWarning expectedWarning) {
         BooleanExpression booleanExpression = new BooleanExpression(expression);
         if (booleanExpression.getSemanticWarnings().isEmpty()) {
             if (expectedWarning != null) {
@@ -315,11 +314,11 @@ public class BooleanExpressionTest {
         }
     }
 
-    protected static <K, V> Map.Entry<K, V> val(K key, V value) {
+    private static <K, V> Map.Entry<K, V> val(K key, V value) {
         return new AbstractMap.SimpleEntry<>(key, value);
     }
 
-    protected static <K, U> Collector<Map.Entry<K, U>, ?, Map<K, U>> valuesToMap() {
+    private static <K, U> Collector<Map.Entry<K, U>, ?, Map<K, U>> valuesToMap() {
         return Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue);
     }
 }

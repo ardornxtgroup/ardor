@@ -3,7 +3,7 @@ package nxt.http.callers;
 
 public class DividendPaymentCall extends CreateTransactionCallBuilder<DividendPaymentCall> {
     private DividendPaymentCall() {
-        super("dividendPayment");
+        super(ApiSpec.dividendPayment);
     }
 
     public static DividendPaymentCall create(int chain) {
@@ -18,7 +18,7 @@ public class DividendPaymentCall extends CreateTransactionCallBuilder<DividendPa
         return unsignedLongParam("holding", holding);
     }
 
-    public DividendPaymentCall holdingType(String holdingType) {
+    public DividendPaymentCall holdingType(byte holdingType) {
         return param("holdingType", holdingType);
     }
 

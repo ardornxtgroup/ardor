@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetTransactionBytesCall extends APICall.Builder<GetTransactionBytesCall> {
     private GetTransactionBytesCall() {
-        super("getTransactionBytes");
+        super(ApiSpec.getTransactionBytes);
     }
 
     public static GetTransactionBytesCall create(int chain) {

@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetConstantsCall extends APICall.Builder<GetConstantsCall> {
     private GetConstantsCall() {
-        super("getConstants");
+        super(ApiSpec.getConstants);
     }
 
     public static GetConstantsCall create() {

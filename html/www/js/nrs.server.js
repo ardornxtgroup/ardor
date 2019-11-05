@@ -106,6 +106,10 @@ var NRS = (function (NRS, $, undefined) {
                 ["minBalanceQNTf", "create_poll_ms_decimals"],
                 ["amountQNTf", "shuffling_asset_decimals"],
                 ["amountQNTf", "shuffling_ms_decimals"],
+                ["amountQNTf", "funding_monitor_asset_decimals"],
+                ["amountQNTf", "funding_monitor_ms_decimals"],
+                ["thresholdQNTf", "funding_monitor_asset_decimals"],
+                ["thresholdQNTf", "funding_monitor_ms_decimals"],
                 ["minAmountQNTf", "standbyshuffler_asset_decimals"],
                 ["minAmountQNTf", "standbyshuffler_ms_decimals"],
                 ["maxAmountQNTf", "standbyshuffler_asset_decimals"],
@@ -501,6 +505,7 @@ var NRS = (function (NRS, $, undefined) {
                                 if (response.unsignedTransactionBytes) {
                                     var result = NRS.verifyTransactionBytes(response.unsignedTransactionBytes, requestType, data, response.transactionJSON.attachment, isVolatile);
                                     if (result.fail) {
+                                        NRS.logConsole("Could not validate unsigned bytes returned by the server. Parameter " + result.param + " expected data: " + result.expected + ", actual data " + result.actual);
                                         callback({
                                             "errorCode": 1,
                                             "errorDescription": $.t("error_bytes_validation_server_v2", { param: result.param, expected: result.expected, actual: result.actual })
@@ -542,7 +547,7 @@ var NRS = (function (NRS, $, undefined) {
 
             if (error != "abort") {
                 if (options.remoteNode) {
-                    options.remoteNode.blacklist();
+                    NRS.remoteNodesMgr.blacklistAddress(options.remoteNode.address);
                 } else {
                     NRS.resetRemoteNode(true);
                 }
@@ -561,6 +566,7 @@ var NRS = (function (NRS, $, undefined) {
         var transactionBytes = response.unsignedTransactionBytes;
         var result = NRS.verifyTransactionBytes(transactionBytes, requestType, data, response.transactionJSON.attachment, isVerifyECBlock);
         if (result.fail) {
+            NRS.logConsole("Could not validate unsigned bytes returned by the server. Parameter " + result.param + " expected data: " + result.expected + ", actual data " + result.actual);
             callback({
                 "errorCode": 1,
                 "errorDescription": $.t("error_bytes_validation_server_v2", { param: result.param, expected: result.expected, actual: result.actual })

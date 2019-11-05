@@ -39,7 +39,7 @@ public class DividendPayment extends CreateTransaction {
     protected JSONStreamAware processRequest(final HttpServletRequest request)
             throws NxtException
     {
-        final int height = ParameterParser.getHeight(request);
+        final int height = ParameterParser.getHeight(request, true);
         final long amountNQT = ParameterParser.getAmountNQTPerShare(request);
         final Account account = ParameterParser.getSenderAccount(request);
         final Asset asset = ParameterParser.getAsset(request);

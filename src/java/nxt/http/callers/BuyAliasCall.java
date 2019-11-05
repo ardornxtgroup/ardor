@@ -3,7 +3,7 @@ package nxt.http.callers;
 
 public class BuyAliasCall extends CreateTransactionCallBuilder<BuyAliasCall> {
     private BuyAliasCall() {
-        super("buyAlias");
+        super(ApiSpec.buyAlias);
     }
 
     public static BuyAliasCall create(int chain) {

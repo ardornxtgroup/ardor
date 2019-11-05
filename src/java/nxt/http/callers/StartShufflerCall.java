@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class StartShufflerCall extends APICall.Builder<StartShufflerCall> {
     private StartShufflerCall() {
-        super("startShuffler");
+        super(ApiSpec.startShuffler);
     }
 
     public static StartShufflerCall create(int chain) {

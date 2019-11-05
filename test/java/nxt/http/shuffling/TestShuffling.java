@@ -18,6 +18,7 @@ package nxt.http.shuffling;
 
 import nxt.BlockchainTest;
 import nxt.Nxt;
+import nxt.addons.JO;
 import nxt.blockchain.ChildChain;
 import nxt.shuffling.ShufflingStage;
 import org.json.simple.JSONArray;
@@ -53,7 +54,7 @@ public class TestShuffling extends BlockchainTest {
 
     @Test
     public void successfulShuffling() {
-        JSONObject shufflingCreate = create(ALICE);
+        JO shufflingCreate = create(ALICE);
         String shufflingFullHash = (String)shufflingCreate.get("fullHash");
         generateBlock();
         register(shufflingFullHash, BOB);
@@ -72,10 +73,10 @@ public class TestShuffling extends BlockchainTest {
         Assert.assertEquals(-SHUFFLING_REGISTER_FEE, DAVE.getChainBalanceDiff(chainId));
         Assert.assertEquals(-(defaultShufflingAmount + SHUFFLING_REGISTER_FEE), DAVE.getChainUnconfirmedBalanceDiff(chainId));
 
-        JSONObject getShufflingResponse = getShuffling(shufflingFullHash);
+        JO getShufflingResponse = getShuffling(shufflingFullHash);
         Assert.assertEquals((long) ShufflingStage.PROCESSING.getCode(), getShufflingResponse.get("stage"));
 
-        JSONObject getParticipantsResponse = getShufflingParticipants(shufflingFullHash);
+        JO getParticipantsResponse = getShufflingParticipants(shufflingFullHash);
         JSONArray participants = (JSONArray)getParticipantsResponse.get("participants");
         Assert.assertEquals(4, participants.size());
         String shufflingAssignee = (String) getShufflingResponse.get("assignee");
@@ -138,10 +139,10 @@ public class TestShuffling extends BlockchainTest {
         register(shufflingFullHash, DAVE);
         generateBlock();
 
-        JSONObject getShufflingResponse = getShuffling(shufflingFullHash);
+        JO getShufflingResponse = getShuffling(shufflingFullHash);
         Assert.assertEquals((long) ShufflingStage.PROCESSING.getCode(), getShufflingResponse.get("stage"));
 
-        JSONObject getParticipantsResponse = getShufflingParticipants(shufflingFullHash);
+        JO getParticipantsResponse = getShufflingParticipants(shufflingFullHash);
         JSONArray participants = (JSONArray)getParticipantsResponse.get("participants");
         Assert.assertEquals(4, participants.size());
         String shufflingAssignee = (String) getShufflingResponse.get("assignee");
@@ -222,10 +223,10 @@ public class TestShuffling extends BlockchainTest {
         register(shufflingFullHash, DAVE);
         generateBlock();
 
-        JSONObject getShufflingResponse = getShuffling(shufflingFullHash);
+        JO getShufflingResponse = getShuffling(shufflingFullHash);
         Assert.assertEquals((long) ShufflingStage.PROCESSING.getCode(), getShufflingResponse.get("stage"));
 
-        JSONObject getParticipantsResponse = getShufflingParticipants(shufflingFullHash);
+        JO getParticipantsResponse = getShufflingParticipants(shufflingFullHash);
         JSONArray participants = (JSONArray)getParticipantsResponse.get("participants");
         Assert.assertEquals(4, participants.size());
         String shufflingAssignee = (String) getShufflingResponse.get("assignee");
@@ -296,7 +297,7 @@ public class TestShuffling extends BlockchainTest {
 
     @Test
     public void registrationNotFinished() {
-        JSONObject shufflingCreate = create(ALICE);
+        JO shufflingCreate = create(ALICE);
         String shufflingFullHash = (String)shufflingCreate.get("fullHash");
         generateBlock();
         register(shufflingFullHash, BOB);
@@ -304,10 +305,10 @@ public class TestShuffling extends BlockchainTest {
             generateBlock();
         }
 
-        JSONObject getShufflingResponse = getShuffling(shufflingFullHash);
+        JO getShufflingResponse = getShuffling(shufflingFullHash);
         Assert.assertEquals((long) ShufflingStage.CANCELLED.getCode(), getShufflingResponse.get("stage"));
 
-        JSONObject getParticipantsResponse = getShufflingParticipants(shufflingFullHash);
+        JO getParticipantsResponse = getShufflingParticipants(shufflingFullHash);
         JSONArray participants = (JSONArray)getParticipantsResponse.get("participants");
         Assert.assertEquals(2, participants.size());
         String shufflingAssignee = (String) getShufflingResponse.get("assignee");
@@ -336,10 +337,10 @@ public class TestShuffling extends BlockchainTest {
             generateBlock();
         }
 
-        JSONObject getShufflingResponse = getShuffling(shufflingFullHash);
+        JO getShufflingResponse = getShuffling(shufflingFullHash);
         Assert.assertEquals((long) ShufflingStage.CANCELLED.getCode(), getShufflingResponse.get("stage"));
 
-        JSONObject getParticipantsResponse = getShufflingParticipants(shufflingFullHash);
+        JO getParticipantsResponse = getShufflingParticipants(shufflingFullHash);
         JSONArray participants = (JSONArray)getParticipantsResponse.get("participants");
         Assert.assertEquals(2, participants.size());
         String shufflingAssignee = (String) getShufflingResponse.get("assignee");
@@ -365,7 +366,7 @@ public class TestShuffling extends BlockchainTest {
 
     @Test
     public void processingNotStarted() {
-        JSONObject shufflingCreate = create(ALICE);
+        JO shufflingCreate = create(ALICE);
         String shufflingFullHash = (String)shufflingCreate.get("fullHash");
         generateBlock();
         register(shufflingFullHash, BOB);
@@ -377,10 +378,10 @@ public class TestShuffling extends BlockchainTest {
             generateBlock();
         }
 
-        JSONObject getShufflingResponse = getShuffling(shufflingFullHash);
+        JO getShufflingResponse = getShuffling(shufflingFullHash);
         Assert.assertEquals((long) ShufflingStage.CANCELLED.getCode(), getShufflingResponse.get("stage"));
 
-        JSONObject getParticipantsResponse = getShufflingParticipants(shufflingFullHash);
+        JO getParticipantsResponse = getShufflingParticipants(shufflingFullHash);
         JSONArray participants = (JSONArray)getParticipantsResponse.get("participants");
         Assert.assertEquals(4, participants.size());
         String shufflingAssignee = (String) getShufflingResponse.get("assignee");
@@ -419,10 +420,10 @@ public class TestShuffling extends BlockchainTest {
             generateBlock();
         }
 
-        JSONObject getShufflingResponse = getShuffling(shufflingFullHash);
+        JO getShufflingResponse = getShuffling(shufflingFullHash);
         Assert.assertEquals((long) ShufflingStage.CANCELLED.getCode(), getShufflingResponse.get("stage"));
 
-        JSONObject getParticipantsResponse = getShufflingParticipants(shufflingFullHash);
+        JO getParticipantsResponse = getShufflingParticipants(shufflingFullHash);
         JSONArray participants = (JSONArray)getParticipantsResponse.get("participants");
         Assert.assertEquals(4, participants.size());
         String shufflingAssignee = (String) getShufflingResponse.get("assignee");
@@ -458,7 +459,7 @@ public class TestShuffling extends BlockchainTest {
 
     @Test
     public void tooManyParticipants() {
-        JSONObject shufflingCreate = create(ALICE, 3);
+        JO shufflingCreate = create(ALICE, 3);
         String shufflingFullHash = (String)shufflingCreate.get("fullHash");
         generateBlock();
         register(shufflingFullHash, BOB);
@@ -469,10 +470,10 @@ public class TestShuffling extends BlockchainTest {
             generateBlock();
         }
         Nxt.getTransactionProcessor().clearUnconfirmedTransactions();
-        JSONObject getShufflingResponse = getShuffling(shufflingFullHash);
+        JO getShufflingResponse = getShuffling(shufflingFullHash);
         Assert.assertEquals((long) ShufflingStage.CANCELLED.getCode(), getShufflingResponse.get("stage"));
 
-        JSONObject getParticipantsResponse = getShufflingParticipants(shufflingFullHash);
+        JO getParticipantsResponse = getShufflingParticipants(shufflingFullHash);
         JSONArray participants = (JSONArray)getParticipantsResponse.get("participants");
         Assert.assertEquals(3, participants.size());
         String shufflingAssignee = (String) getShufflingResponse.get("assignee");
@@ -497,7 +498,7 @@ public class TestShuffling extends BlockchainTest {
 
     @Test
     public void processingNotFinished() {
-        JSONObject shufflingCreate = create(ALICE);
+        JO shufflingCreate = create(ALICE);
         String shufflingFullHash = (String)shufflingCreate.get("fullHash");
         generateBlock();
         register(shufflingFullHash, BOB);
@@ -507,10 +508,10 @@ public class TestShuffling extends BlockchainTest {
         register(shufflingFullHash, DAVE);
         generateBlock();
 
-        JSONObject getShufflingResponse = getShuffling(shufflingFullHash);
+        JO getShufflingResponse = getShuffling(shufflingFullHash);
         Assert.assertEquals((long) ShufflingStage.PROCESSING.getCode(), getShufflingResponse.get("stage"));
 
-        JSONObject getParticipantsResponse = getShufflingParticipants(shufflingFullHash);
+        JO getParticipantsResponse = getShufflingParticipants(shufflingFullHash);
         JSONArray participants = (JSONArray)getParticipantsResponse.get("participants");
         Assert.assertEquals(4, participants.size());
         String shufflingAssignee = (String) getShufflingResponse.get("assignee");
@@ -552,7 +553,7 @@ public class TestShuffling extends BlockchainTest {
 
     @Test
     public void verifyNotStarted() {
-        JSONObject shufflingCreate = create(ALICE);
+        JO shufflingCreate = create(ALICE);
         String shufflingFullHash = (String)shufflingCreate.get("fullHash");
         generateBlock();
         register(shufflingFullHash, BOB);
@@ -562,10 +563,10 @@ public class TestShuffling extends BlockchainTest {
         register(shufflingFullHash, DAVE);
         generateBlock();
 
-        JSONObject getShufflingResponse = getShuffling(shufflingFullHash);
+        JO getShufflingResponse = getShuffling(shufflingFullHash);
         Assert.assertEquals((long) ShufflingStage.PROCESSING.getCode(), getShufflingResponse.get("stage"));
 
-        JSONObject getParticipantsResponse = getShufflingParticipants(shufflingFullHash);
+        JO getParticipantsResponse = getShufflingParticipants(shufflingFullHash);
         JSONArray participants = (JSONArray)getParticipantsResponse.get("participants");
         Assert.assertEquals(4, participants.size());
         String shufflingAssignee = (String) getShufflingResponse.get("assignee");
@@ -618,7 +619,7 @@ public class TestShuffling extends BlockchainTest {
 
     @Test
     public void verifyNotFinished() {
-        JSONObject shufflingCreate = create(ALICE);
+        JO shufflingCreate = create(ALICE);
         String shufflingFullHash = (String)shufflingCreate.get("fullHash");
         generateBlock();
         register(shufflingFullHash, BOB);
@@ -628,10 +629,10 @@ public class TestShuffling extends BlockchainTest {
         register(shufflingFullHash, DAVE);
         generateBlock();
 
-        JSONObject getShufflingResponse = getShuffling(shufflingFullHash);
+        JO getShufflingResponse = getShuffling(shufflingFullHash);
         Assert.assertEquals((long) ShufflingStage.PROCESSING.getCode(), getShufflingResponse.get("stage"));
 
-        JSONObject getParticipantsResponse = getShufflingParticipants(shufflingFullHash);
+        JO getParticipantsResponse = getShufflingParticipants(shufflingFullHash);
         JSONArray participants = (JSONArray)getParticipantsResponse.get("participants");
         Assert.assertEquals(4, participants.size());
         String shufflingAssignee = (String) getShufflingResponse.get("assignee");
@@ -689,7 +690,7 @@ public class TestShuffling extends BlockchainTest {
 
     @Test
     public void cancelAfterVerifyChuck() {
-        JSONObject shufflingCreate = create(ALICE);
+        JO shufflingCreate = create(ALICE);
         String shufflingFullHash = (String)shufflingCreate.get("fullHash");
         generateBlock();
         register(shufflingFullHash, BOB);
@@ -699,10 +700,10 @@ public class TestShuffling extends BlockchainTest {
         register(shufflingFullHash, DAVE);
         generateBlock();
 
-        JSONObject getShufflingResponse = getShuffling(shufflingFullHash);
+        JO getShufflingResponse = getShuffling(shufflingFullHash);
         Assert.assertEquals((long) ShufflingStage.PROCESSING.getCode(), getShufflingResponse.get("stage"));
 
-        JSONObject getParticipantsResponse = getShufflingParticipants(shufflingFullHash);
+        JO getParticipantsResponse = getShufflingParticipants(shufflingFullHash);
         JSONArray participants = (JSONArray)getParticipantsResponse.get("participants");
         Assert.assertEquals(4, participants.size());
         String shufflingAssignee = (String) getShufflingResponse.get("assignee");
@@ -770,7 +771,7 @@ public class TestShuffling extends BlockchainTest {
 
     @Test
     public void cancelAfterVerifyChuckInvalidKeys() {
-        JSONObject shufflingCreate = create(ALICE);
+        JO shufflingCreate = create(ALICE);
         String shufflingFullHash = (String)shufflingCreate.get("fullHash");
         generateBlock();
         register(shufflingFullHash, BOB);
@@ -780,10 +781,10 @@ public class TestShuffling extends BlockchainTest {
         register(shufflingFullHash, DAVE);
         generateBlock();
 
-        JSONObject getShufflingResponse = getShuffling(shufflingFullHash);
+        JO getShufflingResponse = getShuffling(shufflingFullHash);
         Assert.assertEquals((long) ShufflingStage.PROCESSING.getCode(), getShufflingResponse.get("stage"));
 
-        JSONObject getParticipantsResponse = getShufflingParticipants(shufflingFullHash);
+        JO getParticipantsResponse = getShufflingParticipants(shufflingFullHash);
         JSONArray participants = (JSONArray)getParticipantsResponse.get("participants");
         Assert.assertEquals(4, participants.size());
         String shufflingAssignee = (String) getShufflingResponse.get("assignee");
@@ -854,7 +855,7 @@ public class TestShuffling extends BlockchainTest {
 
     @Test
     public void cancelAfterVerifyChuckInvalidKeysAlice() {
-        JSONObject shufflingCreate = create(ALICE);
+        JO shufflingCreate = create(ALICE);
         String shufflingFullHash = (String)shufflingCreate.get("fullHash");
         generateBlock();
         register(shufflingFullHash, BOB);
@@ -864,10 +865,10 @@ public class TestShuffling extends BlockchainTest {
         register(shufflingFullHash, DAVE);
         generateBlock();
 
-        JSONObject getShufflingResponse = getShuffling(shufflingFullHash);
+        JO getShufflingResponse = getShuffling(shufflingFullHash);
         Assert.assertEquals((long) ShufflingStage.PROCESSING.getCode(), getShufflingResponse.get("stage"));
 
-        JSONObject getParticipantsResponse = getShufflingParticipants(shufflingFullHash);
+        JO getParticipantsResponse = getShufflingParticipants(shufflingFullHash);
         JSONArray participants = (JSONArray)getParticipantsResponse.get("participants");
         Assert.assertEquals(4, participants.size());
         String shufflingAssignee = (String) getShufflingResponse.get("assignee");
@@ -939,7 +940,7 @@ public class TestShuffling extends BlockchainTest {
 
     @Test
     public void cancelAfterVerifyChuckInvalidKeysAlice2() {
-        JSONObject shufflingCreate = create(ALICE);
+        JO shufflingCreate = create(ALICE);
         String shufflingFullHash = (String)shufflingCreate.get("fullHash");
         generateBlock();
         register(shufflingFullHash, BOB);
@@ -949,10 +950,10 @@ public class TestShuffling extends BlockchainTest {
         register(shufflingFullHash, DAVE);
         generateBlock();
 
-        JSONObject getShufflingResponse = getShuffling(shufflingFullHash);
+        JO getShufflingResponse = getShuffling(shufflingFullHash);
         Assert.assertEquals((long) ShufflingStage.PROCESSING.getCode(), getShufflingResponse.get("stage"));
 
-        JSONObject getParticipantsResponse = getShufflingParticipants(shufflingFullHash);
+        JO getParticipantsResponse = getShufflingParticipants(shufflingFullHash);
         JSONArray participants = (JSONArray)getParticipantsResponse.get("participants");
         Assert.assertEquals(4, participants.size());
         String shufflingAssignee = (String) getShufflingResponse.get("assignee");
@@ -1024,7 +1025,7 @@ public class TestShuffling extends BlockchainTest {
 
     @Test
     public void badProcessDataAlice() {
-        JSONObject shufflingCreate = create(ALICE);
+        JO shufflingCreate = create(ALICE);
         String shufflingFullHash = (String)shufflingCreate.get("fullHash");
         generateBlock();
         register(shufflingFullHash, BOB);
@@ -1034,10 +1035,10 @@ public class TestShuffling extends BlockchainTest {
         register(shufflingFullHash, DAVE);
         generateBlock();
 
-        JSONObject getShufflingResponse = getShuffling(shufflingFullHash);
+        JO getShufflingResponse = getShuffling(shufflingFullHash);
         Assert.assertEquals((long) ShufflingStage.PROCESSING.getCode(), getShufflingResponse.get("stage"));
 
-        JSONObject getParticipantsResponse = getShufflingParticipants(shufflingFullHash);
+        JO getParticipantsResponse = getShufflingParticipants(shufflingFullHash);
         JSONArray participants = (JSONArray)getParticipantsResponse.get("participants");
         Assert.assertEquals(4, participants.size());
         String shufflingAssignee = (String) getShufflingResponse.get("assignee");
@@ -1087,7 +1088,7 @@ public class TestShuffling extends BlockchainTest {
 
     @Test
     public void modifiedProcessDataBob() {
-        JSONObject shufflingCreate = create(ALICE);
+        JO shufflingCreate = create(ALICE);
         String shufflingFullHash = (String)shufflingCreate.get("fullHash");
         generateBlock();
         register(shufflingFullHash, BOB);
@@ -1097,10 +1098,10 @@ public class TestShuffling extends BlockchainTest {
         register(shufflingFullHash, DAVE);
         generateBlock();
 
-        JSONObject getShufflingResponse = getShuffling(shufflingFullHash);
+        JO getShufflingResponse = getShuffling(shufflingFullHash);
         Assert.assertEquals((long) ShufflingStage.PROCESSING.getCode(), getShufflingResponse.get("stage"));
 
-        JSONObject getParticipantsResponse = getShufflingParticipants(shufflingFullHash);
+        JO getParticipantsResponse = getShufflingParticipants(shufflingFullHash);
         JSONArray participants = (JSONArray)getParticipantsResponse.get("participants");
         Assert.assertEquals(4, participants.size());
         String shufflingAssignee = (String) getShufflingResponse.get("assignee");
@@ -1157,7 +1158,7 @@ public class TestShuffling extends BlockchainTest {
 
     @Test
     public void modifiedProcessDataChuck() {
-        JSONObject shufflingCreate = create(ALICE);
+        JO shufflingCreate = create(ALICE);
         String shufflingFullHash = (String)shufflingCreate.get("fullHash");
         generateBlock();
         register(shufflingFullHash, BOB);
@@ -1167,10 +1168,10 @@ public class TestShuffling extends BlockchainTest {
         register(shufflingFullHash, DAVE);
         generateBlock();
 
-        JSONObject getShufflingResponse = getShuffling(shufflingFullHash);
+        JO getShufflingResponse = getShuffling(shufflingFullHash);
         Assert.assertEquals((long) ShufflingStage.PROCESSING.getCode(), getShufflingResponse.get("stage"));
 
-        JSONObject getParticipantsResponse = getShufflingParticipants(shufflingFullHash);
+        JO getParticipantsResponse = getShufflingParticipants(shufflingFullHash);
         JSONArray participants = (JSONArray)getParticipantsResponse.get("participants");
         Assert.assertEquals(4, participants.size());
         String shufflingAssignee = (String) getShufflingResponse.get("assignee");
@@ -1230,7 +1231,7 @@ public class TestShuffling extends BlockchainTest {
 
     @Test
     public void modifiedRecipientKeysDave() {
-        JSONObject shufflingCreate = create(ALICE);
+        JO shufflingCreate = create(ALICE);
         String shufflingFullHash = (String)shufflingCreate.get("fullHash");
         generateBlock();
         register(shufflingFullHash, BOB);
@@ -1240,10 +1241,10 @@ public class TestShuffling extends BlockchainTest {
         register(shufflingFullHash, DAVE);
         generateBlock();
 
-        JSONObject getShufflingResponse = getShuffling(shufflingFullHash);
+        JO getShufflingResponse = getShuffling(shufflingFullHash);
         Assert.assertEquals((long) ShufflingStage.PROCESSING.getCode(), getShufflingResponse.get("stage"));
 
-        JSONObject getParticipantsResponse = getShufflingParticipants(shufflingFullHash);
+        JO getParticipantsResponse = getShufflingParticipants(shufflingFullHash);
         JSONArray participants = (JSONArray)getParticipantsResponse.get("participants");
         Assert.assertEquals(4, participants.size());
         String shufflingAssignee = (String) getShufflingResponse.get("assignee");
@@ -1310,7 +1311,7 @@ public class TestShuffling extends BlockchainTest {
 
     @Test
     public void duplicateRecipientKeysDave() {
-        JSONObject shufflingCreate = create(ALICE);
+        JO shufflingCreate = create(ALICE);
         String shufflingFullHash = (String)shufflingCreate.get("fullHash");
         generateBlock();
         register(shufflingFullHash, BOB);
@@ -1320,10 +1321,10 @@ public class TestShuffling extends BlockchainTest {
         register(shufflingFullHash, DAVE);
         generateBlock();
 
-        JSONObject getShufflingResponse = getShuffling(shufflingFullHash);
+        JO getShufflingResponse = getShuffling(shufflingFullHash);
         Assert.assertEquals((long) ShufflingStage.PROCESSING.getCode(), getShufflingResponse.get("stage"));
 
-        JSONObject getParticipantsResponse = getShufflingParticipants(shufflingFullHash);
+        JO getParticipantsResponse = getShufflingParticipants(shufflingFullHash);
         JSONArray participants = (JSONArray)getParticipantsResponse.get("participants");
         Assert.assertEquals(4, participants.size());
         String shufflingAssignee = (String) getShufflingResponse.get("assignee");
@@ -1372,7 +1373,7 @@ public class TestShuffling extends BlockchainTest {
 
     @Test
     public void duplicateProcessDataChuck() {
-        JSONObject shufflingCreate = create(ALICE);
+        JO shufflingCreate = create(ALICE);
         String shufflingFullHash = (String)shufflingCreate.get("fullHash");
         generateBlock();
         register(shufflingFullHash, BOB);
@@ -1382,10 +1383,10 @@ public class TestShuffling extends BlockchainTest {
         register(shufflingFullHash, DAVE);
         generateBlock();
 
-        JSONObject getShufflingResponse = getShuffling(shufflingFullHash);
+        JO getShufflingResponse = getShuffling(shufflingFullHash);
         Assert.assertEquals((long) ShufflingStage.PROCESSING.getCode(), getShufflingResponse.get("stage"));
 
-        JSONObject getParticipantsResponse = getShufflingParticipants(shufflingFullHash);
+        JO getParticipantsResponse = getShufflingParticipants(shufflingFullHash);
         JSONArray participants = (JSONArray)getParticipantsResponse.get("participants");
         Assert.assertEquals(4, participants.size());
         String shufflingAssignee = (String) getShufflingResponse.get("assignee");
@@ -1432,7 +1433,7 @@ public class TestShuffling extends BlockchainTest {
 
     @Test
     public void duplicateRecipientsBobChuck() {
-        JSONObject shufflingCreate = create(ALICE);
+        JO shufflingCreate = create(ALICE);
         String shufflingFullHash = (String)shufflingCreate.get("fullHash");
         generateBlock();
         register(shufflingFullHash, BOB);
@@ -1442,10 +1443,10 @@ public class TestShuffling extends BlockchainTest {
         register(shufflingFullHash, DAVE);
         generateBlock();
 
-        JSONObject getShufflingResponse = getShuffling(shufflingFullHash);
+        JO getShufflingResponse = getShuffling(shufflingFullHash);
         Assert.assertEquals((long) ShufflingStage.PROCESSING.getCode(), getShufflingResponse.get("stage"));
 
-        JSONObject getParticipantsResponse = getShufflingParticipants(shufflingFullHash);
+        JO getParticipantsResponse = getShufflingParticipants(shufflingFullHash);
         JSONArray participants = (JSONArray)getParticipantsResponse.get("participants");
         Assert.assertEquals(4, participants.size());
         String shufflingAssignee = (String) getShufflingResponse.get("assignee");
@@ -1499,7 +1500,7 @@ public class TestShuffling extends BlockchainTest {
 
     @Test
     public void duplicateRecipientsAliceBob() {
-        JSONObject shufflingCreate = create(ALICE);
+        JO shufflingCreate = create(ALICE);
         String shufflingFullHash = (String)shufflingCreate.get("fullHash");
         generateBlock();
         register(shufflingFullHash, BOB);
@@ -1509,10 +1510,10 @@ public class TestShuffling extends BlockchainTest {
         register(shufflingFullHash, DAVE);
         generateBlock();
 
-        JSONObject getShufflingResponse = getShuffling(shufflingFullHash);
+        JO getShufflingResponse = getShuffling(shufflingFullHash);
         Assert.assertEquals((long) ShufflingStage.PROCESSING.getCode(), getShufflingResponse.get("stage"));
 
-        JSONObject getParticipantsResponse = getShufflingParticipants(shufflingFullHash);
+        JO getParticipantsResponse = getShufflingParticipants(shufflingFullHash);
         JSONArray participants = (JSONArray)getParticipantsResponse.get("participants");
         Assert.assertEquals(4, participants.size());
         String shufflingAssignee = (String) getShufflingResponse.get("assignee");

@@ -342,7 +342,7 @@ var NRS = (function (NRS, $, undefined) {
                                 message = $.t("binary_data");
                             }
                         }
-                        $output.html("<div style='color:#999999;padding-bottom:10px'><i class='fa fa-unlock'></i> " + $.t("public_message") + "</div><div style='padding-bottom:10px'>" + NRS.escapeRespStr(message).nl2br() + "</div>");
+                        $output.html("<div style='color:#999999;padding-bottom:10px'><i class='far fa-unlock'></i> " + $.t("public_message") + "</div><div style='padding-bottom:10px'>" + NRS.escapeRespStr(message).nl2br() + "</div>");
                     }
 
                     if (transaction.attachment.encryptedMessage || (transaction.attachment.encryptToSelfMessage && NRS.account == transaction.sender)) {
@@ -564,8 +564,10 @@ var NRS = (function (NRS, $, undefined) {
                         NRS.getTransactionLink(phasedTransactions[i].transactionFullHash, false, phasedTransactions[i].chain);
                 }
                 var revealedSecrets = transaction.attachment.revealedSecrets;
-                for (i = 0; i < revealedSecrets.length; i++) {
-                    data["secret" + (i + 1)] = revealedSecrets[i];
+                if (revealedSecrets) {
+                    for (i = 0; i < revealedSecrets.length; i++) {
+                        data["secret" + (i + 1)] = revealedSecrets[i];
+                    }
                 }
                 infoTable.find("tbody").append(NRS.createInfoTable(data, { chain: transaction.chain }));
                 infoTable.show();
@@ -1439,7 +1441,7 @@ var NRS = (function (NRS, $, undefined) {
                             }
                         }
 
-                        transactionInfoOutputBottom.append("<div style='padding-left:5px;'><label><i class='fa fa-unlock'></i> " + $.t("public_message") + "</label><div>" + NRS.escapeRespStr(message).nl2br() + "</div></div>");
+                        transactionInfoOutputBottom.append("<div style='padding-left:5px;'><label><i class='far fa-unlock'></i> " + $.t("public_message") + "</label><div>" + NRS.escapeRespStr(message).nl2br() + "</div></div>");
                     }
 
                     if (transaction.attachment.encryptedMessage || (transaction.attachment.encryptToSelfMessage && NRS.account == transaction.sender)) {

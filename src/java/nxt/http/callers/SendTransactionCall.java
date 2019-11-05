@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class SendTransactionCall extends APICall.Builder<SendTransactionCall> {
     private SendTransactionCall() {
-        super("sendTransaction");
+        super(ApiSpec.sendTransaction);
     }
 
     public static SendTransactionCall create() {

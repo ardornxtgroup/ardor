@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class SetLoggingCall extends APICall.Builder<SetLoggingCall> {
     private SetLoggingCall() {
-        super("setLogging");
+        super(ApiSpec.setLogging);
     }
 
     public static SetLoggingCall create() {

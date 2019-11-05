@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetDGSPurchasesCall extends APICall.Builder<GetDGSPurchasesCall> {
     private GetDGSPurchasesCall() {
-        super("getDGSPurchases");
+        super(ApiSpec.getDGSPurchases);
     }
 
     public static GetDGSPurchasesCall create(int chain) {

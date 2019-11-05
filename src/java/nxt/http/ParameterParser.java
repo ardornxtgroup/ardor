@@ -23,17 +23,33 @@ import nxt.account.Account;
 import nxt.account.HoldingType;
 import nxt.ae.Asset;
 import nxt.aliases.AliasHome;
-import nxt.blockchain.*;
+import nxt.blockchain.Appendix;
+import nxt.blockchain.Bundler;
+import nxt.blockchain.Chain;
+import nxt.blockchain.ChainTransactionId;
+import nxt.blockchain.ChildChain;
+import nxt.blockchain.Transaction;
 import nxt.crypto.Crypto;
 import nxt.crypto.EncryptedData;
 import nxt.crypto.SecretSharingGenerator;
 import nxt.dgs.DigitalGoodsHome;
-import nxt.messaging.*;
+import nxt.messaging.EncryptToSelfMessageAppendix;
+import nxt.messaging.EncryptedMessageAppendix;
+import nxt.messaging.MessageAppendix;
+import nxt.messaging.PrunableEncryptedMessageAppendix;
+import nxt.messaging.PrunablePlainMessageAppendix;
+import nxt.messaging.UnencryptedEncryptToSelfMessageAppendix;
+import nxt.messaging.UnencryptedEncryptedMessageAppendix;
+import nxt.messaging.UnencryptedPrunableEncryptedMessageAppendix;
 import nxt.ms.Currency;
 import nxt.ms.ExchangeOfferHome;
 import nxt.shuffling.ShufflingHome;
 import nxt.taggeddata.TaggedDataAttachment;
-import nxt.util.*;
+import nxt.util.BooleanExpression;
+import nxt.util.Convert;
+import nxt.util.JSON;
+import nxt.util.Logger;
+import nxt.util.Search;
 import nxt.voting.PhasingParams;
 import nxt.voting.PollHome;
 import nxt.voting.VoteWeighting;
@@ -51,11 +67,54 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.math.BigInteger;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.StringJoiner;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static nxt.http.JSONResponses.*;
+import static nxt.http.JSONResponses.INCORRECT_ACCOUNT;
+import static nxt.http.JSONResponses.INCORRECT_ALIAS;
+import static nxt.http.JSONResponses.INCORRECT_ARBITRARY_MESSAGE;
+import static nxt.http.JSONResponses.INCORRECT_DATA_TOO_LONG;
+import static nxt.http.JSONResponses.INCORRECT_DATA_ZERO_LENGTH;
+import static nxt.http.JSONResponses.INCORRECT_FILE;
+import static nxt.http.JSONResponses.INCORRECT_MESSAGE_TO_ENCRYPT;
+import static nxt.http.JSONResponses.INCORRECT_PURCHASE;
+import static nxt.http.JSONResponses.INCORRECT_TAGGED_DATA_CHANNEL;
+import static nxt.http.JSONResponses.INCORRECT_TAGGED_DATA_DESCRIPTION;
+import static nxt.http.JSONResponses.INCORRECT_TAGGED_DATA_FILE;
+import static nxt.http.JSONResponses.INCORRECT_TAGGED_DATA_FILENAME;
+import static nxt.http.JSONResponses.INCORRECT_TAGGED_DATA_NAME;
+import static nxt.http.JSONResponses.INCORRECT_TAGGED_DATA_TAGS;
+import static nxt.http.JSONResponses.INCORRECT_TAGGED_DATA_TYPE;
+import static nxt.http.JSONResponses.INCORRECT_WHITELIST;
+import static nxt.http.JSONResponses.MISSING_ACCOUNT;
+import static nxt.http.JSONResponses.MISSING_ALIAS_OR_ALIAS_NAME;
+import static nxt.http.JSONResponses.MISSING_CHAIN;
+import static nxt.http.JSONResponses.MISSING_NAME;
+import static nxt.http.JSONResponses.MISSING_PROPERTY;
+import static nxt.http.JSONResponses.MISSING_RECIPIENT_PUBLIC_KEY;
+import static nxt.http.JSONResponses.MISSING_SECRET_PHRASE;
+import static nxt.http.JSONResponses.MISSING_TRANSACTION_BYTES_OR_JSON;
+import static nxt.http.JSONResponses.UNKNOWN_ACCOUNT;
+import static nxt.http.JSONResponses.UNKNOWN_ALIAS;
+import static nxt.http.JSONResponses.UNKNOWN_ASSET;
+import static nxt.http.JSONResponses.UNKNOWN_CHAIN;
+import static nxt.http.JSONResponses.UNKNOWN_CURRENCY;
+import static nxt.http.JSONResponses.UNKNOWN_GOODS;
+import static nxt.http.JSONResponses.UNKNOWN_OFFER;
+import static nxt.http.JSONResponses.UNKNOWN_POLL;
+import static nxt.http.JSONResponses.UNKNOWN_SHUFFLING;
+import static nxt.http.JSONResponses.either;
+import static nxt.http.JSONResponses.incorrect;
+import static nxt.http.JSONResponses.missing;
 
 public final class ParameterParser {
 
@@ -557,6 +616,11 @@ public final class ParameterParser {
         return account;
     }
 
+    public static long getSenderId(HttpServletRequest req) throws ParameterException {
+        byte[] publicKey = getPublicKey(req);
+        return Account.getId(publicKey);
+    }
+
     public static Account getAccount(HttpServletRequest req) throws ParameterException {
         return getAccount(req, true);
     }
@@ -633,6 +697,11 @@ public final class ParameterParser {
 
     public static int getHeight(HttpServletRequest req) throws ParameterException {
         return getInt(req, "height", 0, Nxt.getBlockchain().getHeight(), -1);
+    }
+
+    public static int getHeight(HttpServletRequest req, boolean isMandatory) throws ParameterException {
+        return isMandatory ? getInt(req, "height", 0, Nxt.getBlockchain().getHeight(), true)
+                : getInt(req, "height", 0, Nxt.getBlockchain().getHeight(), -1);
     }
 
     public static HoldingType getHoldingType(HttpServletRequest req) throws ParameterException {

@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class ProcessVoucherCall extends APICall.Builder<ProcessVoucherCall> {
     private ProcessVoucherCall() {
-        super("processVoucher");
+        super(ApiSpec.processVoucher);
     }
 
     public static ProcessVoucherCall create() {
@@ -24,7 +24,7 @@ public class ProcessVoucherCall extends APICall.Builder<ProcessVoucherCall> {
         return param("requireBlock", requireBlock);
     }
 
-    public ProcessVoucherCall validate(String validate) {
+    public ProcessVoucherCall validate(boolean validate) {
         return param("validate", validate);
     }
 

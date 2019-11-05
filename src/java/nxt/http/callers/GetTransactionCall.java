@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetTransactionCall extends APICall.Builder<GetTransactionCall> {
     private GetTransactionCall() {
-        super("getTransaction");
+        super(ApiSpec.getTransaction);
     }
 
     public static GetTransactionCall create(int chain) {

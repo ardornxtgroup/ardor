@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetExchangesByOfferCall extends APICall.Builder<GetExchangesByOfferCall> {
     private GetExchangesByOfferCall() {
-        super("getExchangesByOffer");
+        super(ApiSpec.getExchangesByOffer);
     }
 
     public static GetExchangesByOfferCall create(int chain) {

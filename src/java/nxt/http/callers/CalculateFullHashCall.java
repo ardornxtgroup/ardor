@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class CalculateFullHashCall extends APICall.Builder<CalculateFullHashCall> {
     private CalculateFullHashCall() {
-        super("calculateFullHash");
+        super(ApiSpec.calculateFullHash);
     }
 
     public static CalculateFullHashCall create() {

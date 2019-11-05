@@ -18,14 +18,18 @@ package nxt.http.bundling;
 import nxt.Constants;
 import nxt.Nxt;
 import nxt.blockchain.ChildChain;
+import nxt.blockchain.FxtTransaction;
 import nxt.http.APICall;
+import nxt.http.JSONData;
 import nxt.util.Convert;
 import nxt.util.JSONAssert;
+import nxt.util.Logger;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class RulesTest extends BundlerTest {
 
@@ -47,6 +51,7 @@ public class RulesTest extends BundlerTest {
 
     @Test
     public void testRulePriority() {
+        //Assert.fail();
         long publicRate = ChildChain.IGNIS.ONE_COIN * 10;
         long minFeeNQT = getMinFeeNQT(publicRate);
 
@@ -72,10 +77,21 @@ public class RulesTest extends BundlerTest {
         //Bob's transactions should be processed with priority, even though their NQT fee per byte is 0 - because the
         // private rule comes first in the rules list
         for (String fullHash : fullHashes) {
-            JSONAssert result = new JSONAssert(new APICall.Builder("getTransaction").
-                    param("fullHash", fullHash).build().invoke());
+            JSONAssert result = getTransaction(fullHash);
+            if (!result.getJson().containsKey("height")) {
+                Logger.logErrorMessage("missing height: " + result.getJson().toJSONString() + " " + fullHashes);
+                FxtTransaction fxtTransaction = Nxt.getBlockchain().getBlockAtHeight(2).getFxtTransactions().get(0);
+                Logger.logErrorMessage("Fxt tx: " + JSONData.transaction(fxtTransaction));
+                Logger.logErrorMessage("" + fxtTransaction.getSortedChildTransactions().
+                        stream().map(t -> Convert.toHexString(t.getFullHash())).collect(Collectors.toList()).toString());
+            }
             Assert.assertEquals(Nxt.getBlockchain().getHeight(), result.integer("height"));
         }
+    }
+
+    private JSONAssert getTransaction(String fullHash) {
+        return new JSONAssert(new APICall.Builder("getTransaction").
+                param("fullHash", fullHash).build().invoke());
     }
 
     @Test
@@ -94,8 +110,7 @@ public class RulesTest extends BundlerTest {
         String fullHash = createTransaction(ALICE, minFeeNQT * FEE_MULTIPLIER, null);
         generateBlock();
 
-        result = new JSONAssert(new APICall.Builder("getTransaction").param("fullHash", fullHash).
-                build().invoke());
+        result = getTransaction(fullHash);
 
         result = new JSONAssert(new APICall.Builder("getFxtTransaction").param("transaction", result.str("fxtTransaction")).
                 build().invoke());

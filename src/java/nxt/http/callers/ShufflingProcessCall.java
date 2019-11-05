@@ -3,7 +3,7 @@ package nxt.http.callers;
 
 public class ShufflingProcessCall extends CreateTransactionCallBuilder<ShufflingProcessCall> {
     private ShufflingProcessCall() {
-        super("shufflingProcess");
+        super(ApiSpec.shufflingProcess);
     }
 
     public static ShufflingProcessCall create(int chain) {

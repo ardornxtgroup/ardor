@@ -18,7 +18,7 @@ package nxt.http;
 
 import nxt.addons.JO;
 import nxt.blockchain.Chain;
-import nxt.blockchain.ChildChain;
+import nxt.http.callers.ApiSpec;
 import nxt.http.responses.BlockResponse;
 import nxt.http.responses.TransactionResponse;
 import nxt.util.Convert;
@@ -45,9 +45,11 @@ import java.util.stream.Collectors;
 
 public class APICall {
 
+    public static final int IGNIS_CHAIN_ID = 2; // Avoid using the ChilcChain object since this depends on the whole Nxt infrastructure
+
     private APIConnector apiConnector;
 
-    private APICall(Builder builder) {
+    private APICall(Builder<?> builder) {
         URL remoteUrl = builder.remoteUrl;
         if (builder.isRemoteOnly() && remoteUrl == null) {
             throw new IllegalArgumentException("API call " + getClass().getName() + " must connect to a remote node");
@@ -70,30 +72,28 @@ public class APICall {
         private boolean isTrustRemoteCertificate;
 
         public Builder(String requestType) {
-            this.requestType = requestType;
-            params.put("requestType", Collections.singletonList(requestType));
-            APIServlet.APIRequestHandler apiRequestHandler =
-                    AccessController.doPrivileged((PrivilegedAction<APIServlet.APIRequestHandler>) () ->
-                            APIServlet.getAPIRequestHandler(requestType));
-            if (apiRequestHandler == null) {
-                throw new IllegalArgumentException("Invalid API " + requestType);
-            }
-            validParams.addAll(apiRequestHandler.getParameters());
-            if (apiRequestHandler.isChainSpecific()) {
+            this(ApiSpec.valueOf(requestType));
+        }
+
+        public Builder(ApiSpec apiSpec) {
+            this.requestType = apiSpec.name();
+            params.put("requestType", Collections.singletonList(this.requestType));
+            validParams.addAll(apiSpec.getParameters());
+            if (apiSpec.isChainSpecific()) {
                 validParams.add("chain");
-                param("chain", "" + ChildChain.IGNIS.getId());
+                param("chain", "" + IGNIS_CHAIN_ID); // Ignis specific API
             }
-            validFileParam = apiRequestHandler.getFileParameter();
+            validFileParam = apiSpec.getFileParameter();
         }
 
         public T remote(URL url) {
             remoteUrl = url;
-            return (T) this;
+            return self();
         }
 
         public T trustRemoteCertificate(boolean trustRemoteCertificate) {
             isTrustRemoteCertificate = trustRemoteCertificate;
-            return (T) this;
+            return self();
         }
 
         public boolean isRemoteOnly() {
@@ -102,7 +102,7 @@ public class APICall {
 
         public T setParamValidation(boolean isEnabled) {
             isValidationEnabled = isEnabled;
-            return (T) this;
+            return self();
         }
 
         public T param(String key, String value) {
@@ -121,7 +121,7 @@ public class APICall {
                 throw new IllegalArgumentException(String.format("Empty values parameter %s for requesttype %s", key, requestType));
             }
             params.put(key, values);
-            return (T) this;
+            return self();
         }
 
         public T param(String key, boolean value) {
@@ -228,6 +228,11 @@ public class APICall {
                 throw new IllegalArgumentException(String.format("Invalid file parameter %s for request type %s", key, requestType));
             }
             parts.put(key, b);
+            return self();
+        }
+
+        @SuppressWarnings("unchecked")
+        private T self() {
             return (T) this;
         }
 

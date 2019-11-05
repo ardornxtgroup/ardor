@@ -28,25 +28,7 @@ var NRS = (function (NRS, $) {
     };
 
     NRS.pages.exchange_changenow = function () {
-        var exchangeDisabled = $(".exchange_disabled");
-        var exchangePageHeader = $(".exchange_page_header");
-        var exchangePageContent = $(".exchange_page_content");
-
-        if (NRS.settings.exchange !== "1") {
-            exchangeDisabled.show();
-            exchangePageHeader.hide();
-            exchangePageContent.hide();
-            return;
-        }
-
-        NRS.pageLoading();
-
-        exchangeDisabled.hide();
-        exchangePageHeader.show();
-        exchangePageContent.show();
-        $("#changenow_exchange_from_crypto_header").text($.t("exchange_crypto", { from: "Crypto", to: NRS.getActiveChainName() }));
-        $("#changenow_exchange_to_crypto_header").text($.t("exchange_crypto", { from: NRS.getActiveChainName(), to: "Crypto" }));
-
+        NRS.changelly.exchangePageInit(EXCHANGE_NAME);
         loadCoins();
         setTimeout(refreshPage, 60000);
     };

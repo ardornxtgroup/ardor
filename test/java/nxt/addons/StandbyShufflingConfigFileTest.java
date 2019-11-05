@@ -39,6 +39,7 @@ public class StandbyShufflingConfigFileTest extends BlockchainTest {
         AccessController.doPrivileged((PrivilegedAction<Void>) () -> {
             Map<String, String> properties = new HashMap<>();
             properties.put("nxt.addOns", "nxt.addons.StandbyShuffling; nxt.addons.StartStandbyShuffling");
+            properties.put("nxt.disableSecurityPolicy", "true");
             initNxt(properties);
             initBlockchainTest();
             return null;

@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetLogCall extends APICall.Builder<GetLogCall> {
     private GetLogCall() {
-        super("getLog");
+        super(ApiSpec.getLog);
     }
 
     public static GetLogCall create() {

@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class TriggerContractByHeightCall extends APICall.Builder<TriggerContractByHeightCall> {
     private TriggerContractByHeightCall() {
-        super("triggerContractByHeight");
+        super(ApiSpec.triggerContractByHeight);
     }
 
     public static TriggerContractByHeightCall create() {

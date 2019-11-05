@@ -3,7 +3,7 @@ package nxt.http.callers;
 
 public class CastVoteCall extends CreateTransactionCallBuilder<CastVoteCall> {
     private CastVoteCall() {
-        super("castVote");
+        super(ApiSpec.castVote);
     }
 
     public static CastVoteCall create(int chain) {

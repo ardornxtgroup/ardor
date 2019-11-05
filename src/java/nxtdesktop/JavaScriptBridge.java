@@ -19,7 +19,6 @@ package nxtdesktop;
 import javafx.application.Platform;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
-import nxt.Nxt;
 import nxt.addons.JO;
 import nxt.crypto.Crypto;
 import nxt.http.API;
@@ -27,11 +26,11 @@ import nxt.util.Convert;
 import nxt.util.Logger;
 import nxt.util.security.BlockchainPermission;
 
-import java.awt.*;
+import java.awt.Desktop;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
@@ -69,30 +68,24 @@ public class JavaScriptBridge {
 
     @SuppressWarnings("unused")
     public String readContactsFile() {
-        String fileName = "contacts.json";
-        return readJsonFile(fileName);
+        return readJsonFile("contacts.json");
     }
 
     @SuppressWarnings("unused")
     public String readApprovalModelsFile() {
-        String fileName = "approval.models.json";
-        return readJsonFile(fileName);
+        return readJsonFile("approval.models.json");
     }
 
     private String readJsonFile(String fileName) {
-        byte[] bytes;
         try {
-            bytes = Files.readAllBytes(Paths.get(Nxt.getUserHomeDir(), fileName));
+            Path folderPath = Paths.get(System.getProperty("user.home"), "downloads");
+            return application.readTextfile(folderPath, fileName).orElse(null);
         } catch (IOException e) {
-            Logger.logInfoMessage("Cannot read file " + fileName + " error " + e.getMessage());
+            Logger.logInfoMessage("Error reading " + fileName + ", error " + e.getMessage());
             JO response = new JO();
-            response.put("error", "contacts_file_not_found");
-            response.put("file", fileName);
-            response.put("folder", Nxt.getUserHomeDir());
-            response.put("type", "1");
+            response.put("error", e.getMessage());
             return response.toJSONString();
         }
-        return new String(bytes, StandardCharsets.UTF_8);
     }
 
     public String getAdminPassword() {
@@ -129,5 +122,16 @@ public class JavaScriptBridge {
                 Logger.logInfoMessage("Cannot open paper wallet " + e);
             }
         });
+    }
+
+    @SuppressWarnings("unused")
+    public void downloadTextFile(String text, String filename) {
+        application.downloadFile(text, filename);
+    }
+
+    @SuppressWarnings("unused")
+    public boolean isFileReaderSupported() {
+        String version = System.getProperty("javafx.version");
+        return Integer.parseInt(version.substring(0, version.indexOf('.'))) >= 12;
     }
 }

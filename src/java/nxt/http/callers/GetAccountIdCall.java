@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetAccountIdCall extends APICall.Builder<GetAccountIdCall> {
     private GetAccountIdCall() {
-        super("getAccountId");
+        super(ApiSpec.getAccountId);
     }
 
     public static GetAccountIdCall create() {

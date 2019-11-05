@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetForgingCall extends APICall.Builder<GetForgingCall> {
     private GetForgingCall() {
-        super("getForging");
+        super(ApiSpec.getForging);
     }
 
     public static GetForgingCall create() {

@@ -62,9 +62,18 @@ var NRS = (function(NRS, $, undefined) {
 	});
 
 	$(".add_message").on("change", function() {
+		var $form = $(this).closest("form");
+		var $optionalMessage = $form.find(".optional_message");
 		if ($(this).is(":checked")) {
-			$(this).closest("form").find(".optional_message").fadeIn();
-			var permanentMessageControl = $(this).closest("form").find(".optional_message input[name=permanent_message]").parent();
+			$optionalMessage.fadeIn();
+            var $recipient_container = $form.find('.recipient_container');
+            if ($recipient_container.length == 0 || $recipient_container.is(":hidden")) {
+                $optionalMessage.find('.add_message_encrypt_option').hide();
+				$optionalMessage.find('input[name=encrypt_message]').prop('checked', false);
+            } else {
+				$optionalMessage.find('.add_message_encrypt_option').show();
+			}
+			var permanentMessageControl = $form.find(".optional_message input[name=permanent_message]").parent();
 			if (NRS.isParentChain()) {
 				permanentMessageControl.hide();
 			} else {
@@ -72,7 +81,7 @@ var NRS = (function(NRS, $, undefined) {
 			}
 			$(this).closest(".form-group").css("margin-bottom", "5px");
 		} else {
-			$(this).closest("form").find(".optional_message").hide();
+			$optionalMessage.hide();
 			$(this).closest(".form-group").css("margin-bottom", "");
 		}
 	});

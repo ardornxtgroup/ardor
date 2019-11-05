@@ -4,8 +4,8 @@ package nxt.http.callers;
 import nxt.http.APICall;
 
 public class CreateTransactionCallBuilder<T extends APICall.Builder> extends APICall.Builder<T> {
-    protected CreateTransactionCallBuilder(String requestType) {
-        super(requestType);
+    protected CreateTransactionCallBuilder(ApiSpec apiSpec) {
+        super(apiSpec);
     }
 
     public T broadcast(boolean broadcast) {

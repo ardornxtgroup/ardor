@@ -2,11 +2,11 @@
 
 if [ -x jdk/bin/java ]; then
     JAVA=./jdk/bin/java
-    JAVAC=./jdk/bin/javac
+    JAVAC="./jdk/bin/javac -encoding utf8 -source 1.8 -target 1.8"
     JAR=./jdk/bin/jar
 else
     JAVA=java
-    JAVAC=javac
+    JAVAC="javac -encoding utf8 -source 1.8 -target 1.8"
     JAR=jar
 fi
 
@@ -27,12 +27,12 @@ SP=src/java/
 
 echo "compiling core..."
 find src/java/nxt/ -name "*.java" > sources.tmp
-${JAVAC} -encoding utf8 -sourcepath "${SP}" -classpath "${CP}" -d classes/ @sources.tmp || exit 1
+${JAVAC} -sourcepath "${SP}" -classpath "${CP}" -d classes/ @sources.tmp || exit 1
 echo "core class files compiled successfully"
 
 echo "compiling desktop..."
 find src/java/nxtdesktop/ -name "*.java" > sources.tmp
-${JAVAC} -encoding utf8 -sourcepath "${SP}" -classpath "${CP}" -d classes/ @sources.tmp
+${JAVAC} -sourcepath "${SP}" -classpath "${CP}" -d classes/ @sources.tmp
 if [ $? -eq 0 ]; then
     echo "desktop class files compiled successfully"
 else
@@ -44,7 +44,7 @@ rm -f sources.tmp
 find addons/src/ -name "*.java" > addons.tmp
 if [ -s addons.tmp ]; then
     echo "compiling add-ons..."
-    ${JAVAC} -encoding utf8 -sourcepath "${SP}${PATHSEP}addons/src" -classpath "${CP}${PATHSEP}addons/classes${PATHSEP}addons/lib/*" -d addons/classes @addons.tmp || exit 1
+    ${JAVAC} -sourcepath "${SP}${PATHSEP}addons/src" -classpath "${CP}${PATHSEP}addons/classes${PATHSEP}addons/lib/*" -d addons/classes @addons.tmp || exit 1
     echo "add-ons compiled successfully"
 else
     echo "no add-ons to compile"
@@ -56,7 +56,7 @@ if [ -s tests.tmp ]; then
     echo "compiling tests..."
     /bin/rm -rf test/classes
     /bin/mkdir -p test/classes/
-    ${JAVAC} -encoding utf8 -sourcepath "${SP}${PATHSEP}test/java${PATHSEP}addons/test/java" -classpath "${CP}${PATHSEP}addons/classes${PATHSEP}testlib/*" -d test/classes @tests.tmp || exit 1
+    ${JAVAC} -sourcepath "${SP}${PATHSEP}test/java${PATHSEP}addons/test/java" -classpath "${CP}${PATHSEP}addons/classes${PATHSEP}testlib/*" -d test/classes @tests.tmp || exit 1
     echo "tests compiled successfully"
 else
     echo "no tests to compile"
@@ -68,7 +68,7 @@ if [ -s panels.tmp ]; then
     echo "compiling installer panels..."
     /bin/rm -rf installer/panels/classes
     /bin/mkdir -p installer/panels/classes/
-    ${JAVAC} -encoding utf8 -sourcepath "installer/panels/src" -classpath "${CP}${PATHSEP}installer/lib/*" -d installer/panels/classes @panels.tmp || exit 1
+    ${JAVAC} -sourcepath "installer/panels/src" -classpath "${CP}${PATHSEP}installer/lib/*" -d installer/panels/classes @panels.tmp || exit 1
     echo "installer panels compiled successfully"
 else
     echo "no installer panels to compile"

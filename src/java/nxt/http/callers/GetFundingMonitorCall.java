@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetFundingMonitorCall extends APICall.Builder<GetFundingMonitorCall> {
     private GetFundingMonitorCall() {
-        super("getFundingMonitor");
+        super(ApiSpec.getFundingMonitor);
     }
 
     public static GetFundingMonitorCall create(int chain) {
@@ -24,7 +24,11 @@ public class GetFundingMonitorCall extends APICall.Builder<GetFundingMonitorCall
         return unsignedLongParam("holding", holding);
     }
 
-    public GetFundingMonitorCall holdingType(String holdingType) {
+    public GetFundingMonitorCall includeHoldingInfo(boolean includeHoldingInfo) {
+        return param("includeHoldingInfo", includeHoldingInfo);
+    }
+
+    public GetFundingMonitorCall holdingType(byte holdingType) {
         return param("holdingType", holdingType);
     }
 

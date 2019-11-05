@@ -139,7 +139,7 @@ var NRS = (function (NRS, $) {
             NRS.constants.PROXY_NOT_FORWARDED_REQUESTS = response.proxyNotForwardedRequests;
             NRS.loadTransactionTypeConstants(response);
             NRS.constants.ACCOUNT_PREFIX = response.accountPrefix;
-            NRS.constants.ACCOUNT_REGEX_STR = "^(" + (response.accountPrefix + "|NXT)") + "-[A-Z0-9_]{4}-[A-Z0-9_]{4}-[A-Z0-9_]{4}-[A-Z0-9_]{5}";
+            NRS.constants.ACCOUNT_REGEX_STR = `^(${response.accountPrefix}|NXT)-[A-Z0-9_]{4}-[A-Z0-9_]{4}-[A-Z0-9_]{4}-(?!${response.accountPrefix}|NXT)[A-Z0-9_]{5}`;
             NRS.constants.ACCOUNT_RS_MATCH = NRS.getRsAccountRegex(response.accountPrefix);
             NRS.constants.ACCOUNT_NUMERIC_MATCH = NRS.getNumericAccountRegex();
             NRS.constants.ACCOUNT_MASK_ASTERIX = response.accountPrefix + "-****-****-****-*****";

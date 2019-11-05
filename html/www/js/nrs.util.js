@@ -299,7 +299,7 @@ var NRS = (function (NRS, $, undefined) {
         if (!id) {
             id = "";
         }
-        return "<a href='#' class='show_transaction_modal_action' data-fullHash='" + id + "' data-chain='" + String(chain).escapeHTML() +"' " + "' data-fxttransaction='" + fxtTransaction +"'>"
+        return "<a href='#' class='show_transaction_modal_action' data-fullHash='" + id + "' data-chain='" + String(chain).escapeHTML() + "' data-fxttransaction='" + fxtTransaction +"'>"
             + (isEscapedText ? text : String(text).escapeHTML()) + "</a>";
     };
 
@@ -915,6 +915,12 @@ var NRS = (function (NRS, $, undefined) {
 				} else {
 					return response.errorDescription;
 				}
+            case 10:
+                if (response.errorDescription == "Encrypted configuration data does not exist") {
+                    return $.t("error_process_file_incorrect");
+                } else {
+                    return response.errorDescription;
+                }
 			default:
 				return response.errorDescription;
 		}
@@ -954,11 +960,11 @@ var NRS = (function (NRS, $, undefined) {
     NRS.getTransactionStatusIcon = function (phasedEntity) {
         var statusIcon;
         if (phasedEntity.expectedCancellation == true) {
-            statusIcon = "<i class='fa fa-ban' title='" + $.t("cancelled") + "'></i>";
+            statusIcon = "<i class='far fa-ban' title='" + $.t("cancelled") + "'></i>";
         } else if (phasedEntity.phased == true) {
-            statusIcon = "<i class='fa fa-gavel' title='" + $.t("phased") + "'></i>";
+            statusIcon = "<i class='far fa-gavel' title='" + $.t("phased") + "'></i>";
         } else if (phasedEntity.phased == false) {
-            statusIcon = "<i class='fa fa-circle-o' title='" + $.t("unconfirmed") + "'></i>";
+            statusIcon = "<i class='fa fa-circle' title='" + $.t("unconfirmed") + "'></i>";
         } else {
             statusIcon = "<i class='fa fa-circle' title='" + $.t("confirmed") + "'></i>";
         }

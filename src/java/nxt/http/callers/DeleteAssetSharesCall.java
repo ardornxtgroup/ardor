@@ -3,7 +3,7 @@ package nxt.http.callers;
 
 public class DeleteAssetSharesCall extends CreateTransactionCallBuilder<DeleteAssetSharesCall> {
     private DeleteAssetSharesCall() {
-        super("deleteAssetShares");
+        super(ApiSpec.deleteAssetShares);
     }
 
     public static DeleteAssetSharesCall create(int chain) {

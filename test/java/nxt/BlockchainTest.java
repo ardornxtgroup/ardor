@@ -217,11 +217,19 @@ public abstract class BlockchainTest extends AbstractBlockchainTest {
         generateBlock(forgerSecretPhrase);
     }
 
+    public static void generateBlockAndSleep() {
+        generateBlock();
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException ignore) {}
+    }
+
     public static void generateBlock(Tester tester) {
         generateBlock(tester.getSecretPhrase());
     }
 
     private static void generateBlock(String forgerSecretPhrase) {
+        Logger.logDebugMessage("vvvvvvvvvvvvvvvvv    generateBlock()    vvvvvvvvvvvvvvvvv");
         try {
             AccessController.doPrivileged((PrivilegedExceptionAction<Void>) () -> {
                 blockchainProcessor.generateBlock(forgerSecretPhrase, Nxt.getEpochTime());
@@ -231,6 +239,7 @@ public abstract class BlockchainTest extends AbstractBlockchainTest {
             e.printStackTrace();
             Assert.fail();
         }
+        Logger.logDebugMessage("^----------------    generateBlock()    ----------------^");
     }
 
     protected static void generateBlocks(int howMany) {

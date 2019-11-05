@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetDGSGoodCall extends APICall.Builder<GetDGSGoodCall> {
     private GetDGSGoodCall() {
-        super("getDGSGood");
+        super(ApiSpec.getDGSGood);
     }
 
     public static GetDGSGoodCall create(int chain) {

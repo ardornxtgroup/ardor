@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class CalculateFeeCall extends APICall.Builder<CalculateFeeCall> {
     private CalculateFeeCall() {
-        super("calculateFee");
+        super(ApiSpec.calculateFee);
     }
 
     public static CalculateFeeCall create() {

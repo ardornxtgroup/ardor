@@ -1,4 +1,10 @@
 #!/bin/sh
+
+echo "***********************************************"
+echo "** DEPRECATED: Use 'run.sh --daemon' instead **"
+echo "***********************************************"
+sleep 1
+
 if [ -e ~/.ardor/nxt.pid ]; then
     PID=`cat ~/.ardor/nxt.pid`
     ps -p $PID > /dev/null

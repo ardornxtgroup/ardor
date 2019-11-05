@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetShufflingParticipantsCall extends APICall.Builder<GetShufflingParticipantsCall> {
     private GetShufflingParticipantsCall() {
-        super("getShufflingParticipants");
+        super(ApiSpec.getShufflingParticipants);
     }
 
     public static GetShufflingParticipantsCall create(int chain) {

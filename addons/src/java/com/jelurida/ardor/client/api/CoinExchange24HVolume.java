@@ -18,15 +18,13 @@ package com.jelurida.ardor.client.api;
 import nxt.addons.JO;
 import nxt.http.callers.GetBlockCall;
 import nxt.http.callers.GetCoinExchangeTradesCall;
+import nxt.http.callers.GetConstantsCall;
 import nxt.http.responses.CoinExchangeTradeResponse;
 
 import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
-
-import static nxt.blockchain.ChildChain.IGNIS;
-import static nxt.blockchain.FxtChain.FXT;
 
 /**
  * Calculate the trade volume of the ARDR/IGNIS pair on the Ardor coin exchange.
@@ -44,10 +42,15 @@ public class CoinExchange24HVolume {
     }
 
     public static void main(String[] args) {
-        new CoinExchange24HVolume().calculate();
+        CoinExchange24HVolume coinExchange = new CoinExchange24HVolume();
+        coinExchange.calculate(1, 2);
     }
 
-    private void calculate() {
+    private void calculate(int from, int to) {
+        JO constants = GetConstantsCall.create().remote(url).trustRemoteCertificate(true).call();
+        JO chainProperties = constants.getJo("chainProperties");
+        JO fromChain = chainProperties.getJo("" + from);
+        JO toChain = chainProperties.getJo("" + to);
         int currentTime = GetBlockCall.create().remote(url).trustRemoteCertificate(true).call().getInt("timestamp");
         int fromTime = currentTime - 60 * 60 * 24; // 24 hours ago
         int page = 0;
@@ -56,7 +59,7 @@ public class CoinExchange24HVolume {
         BigInteger counterSum = BigInteger.ZERO;
         int count = 0;
         while (currentTime >= fromTime) {
-            List<JO> trades = GetCoinExchangeTradesCall.create(FXT.getId()).exchange(IGNIS.getId()).firstIndex(page * pageSize).lastIndex(page * pageSize + pageSize - 1).
+            List<JO> trades = GetCoinExchangeTradesCall.create(fromChain.getInt("id")).exchange(toChain.getInt("id")).firstIndex(page * pageSize).lastIndex(page * pageSize + pageSize - 1).
                     remote(url).trustRemoteCertificate(true).call().getJoList("trades");
             for (JO trade : trades) {
                 CoinExchangeTradeResponse tradeResponse = CoinExchangeTradeResponse.create(trade);
@@ -71,8 +74,8 @@ public class CoinExchange24HVolume {
             }
             page++;
         }
-        System.out.println(sum.divide(BigInteger.valueOf(IGNIS.ONE_COIN)).longValue() + " " + IGNIS.getName());
-        System.out.println(counterSum.divide(BigInteger.valueOf(IGNIS.ONE_COIN)).divide(BigInteger.valueOf(FXT.ONE_COIN)).longValue() + " " + FXT.getName());
+        System.out.println(sum.divide(BigInteger.valueOf(toChain.getLong("ONE_COIN"))).longValue() + " " + toChain.getString("name"));
+        System.out.println(counterSum.divide(BigInteger.valueOf(toChain.getLong("ONE_COIN"))).divide(BigInteger.valueOf(fromChain.getLong("ONE_COIN"))).longValue() + " " + fromChain.getString("name"));
         System.out.println("" + count + " trades");
     }
 }

@@ -1,0 +1,25 @@
+image: yannishuber/openjfx8
+
+build-and-test:
+  stage: build
+  script:
+    - java -version
+    - apt-get update
+    #   zip required to package resulting artifact
+    #   haveged required to fix linux low entropy problem and run nxt.crypto.SecureRandomTest.strongSecureRandom test.
+    - apt-get install -y zip haveged
+    - service haveged start
+
+    - './beta-release-package.sh || :'
+    - chmod +x run-unit-tests.sh
+    - export TEST_SYSTEM_PROPERTIES="-Dnxt.logging.properties.file.name.prefix=gitlab-ci-"
+    - ./run-unit-tests.sh
+  only:
+    # add to this list branch name to enable CI on. For example:
+    - develop
+  artifacts:
+    when: always
+    paths:
+      - ardor-beta-*.zip
+      - logs/ardor.*.log
+    expire_in: 1 week

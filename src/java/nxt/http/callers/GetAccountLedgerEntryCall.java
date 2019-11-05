@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetAccountLedgerEntryCall extends APICall.Builder<GetAccountLedgerEntryCall> {
     private GetAccountLedgerEntryCall() {
-        super("getAccountLedgerEntry");
+        super(ApiSpec.getAccountLedgerEntry);
     }
 
     public static GetAccountLedgerEntryCall create() {

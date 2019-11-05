@@ -25,7 +25,8 @@ loader.load(function(NRS) {
         quantityQNT: NRS.convertToQNT(quantity, decimals),
         priceNQTPerCoin: NRS.convertToNQT(price),
         secretPhrase: config.secretPhrase,
-        chain: config.chain
+        chain: config.chain,
+		isParentChainTransaction: 1
     };
     data = Object.assign(
         data,

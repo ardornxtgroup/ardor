@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetMintingTargetCall extends APICall.Builder<GetMintingTargetCall> {
     private GetMintingTargetCall() {
-        super("getMintingTarget");
+        super(ApiSpec.getMintingTarget);
     }
 
     public static GetMintingTargetCall create() {

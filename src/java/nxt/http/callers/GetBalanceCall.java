@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetBalanceCall extends APICall.Builder<GetBalanceCall> {
     private GetBalanceCall() {
-        super("getBalance");
+        super(ApiSpec.getBalance);
     }
 
     public static GetBalanceCall create(int chain) {

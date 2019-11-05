@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class SearchTaggedDataCall extends APICall.Builder<SearchTaggedDataCall> {
     private SearchTaggedDataCall() {
-        super("searchTaggedData");
+        super(ApiSpec.searchTaggedData);
     }
 
     public static SearchTaggedDataCall create(int chain) {

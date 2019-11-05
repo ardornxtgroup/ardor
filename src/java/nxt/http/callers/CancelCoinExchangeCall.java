@@ -3,7 +3,7 @@ package nxt.http.callers;
 
 public class CancelCoinExchangeCall extends CreateTransactionCallBuilder<CancelCoinExchangeCall> {
     private CancelCoinExchangeCall() {
-        super("cancelCoinExchange");
+        super(ApiSpec.cancelCoinExchange);
     }
 
     public static CancelCoinExchangeCall create(int chain) {

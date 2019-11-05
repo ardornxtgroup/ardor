@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class RequeueUnconfirmedTransactionsCall extends APICall.Builder<RequeueUnconfirmedTransactionsCall> {
     private RequeueUnconfirmedTransactionsCall() {
-        super("requeueUnconfirmedTransactions");
+        super(ApiSpec.requeueUnconfirmedTransactions);
     }
 
     public static RequeueUnconfirmedTransactionsCall create() {

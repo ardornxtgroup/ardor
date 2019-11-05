@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetAliasCountCall extends APICall.Builder<GetAliasCountCall> {
     private GetAliasCountCall() {
-        super("getAliasCount");
+        super(ApiSpec.getAliasCount);
     }
 
     public static GetAliasCountCall create(int chain) {

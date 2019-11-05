@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetPollCall extends APICall.Builder<GetPollCall> {
     private GetPollCall() {
-        super("getPoll");
+        super(ApiSpec.getPoll);
     }
 
     public static GetPollCall create(int chain) {

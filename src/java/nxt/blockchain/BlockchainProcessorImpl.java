@@ -31,7 +31,11 @@ import nxt.peer.NetworkHandler;
 import nxt.peer.NetworkMessage;
 import nxt.peer.Peer;
 import nxt.peer.Peers;
-import nxt.util.*;
+import nxt.util.JSON;
+import nxt.util.Listener;
+import nxt.util.Listeners;
+import nxt.util.Logger;
+import nxt.util.ThreadPool;
 import nxt.util.security.BlockchainPermission;
 import nxt.voting.PhasingAppendix;
 import nxt.voting.PhasingPollHome;
@@ -41,9 +45,32 @@ import org.json.simple.JSONValue;
 
 import java.math.BigInteger;
 import java.security.MessageDigest;
-import java.sql.*;
-import java.util.*;
-import java.util.concurrent.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.NavigableMap;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadLocalRandom;
 
 public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
@@ -90,6 +117,16 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 new byte[] {
                         124, -116, -24, 26, -123, 86, 36, 38, 119, -125, 87, 52, -51, -28, 63, -97,
                         -64, -86, 9, 7, 125, -6, -112, 118, 120, -5, -50, 111, -35, -88, -68, -46
+                });
+        map.put(Constants.CHECKSUM_BLOCK_5, Constants.isTestnet ?
+                new byte[] {
+                        17, 100, -128, 7, 55, -78, -101, 54, 52, -13, 82, -126, 39, -110, 82, -100,
+                        -43, -14, -98, -108, -82, 12, 94, 28, -120, -74, -48, 82, 115, -77, 42, -52
+                }
+                :
+                new byte[] {
+                        126, -110, 56, -35, 87, 2, 55, 29, -113, 35, -11, 112, -90, 36, 107, 53,
+                        3, 126, -10, 94, 23, 117, 69, 67, 79, 52, -117, -45, 56, 15, 48, -78
                 });
         checksums = Collections.unmodifiableNavigableMap(map);
     }
@@ -840,6 +877,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                         (chkPeer.getState() == Peer.State.CONNECTED ||
                             (chkPeer.getAnnouncedAddress() != null && chkPeer.shareAddress())));
                 while (!peers.isEmpty()) {
+                    if (!Peers.isNetworkingEnabled()) {
+                        return;
+                    }
                     int index = ThreadLocalRandom.current().nextInt(peers.size());
                     Peer chkPeer = peers.get(index);
                     if (chkPeer.getState() != Peer.State.CONNECTED) {
@@ -871,6 +911,10 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 // Request transactions in batches of 100 until all transactions have been processed
                 //
                 while (!processing.isEmpty()) {
+                    if (!Peers.isNetworkingEnabled()) {
+                        Logger.logDebugMessage("Peers networking was disabled while retrieving prunable data");
+                        return;
+                    }
                     //
                     // Get the pruned transactions from the archive peer
                     //
@@ -1377,7 +1421,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
         blockchain.writeLock();
         try {
-            BlockImpl previousLastBlock = null;
+            BlockImpl previousLastBlock;
             try {
                 Db.db.beginTransaction();
                 previousLastBlock = blockchain.getLastBlock();
@@ -1403,14 +1447,22 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 block.setPrevious(previousLastBlock);
                 blockListeners.notify(block, Event.BEFORE_BLOCK_ACCEPT);
                 TransactionProcessorImpl.getInstance().requeueAllUnconfirmedTransactions();
-                addBlock(block);
-                accept(block, validPhasedTransactions, invalidPhasedTransactions, duplicates);
-                Db.db.commitTransaction();
-            } catch (Exception e) {
-                Db.db.rollbackTransaction();
-                blockchain.setLastBlock(previousLastBlock);
-                popOffTo(previousLastBlock);
-                throw e;
+                try {
+                    addBlock(block);
+                    accept(block, validPhasedTransactions, invalidPhasedTransactions, duplicates);
+                    Db.db.commitTransaction();
+                } catch (Exception e) {
+                    Logger.logInfoMessage("Failed to accept an already validated block", e);
+                    Db.db.rollbackTransaction();
+                    BlockDb.deleteBlocksFrom(block.getId());
+                    blockchain.setLastBlock(previousLastBlock);
+                    for (DerivedDbTable table : derivedTables) {
+                        table.popOffTo(previousLastBlock.getHeight());
+                    }
+                    Db.db.clearCache();
+                    Db.db.commitTransaction();
+                    throw e;
+                }
             } finally {
                 Db.db.endTransaction();
             }

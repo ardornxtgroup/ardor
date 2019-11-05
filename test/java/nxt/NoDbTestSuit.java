@@ -16,7 +16,7 @@
 
 package nxt;
 
-import nxt.crypto.CryptoSuite;
+import nxt.crypto.NoDbCryptoSuite;
 import nxt.http.APIProxyServletTest;
 import nxt.tools.PassphraseRecoveryTest;
 import nxt.util.UtilSuite;
@@ -28,7 +28,7 @@ import org.junit.runners.Suite;
         UtilSuite.class,
         PassphraseRecoveryTest.class,
         APIProxyServletTest.class,
-        CryptoSuite.class,
+        NoDbCryptoSuite.class
 })
 public class NoDbTestSuit {
 }

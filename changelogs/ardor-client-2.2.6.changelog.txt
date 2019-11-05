@@ -1,0 +1,175 @@
+This is a stable release, introducing multiple enhancements and bugfixes. It
+is a recommended upgrade for production use.
+
+On testnet, upgrade before block 3250000 (expected Nov 7, 2019) is mandatory
+due to the activation of the following new features that require a hard fork:
+
+Allow sending zero fee child chain transactions even from accounts not yet
+registered on the blockchain.
+
+Allow setting up account control with zero max fees. This completely removes
+the risk that an attacker who obtains the passphrase of an account placed
+under account control may slowly waste its funds on fees, however the
+transactions fees for such an account will need to be sponsored, i.e. its
+transactions must be bundled by some bundler for free.
+
+The above features will be available on testnet after block 3250000, and will
+also become enabled on mainnet at the next scheduled hard fork.
+
+The node processes management add-ons:
+
+SaveForgingEncrypted, StartForgingEncrypted,
+SaveFundingMonitorsEncrypted, StartFundingMonitorsEncrypted,
+SaveBundlingEncrypted, StartBundlingEncrypted,
+SaveStandbyShufflingEncrypted, StartStandbyShufflingEncrypted,
+
+have been replaced respectively with:
+
+ForgingEncryptedConfig,
+FundingMonitorsEncryptedConfig,
+BundlingEncryptedConfig,
+StandbyShufflingEncryptedConfig.
+
+If you have enabled any of those in the nxt.properties file, the nxt.addOns
+property must be updated with the new add-on classname.
+
+For add-ons in the nxt.addons package, such as the process management add-ons,
+specifying the full Java package name is now optional, i.e. if only the class
+name is specified in the nxt.addOns property, it is assumed to be in the
+nxt.addons package.
+
+Each of the new add-ons exports two http APIs, to allow saving the encrypted
+configuration and starting the corresponding process.
+
+The EncryptedConfig add-ons now by default use files under the conf/processes
+directory to save the encrypted processes configuration, overwriting existing
+files if needed. An alternative location can be specified using the
+nxt.addons.EncryptedConfig.path property. When using the API, the config file
+can also be saved under any other path, as long as it does not overwrite an
+existing file.
+
+Client-side encryption is also supported by the SaveEncrypted add-on APIs. If
+the config data is already encrypted, the dataAlreadyEncrypted=true request
+parameter must be set, and there is no need to submit the encryptionPassword.
+
+All of the above forging, bundling, funding monitors, and standby shuffling
+process management add-ons are now fully supported by the wallet UI.
+A "Processes" page has been added, accessible under the cogwheel menu, from
+which the configuration of currently running forgers, bundlers, funding
+monitors or standby shufflers can be saved to an encrypted configuration file,
+and restored again after a node restart by supplying the encryption password.
+The corresponding add-ons must first be enabled in the nxt.properties file in
+order for the option to save/start them to appear in the Processes page.
+
+A tutorial and documentation is available at:
+https://ardordocs.jelurida.com/Node_Processes_Configuration
+
+The wallet UI now allows attaching an unencrypted message also to transactions
+that do not have a recipient.
+
+Multiple UX improvements to reduce or automate the switching between chains
+that is sometimes needed when the user tries to access a feature or submit a
+transaction not supported on the current chain.
+
+The Standby Shufflers UI has been improved to show the numbers of shuffling
+recipient accounts remaining and currently in use.
+
+The Funding Monitors UI, available under the cogwheel menu / Monitors, now
+allows starting a funding monitor for assets or monetary system currencies,
+not only for child chain coins. Funding monitors for such holdings must be run
+on a chain that allows asset transfer or currency transfer transactions, i.e.
+not on the parent Ardor chain.
+
+The startFundingMonitor and getFundingMonitor APIs now support an optional
+includeHoldingInfo parameter, to request the asset or currency info to be
+included in the response json.
+
+Setting up https on a public node running Ardor has been made simple, without
+the need for a reverse proxy. The new pem.to.pkcs12.keystore.certbot.hook.sh
+script can be used to convert an SSL certificate issued by Let's Encrypt to
+a keystore file that the Ardor node can use. The run.sh script now supports
+authbind, if started with the --authbind modified, to allow the Ardor software
+to listen on port 443 without having to run it as root. A detailed tutorial
+putting everything together is available at:
+https://ardordocs.jelurida.com/Configuring_HTTPs_on_a_standalone_Ardor_installation
+
+A new managePeersNetworking API has been added, to allow disabling or
+enabling the node peer networking at runtime. It takes a single "operation"
+parameter, with possible values: "enable", "disable", and "query", and
+requires the adminPassword when run on a public node.
+
+A new property has been added, nxt.deleteProcessedVotes=true, to optionally
+disable the deletion of votes records when trimming the votes table. Note
+that even if votes are not deleted, re-calculation of poll results may require
+data that are no longer available (such as account or asset balances at the
+time of poll finish), unless a blockchain rescan is done, this is why the
+default is still to delete old votes records.
+
+The compact.sh script has been improved to better reduce the database size.
+A new property has been added, nxt.disableCompactOnShutdown=false to allow
+disabling database compact on shutdown, for faster restarts during development.
+
+The export/import functionality for contacts and approval models, as used in
+the browser based wallet UI, is now available and compatible with the JavaFX
+based desktop wallet too.
+
+The Contract Runner doesn't require anymore an initial configuration on
+nxt.properties or an external JSON file. Instead, it can be bootstrapped
+from the new Processes page or from an uploaded configuration file.
+The recommended configuration procedure is now the Processes page as it
+provides a persistent configuration using encryption instead of plain text
+files. It also helps with the initial configuration. When you open the
+Save modal window for Contract Runner under the Processes page you are presented
+with a basic minimum configuration like this:
+
+{
+  "accountRS": "ARDOR-XXXX-XXXX-XXXX-XXXXX",
+  "autoFeeRate": true,
+  "validator": false,
+  "params": {}
+}
+
+The accountRS will match the currently logged in account, but you can change it.
+You only need to enter the passphrase for the account and then the encryption
+password. The UI will take care of adding the passphrase to the configuration
+file before encrypting it locally and sending to the node for persistent
+storage. In order to start the contract runner use the Start button under the
+Processes page. After restarting the node you only need to start it again.
+
+The Contract Runner can now calculate the best fee when sending transactions
+instead of relying on a fixed fee ratio. There is a new 'autoFeeRate' boolean
+property to enable this new feature. If set to true (default: false), the
+contract runner will calculate the best fee available based on the current
+bundlers. This should be equivalent to the "Calculate Fee" button on the wallet.
+When autoFeeRate is set to false, or the best fee cannot be obtained, the
+contract runner will revert to using the usual "feeRateNQTPerFXT.<Chain Name>"
+properties.
+
+Two new optional properties for the contract runner allow filtering out
+bundlers used to retrieve the best available fee when autoFeeRate is activated.
+
+Bundlers with an effective balance below the property minBundlerBalanceFXT
+are not considered for the best fee calculation. The default for this property
+is to use the same value as the global property nxt.minBundlerBalanceFXT.
+
+Also, bundlers with a fee limit currently below the property
+minBundlerFeeLimitFQT are also not considered for the best fee calculation.
+Again, the default for this property is to use the same value as the equivalent
+global property.
+
+For more detailed information please check the updated documentation at:
+https://ardordocs.jelurida.com/Lightweight_Contracts
+
+Added ChangeHero as an integrated exchange in the wallet.
+
+Node.js module fixes and improvements.
+
+Various UI improvements and bugfixes. Updated the icons to Font Awesome Pro
+5.11.2 (commercial version). Android related UI fixes.
+
+Updated H2 to version 1.4.200. If using a custom nxt.dbParams or nxt.dbUrl
+properties, remove any MVCC settings from them, MVCC is now the default and
+not configurable.
+
+Updated Jetty to version 9.4.22.
+

@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetBlockchainTransactionsCall extends APICall.Builder<GetBlockchainTransactionsCall> {
     private GetBlockchainTransactionsCall() {
-        super("getBlockchainTransactions");
+        super(ApiSpec.getBlockchainTransactions);
     }
 
     public static GetBlockchainTransactionsCall create(int chain) {

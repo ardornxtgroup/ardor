@@ -60,7 +60,7 @@ var NRS = (function(NRS, $) {
 	var forgingIndicator = $("#forging_indicator");
 	forgingIndicator.click(function(e) {
 		e.preventDefault();
-
+        var currentChainId = NRS.getActiveChainId();
         if (NRS.state.isLightClient) {
             $.growl($.t("error_forging_light_client"), {
                 "type": "danger"
@@ -87,16 +87,20 @@ var NRS = (function(NRS, $) {
 					"type": "danger"
 				});
 			}
-		} else if (!NRS.isParentChain()) {
-            $.growl($.t("parent_chain_feature"), {
-                "type": "warning"
-            });
-        } else if (NRS.isAccountForging) {
-			$("#stop_forging_modal").modal("show");
-		} else {
-			$("#start_forging_modal").modal("show");
-		}
-	});
+		} else { 
+            showForgingModal();
+        }
+    });
+    
+    function showForgingModal() {
+        var $modal;
+        if (NRS.isAccountForging) {
+            $modal = $("#stop_forging_modal");
+        } else {
+            $modal = $("#start_forging_modal");
+        }
+        $modal.modal("show");
+    }
 
 	forgingIndicator.hover(
 		function() {

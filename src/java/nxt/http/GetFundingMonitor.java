@@ -43,6 +43,7 @@ import java.util.List;
  * funding account will be returned.
  * <p>
  * Holding type codes are listed in getConstants.
+ * You can also request the holding information using the includeHoldingInfo parameter.
  * In addition, the holding identifier must be specified when the holding type is ASSET or CURRENCY.
  */
 public class GetFundingMonitor extends APIServlet.APIRequestHandler {
@@ -51,7 +52,7 @@ public class GetFundingMonitor extends APIServlet.APIRequestHandler {
 
     private GetFundingMonitor() {
         super(new APITag[] {APITag.ACCOUNTS}, "holdingType", "holding", "property", "secretPhrase",
-                "includeMonitoredAccounts", "account", "adminPassword");
+                "includeMonitoredAccounts", "includeHoldingInfo", "account", "adminPassword");
     }
     /**
      * Process the request
@@ -66,6 +67,7 @@ public class GetFundingMonitor extends APIServlet.APIRequestHandler {
         String secretPhrase = ParameterParser.getSecretPhrase(req, false);
         long account = ParameterParser.getAccountId(req, false);
         boolean includeMonitoredAccounts = "true".equalsIgnoreCase(req.getParameter("includeMonitoredAccounts"));
+        boolean includeHoldingInfo = "true".equalsIgnoreCase(req.getParameter("includeHoldingInfo"));
         if (secretPhrase == null) {
             API.verifyPassword(req);
         }
@@ -106,7 +108,7 @@ public class GetFundingMonitor extends APIServlet.APIRequestHandler {
         JSONObject response = new JSONObject();
         JSONArray jsonArray = new JSONArray();
         monitors.forEach(monitor -> {
-            JSONObject monitorJSON = JSONData.accountMonitor(monitor, includeMonitoredAccounts);
+            JSONObject monitorJSON = JSONData.accountMonitor(monitor, includeMonitoredAccounts, includeHoldingInfo);
             jsonArray.add(monitorJSON);
         });
         response.put("monitors", jsonArray);

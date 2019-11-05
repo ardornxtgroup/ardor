@@ -421,7 +421,7 @@ var NRS = (function (NRS, $) {
     var formatMessageArea = function (title, nrFields, data, options, transaction) {
 		var outputStyle = (!options.noPadding && title ? "padding-left:5px;" : "");
 		var labelStyle = (nrFields > 1 ? " style='margin-top:5px'" : "");
-		var label = (title ? "<label" + labelStyle + "><i class='fa fa-unlock'></i> " + String(title).escapeHTML() + "</label>" : "");
+		var label = (title ? "<label" + labelStyle + "><i class='far fa-unlock'></i> " + String(title).escapeHTML() + "</label>" : "");
 		var msg;
 		if (NRS.isTextMessage(transaction)) {
 			msg = String(data.message).autoLink().nl2br();
@@ -658,28 +658,34 @@ var NRS = (function (NRS, $) {
 		return value;
 	}
 
-	function aesEncrypt(plaintext, options) {
+	function aesEncrypt(payload, options) {
         var ivBytes = getRandomBytes(16);
 
 		// CryptoJS likes WordArray parameters
-		var text = converters.byteArrayToWordArray(plaintext);
+		var wordArrayPayload = converters.byteArrayToWordArray(payload);
 		var sharedKey;
 		if (!options.sharedKey) {
 			sharedKey = getSharedSecret(options.privateKey, options.publicKey);
 		} else {
 			sharedKey = options.sharedKey.slice(0); //clone
 		}
-		for (var i = 0; i < 32; i++) {
-			sharedKey[i] ^= options.nonce[i];
+		if (options.nonce !== undefined) {
+			for (var i = 0; i < 32; i++) {
+				sharedKey[i] ^= options.nonce[i];
+			}
 		}
 		var key = CryptoJS.SHA256(converters.byteArrayToWordArray(sharedKey));
-		var encrypted = CryptoJS.AES.encrypt(text, key, {
+		var encrypted = CryptoJS.AES.encrypt(wordArrayPayload, key, {
 			iv: converters.byteArrayToWordArray(ivBytes)
 		});
 		var ivOut = converters.wordArrayToByteArray(encrypted.iv);
 		var ciphertextOut = converters.wordArrayToByteArray(encrypted.ciphertext);
 		return ivOut.concat(ciphertextOut);
 	}
+
+	NRS.aesEncrypt = function(plaintext, password) {
+		return aesEncrypt(converters.stringToByteArray(plaintext), {sharedKey: converters.stringToByteArray(password)});
+	};
 
 	function aesDecrypt(ivCiphertext, options) {
 		if (ivCiphertext.length < 16 || ivCiphertext.length % 16 != 0) {

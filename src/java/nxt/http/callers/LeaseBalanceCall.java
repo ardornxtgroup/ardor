@@ -3,7 +3,7 @@ package nxt.http.callers;
 
 public class LeaseBalanceCall extends CreateTransactionCallBuilder<LeaseBalanceCall> {
     private LeaseBalanceCall() {
-        super("leaseBalance");
+        super(ApiSpec.leaseBalance);
     }
 
     public static LeaseBalanceCall create(int chain) {

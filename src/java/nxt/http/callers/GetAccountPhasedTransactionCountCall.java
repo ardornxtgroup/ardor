@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetAccountPhasedTransactionCountCall extends APICall.Builder<GetAccountPhasedTransactionCountCall> {
     private GetAccountPhasedTransactionCountCall() {
-        super("getAccountPhasedTransactionCount");
+        super(ApiSpec.getAccountPhasedTransactionCount);
     }
 
     public static GetAccountPhasedTransactionCountCall create(int chain) {

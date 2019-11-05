@@ -335,7 +335,7 @@ public abstract class AbstractContractContext {
     public JO createTransaction(APICall.Builder builder, boolean reduceFeeFromAmount) {
         long feeNQT = getTransactionFee(builder);
         if (feeNQT < 0) {
-            return generateInternalErrorResponse(FEE_CANNOT_CALCULATE,"%s: cannot calculate fee, perhaps feeRateNQTPerFXT not defined for chain %s in contract runner configuration", contractName, builder.getParam("chain"));
+            return generateInternalErrorResponse(FEE_CANNOT_CALCULATE,"%s: cannot calculate fee, try autoFeeRate or defining feeRateNQTPerFXT for chain %s in contract runner configuration", contractName, builder.getParam("chain"));
         } else {
             builder.param("feeNQT", feeNQT);
             if (reduceFeeFromAmount && builder.isParamSet("amountNQT")) {
@@ -372,12 +372,14 @@ public abstract class AbstractContractContext {
         long feeFQT = transactionResponse.getLong("minimumFeeFQT");
         int chainId = Integer.parseInt(builder.getParam("chain"));
         ChainWrapper chain = chainById.get(chainId);
-        if (chain.getName().equals("ARDR")) {
+        if (!chain.isChildChain()) {
             return feeFQT;
         }
-        long feeRatio = config.getFeeRateNQTPerFXT(chainId);
-        // TODO can we reliably calculate the minimum fee here and not require the user to specify it in the contract runner config?
-        // What if we force the contract runner to be a bundler which bundles its own transactions?
+
+        long feeRatio = config.getCurrentFeeRateNQTPerFXT(chainId);
+        if (feeRatio == -1) {
+            return -1;
+        }
         return BigDecimal.valueOf(feeFQT).multiply(BigDecimal.valueOf(feeRatio)).divide(BigDecimal.valueOf(chain.getOneCoin()), RoundingMode.HALF_EVEN).longValue();
     }
 
@@ -401,7 +403,7 @@ public abstract class AbstractContractContext {
         int chainId = Integer.parseInt(builder.getParam("chain"));
         if (!builder.isParamSet("feeNQT")) {
             if (chainById.get(chainId).isChildChain()) {
-                builder.param("feeRateNQTPerFXT", config.getFeeRateNQTPerFXT(chainId));
+                builder.param("feeRateNQTPerFXT", config.getCurrentFeeRateNQTPerFXT(chainId));
             }
         }
         Block lastBlock = blockchain.getLastBlock();

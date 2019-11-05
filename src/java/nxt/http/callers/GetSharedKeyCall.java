@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetSharedKeyCall extends APICall.Builder<GetSharedKeyCall> {
     private GetSharedKeyCall() {
-        super("getSharedKey");
+        super(ApiSpec.getSharedKey);
     }
 
     public static GetSharedKeyCall create() {

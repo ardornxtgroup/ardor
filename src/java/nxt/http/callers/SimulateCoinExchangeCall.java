@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class SimulateCoinExchangeCall extends APICall.Builder<SimulateCoinExchangeCall> {
     private SimulateCoinExchangeCall() {
-        super("simulateCoinExchange");
+        super(ApiSpec.simulateCoinExchange);
     }
 
     public static SimulateCoinExchangeCall create(int chain) {

@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class RsConvertCall extends APICall.Builder<RsConvertCall> {
     private RsConvertCall() {
-        super("rsConvert");
+        super(ApiSpec.rsConvert);
     }
 
     public static RsConvertCall create() {

@@ -26,7 +26,6 @@ import java.security.SecureRandom;
 import java.util.Arrays;
 
 public class SimpleShamirSecretSharingTest extends BlockchainTest {
-
     private static final BigInteger ALICE_SECRET_PHRASE_128_BIT = new BigInteger("298106192037605529109565170145082624171");
 
     @Test

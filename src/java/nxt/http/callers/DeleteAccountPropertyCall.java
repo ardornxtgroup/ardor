@@ -3,7 +3,7 @@ package nxt.http.callers;
 
 public class DeleteAccountPropertyCall extends CreateTransactionCallBuilder<DeleteAccountPropertyCall> {
     private DeleteAccountPropertyCall() {
-        super("deleteAccountProperty");
+        super(ApiSpec.deleteAccountProperty);
     }
 
     public static DeleteAccountPropertyCall create(int chain) {

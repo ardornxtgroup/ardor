@@ -176,7 +176,7 @@ public class SecretSharingGenerator {
      * @param version the piece version
      * @return the reproduced secret phrase
      */
-    private static String combine(String[] secretPhrasePieces, BigInteger modPrime, int version) {
+    static String combine(String[] secretPhrasePieces, BigInteger modPrime, int version) {
         List<SecretShare> secretShares = Arrays.stream(secretPhrasePieces).map(string -> {
             String[] split = string.split(":", 2);
             if (split.length != 2) {

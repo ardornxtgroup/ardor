@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class EventWaitCall extends APICall.Builder<EventWaitCall> {
     private EventWaitCall() {
-        super("eventWait");
+        super(ApiSpec.eventWait);
     }
 
     public static EventWaitCall create() {

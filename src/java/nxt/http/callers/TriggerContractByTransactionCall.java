@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class TriggerContractByTransactionCall extends APICall.Builder<TriggerContractByTransactionCall> {
     private TriggerContractByTransactionCall() {
-        super("triggerContractByTransaction");
+        super(ApiSpec.triggerContractByTransaction);
     }
 
     public static TriggerContractByTransactionCall create(int chain) {
@@ -36,7 +36,7 @@ public class TriggerContractByTransactionCall extends APICall.Builder<TriggerCon
         return param("adminPassword", adminPassword);
     }
 
-    public TriggerContractByTransactionCall validate(String validate) {
+    public TriggerContractByTransactionCall validate(boolean validate) {
         return param("validate", validate);
     }
 }

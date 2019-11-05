@@ -58,6 +58,7 @@ exports.load = function(callback) {
             global.pako = require("pako");
             var jsbn = require('jsbn');
             global.BigInteger = jsbn.BigInteger;
+            global.Big = require('big.js');
             global.window = window;
             window.console = console;
 

@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class DownloadPrunableMessageCall extends APICall.Builder<DownloadPrunableMessageCall> {
     private DownloadPrunableMessageCall() {
-        super("downloadPrunableMessage");
+        super(ApiSpec.downloadPrunableMessage);
     }
 
     public static DownloadPrunableMessageCall create(int chain) {

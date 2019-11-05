@@ -22,7 +22,6 @@ import org.junit.Test;
 import java.nio.ByteBuffer;
 
 public class APIProxyServletTest {
-
     @Test
     public void passwordFinder() {
         ByteBuffer postData = ByteBuffer.wrap("abcsecretPhrase=def".getBytes());

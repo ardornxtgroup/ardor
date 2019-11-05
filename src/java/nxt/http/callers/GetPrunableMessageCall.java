@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetPrunableMessageCall extends APICall.Builder<GetPrunableMessageCall> {
     private GetPrunableMessageCall() {
-        super("getPrunableMessage");
+        super(ApiSpec.getPrunableMessage);
     }
 
     public static GetPrunableMessageCall create(int chain) {

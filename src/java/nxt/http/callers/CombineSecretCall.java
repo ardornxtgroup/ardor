@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class CombineSecretCall extends APICall.Builder<CombineSecretCall> {
     private CombineSecretCall() {
-        super("combineSecret");
+        super(ApiSpec.combineSecret);
     }
 
     public static CombineSecretCall create() {

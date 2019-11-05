@@ -63,8 +63,10 @@ public class InstallListener extends AbstractProgressInstallerListener {
     public void afterPacks(List<Pack> packs, ProgressListener listener) {
         ConfigHandler handler = new ConfigHandler();
         String config = getInstallData().getVariable(ConfigHandler.VAR_FILE_CONTENTS);
-        if (!handler.writeSettingsFile(config, getInstallData().getInstallPath())) {
-            error("Failed to write settings file");
+        if (config != null) {
+            if (!handler.writeSettingsFile(config, getInstallData().getInstallPath())) {
+                error("Failed to write settings file");
+            }
         }
     }
 

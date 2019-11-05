@@ -89,7 +89,7 @@ final class ChildBlockFxtTransactionImpl extends FxtTransactionImpl implements C
         List<ChildTransactionImpl> sortedChildTransactions;
         ChildBlockAttachment childBlockAttachment = (ChildBlockAttachment)getAttachment();
         byte[][] hashes = childBlockAttachment.getChildTransactionFullHashes();
-        BlockchainImpl.getInstance().readLock();
+        BlockchainImpl.getInstance().writeLock();
         try {
             if (getSignature() != null && TransactionHome.hasFxtTransaction(this.getId(), Nxt.getBlockchain().getHeight() + 1)) {
                 BlockImpl block = this.getBlock();
@@ -124,7 +124,7 @@ final class ChildBlockFxtTransactionImpl extends FxtTransactionImpl implements C
                 sortedChildTransactions = null;
             }
         }  finally {
-            BlockchainImpl.getInstance().readUnlock();
+            BlockchainImpl.getInstance().writeUnlock();
         }
         synchronized (this) {
             this.sortedChildTransactions = sortedChildTransactions;

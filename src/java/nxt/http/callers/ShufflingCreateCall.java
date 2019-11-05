@@ -3,7 +3,7 @@ package nxt.http.callers;
 
 public class ShufflingCreateCall extends CreateTransactionCallBuilder<ShufflingCreateCall> {
     private ShufflingCreateCall() {
-        super("shufflingCreate");
+        super(ApiSpec.shufflingCreate);
     }
 
     public static ShufflingCreateCall create(int chain) {
@@ -30,7 +30,7 @@ public class ShufflingCreateCall extends CreateTransactionCallBuilder<ShufflingC
         return param("participantCount", participantCount);
     }
 
-    public ShufflingCreateCall holdingType(String holdingType) {
+    public ShufflingCreateCall holdingType(byte holdingType) {
         return param("holdingType", holdingType);
     }
 }

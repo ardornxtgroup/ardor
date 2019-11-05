@@ -34,8 +34,8 @@ public final class SendMessage extends CreateTransaction {
     @Override
     protected JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
         long recipientId = ParameterParser.getAccountId(req, "recipient", false);
-        Account account = ParameterParser.getSenderAccount(req);
-        return transactionParameters(req, account, MessageAttachment.INSTANCE).setRecipientId(recipientId).createTransaction();
+        long senderId = ParameterParser.getSenderId(req);
+        return new CreateTransactionParameters(req).setSenderId(senderId).setAttachment(MessageAttachment.INSTANCE).setRecipientId(recipientId).createTransaction();
     }
 
 }

@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetBidOrdersCall extends APICall.Builder<GetBidOrdersCall> {
     private GetBidOrdersCall() {
-        super("getBidOrders");
+        super(ApiSpec.getBidOrders);
     }
 
     public static GetBidOrdersCall create(int chain) {

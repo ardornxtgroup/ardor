@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class ParsePhasingParamsCall extends APICall.Builder<ParsePhasingParamsCall> {
     private ParsePhasingParamsCall() {
-        super("parsePhasingParams");
+        super(ApiSpec.parsePhasingParams);
     }
 
     public static ParsePhasingParamsCall create() {

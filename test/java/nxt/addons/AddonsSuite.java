@@ -22,7 +22,9 @@ import org.junit.runners.Suite;
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
         SaveAssetSnapshotTest.class,
-        SaveCurrencySnapshotTest.class
+        SaveCurrencySnapshotTest.class,
+        //StandbyShufflingConfigFileTest.class,
+        //StandbyShufflingTest.class
 })
 public class AddonsSuite {
 }

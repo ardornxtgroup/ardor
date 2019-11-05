@@ -29,7 +29,15 @@ public interface ContractRunnerConfig {
 
     String getAccountRs();
 
+    boolean isAutoFeeRate();
+
+    long getMinBundlerBalanceFXT();
+
+    long getMinBundlerFeeLimitFQT();
+
     long getFeeRateNQTPerFXT(int chainId);
+
+    long getCurrentFeeRateNQTPerFXT(int chainId);
 
     JO getParams();
 

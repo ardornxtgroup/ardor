@@ -26,7 +26,7 @@ var NRS = (function(NRS, $) {
     var _modalUIElements = null;
 
     NRS.loadLockscreenHTML = function(path) {
-        if (!NRS.getUrlParameter("account")) {
+        if (!NRS.getUrlParameter("account") && !NRS.getUrlParameter("lifetime_modal")) {
             jQuery.ajaxSetup({async: false});
             $.get(path, '', function (data) {
                 $("body").prepend(data);
@@ -89,7 +89,6 @@ var NRS = (function(NRS, $) {
         $.get("html/modals/templates.html", '', function (data) {
             _replaceModalHTMLTemplateDiv(data, 'recipient_modal_template');
             _replaceModalHTMLTemplateDiv(data, 'add_message_modal_template');
-            _replaceModalHTMLTemplateDiv(data, 'add_public_message_modal_template');
             _replaceModalHTMLTemplateDiv(data, 'fee_calculation_modal_template');
             _replaceModalHTMLTemplateDiv(data, 'secret_phrase_modal_template');
             _replaceModalHTMLTemplateDiv(data, 'admin_password_modal_template');
@@ -168,7 +167,7 @@ var NRS = (function(NRS, $) {
             return;
         }
         var menuHTML = '<li class="treeview" id="' + options["id"] + '" class="sm_treeview" data-sidebar-position="' + options["desiredPosition"] + '">';
-        menuHTML += '<a href="#" data-page="' + options["page"] + '">' + options["titleHTML"] + '<i class="fa pull-right fa-angle-right" style="padding-top:3px"></i></a>';
+        menuHTML += '<a href="#" data-page="' + options["page"] + '">' + options["titleHTML"] + '<i class="far pull-right fa-angle-right" style="padding-top:3px"></i></a>';
         menuHTML += '<ul class="treeview-menu" style="display: none;"></ul>';
         menuHTML += '</li>';
         _appendToSidebar(menuHTML, options["id"], options["desiredPosition"]);
@@ -190,7 +189,7 @@ var NRS = (function(NRS, $) {
         } else {
             return false;
         }
-        menuHTML += '><i class="fa fa-angle-double-right"></i> ';
+        menuHTML += '><i class="far fa-angle-double-right"></i> ';
         menuHTML += options["titleHTML"] + ' <span class="badge" style="display:none;"></span></a></li>';
         parentMenu.append(menuHTML);
     };

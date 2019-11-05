@@ -51,6 +51,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -134,7 +135,7 @@ public final class Peers {
     public static Set<Long> getBestBundlerRateWhitelist() {
         SecurityManager sm = System.getSecurityManager();
         if (sm != null) {
-            sm.checkPermission(new BlockchainPermission("peers"));
+            sm.checkPermission(new BlockchainPermission("getBundlerRates"));
         }
         return bestBundlerRateWhitelist;
     }
@@ -231,6 +232,8 @@ public final class Peers {
 
     /** Broadcast bundler rates */
     private static final Map<Long, List<BundlerRate>> bundlerRates = new HashMap<>();
+
+    private static volatile boolean isNetworkingEnabled = true;
 
     /**
      * Initialize peer processing
@@ -342,6 +345,27 @@ public final class Peers {
             sm.checkPermission(new BlockchainPermission("peers"));
         }
         ThreadPool.shutdownExecutor("peersService", peersService, 5);
+    }
+
+    public static void disableNetworking() {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("peers"));
+        }
+        isNetworkingEnabled = false;
+        getConnectedPeersInternal().forEach(PeerImpl::disconnectPeer);
+    }
+
+    public static void enableNetworking() {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new BlockchainPermission("peers"));
+        }
+        Peers.isNetworkingEnabled = true;
+    }
+
+    public static boolean isNetworkingEnabled() {
+        return isNetworkingEnabled;
     }
 
     /**
@@ -666,13 +690,11 @@ public final class Peers {
      * @return                          List of connected peers
      */
     public static List<Peer> getConnectedPeers() {
-        Collection<PeerImpl> peersCollection = getConnectedPeersInternal();
-        return peersCollection != null ? new ArrayList<>(peersCollection) : Collections.emptyList();
+        return new ArrayList<>(getConnectedPeersInternal());
     }
 
     public static int getConnectedPeersCount() {
-        Collection<PeerImpl> peersCollection = getConnectedPeersInternal();
-        return peersCollection != null ? peersCollection.size() : 0;
+        return getConnectedPeersInternal().size();
     }
 
     private static Collection<PeerImpl> getConnectedPeersInternal() {
@@ -683,7 +705,7 @@ public final class Peers {
         if (Nxt.isEnabled(SubSystem.PEER_NETWORKING)) {
             return NetworkHandler.connectionMap.values();
         } else {
-            return null;
+            return Collections.emptyList();
         }
     }
 
@@ -724,7 +746,7 @@ public final class Peers {
      * Create outbound connections
      */
     private static final Runnable peerConnectingThread = () -> {
-        if (!NetworkHandler.isNetworkStarted()) {
+        if (!NetworkHandler.isNetworkStarted() || !isNetworkingEnabled()) {
             return;
         }
         try {
@@ -1172,7 +1194,7 @@ public final class Peers {
     public static List<BundlerRate> getBestBundlerRates(long minBalance, long minFeeLimit, Set<Long> whitelist) {
         SecurityManager sm = System.getSecurityManager();
         if (sm != null) {
-            sm.checkPermission(new BlockchainPermission("peers"));
+            sm.checkPermission(new BlockchainPermission("getBundlerRates"));
         }
         Map<ChildChain, BundlerRate> rateMap = new HashMap<>();
         forEachBundlerRate(rate -> {
@@ -1198,7 +1220,7 @@ public final class Peers {
     public static List<BundlerRate> getAllBundlerRates(long minBalance) {
         SecurityManager sm = System.getSecurityManager();
         if (sm != null) {
-            sm.checkPermission(new BlockchainPermission("peers"));
+            sm.checkPermission(new BlockchainPermission("getBundlerRates"));
         }
         List<BundlerRate> allRates = new ArrayList<>();
         forEachBundlerRate(rate -> {
@@ -1221,7 +1243,7 @@ public final class Peers {
     public static long getBestBundlerRate(Chain childChain, long minBalance, long minFeeLimit, Set<Long> whitelist) {
         SecurityManager sm = System.getSecurityManager();
         if (sm != null) {
-            sm.checkPermission(new BlockchainPermission("peers"));
+            sm.checkPermission(new BlockchainPermission("getBundlerRates"));
         }
         AtomicLong minRate = new AtomicLong(-1);
         forEachBundlerRate(rate -> {

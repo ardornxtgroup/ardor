@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class LuceneReindexCall extends APICall.Builder<LuceneReindexCall> {
     private LuceneReindexCall() {
-        super("luceneReindex");
+        super(ApiSpec.luceneReindex);
     }
 
     public static LuceneReindexCall create() {

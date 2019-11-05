@@ -260,7 +260,7 @@ var NRS = (function(NRS) {
 
             for (var i=0; i<nodes.length; i++) {
                 var node = nodes[i];
-                if (node.isBlacklisted()) {
+                if (NRS.remoteNodesMgr.isBlacklisted(node.address)) {
                     continue;
                 }
                 confirmationReport.processing.push(node.announcedAddress);
@@ -269,7 +269,8 @@ var NRS = (function(NRS) {
                     data = { "querystring": data };
                 }
                 data["_extra"] = { node: node, requestType: requestType };
-                NRS.sendRequest(requestType, data, onConfirmation, { noProxy: true, remoteNode: node, doNotEscape: true });
+                NRS.sendRequest(requestType, data, onConfirmation,
+                        { noProxy: true, remoteNode: node, doNotEscape: true, timeout: 5000 });
             }
         }
     };

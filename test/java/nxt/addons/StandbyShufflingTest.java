@@ -23,11 +23,10 @@ import nxt.account.HoldingType;
 import nxt.http.APICall;
 import nxt.http.callers.GetShufflersCall;
 import nxt.http.shuffling.ShufflingUtil;
+import nxt.shuffling.ShufflingParticipantHome;
 import nxt.shuffling.ShufflingStage;
 import nxt.util.Convert;
 import nxt.util.Logger;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -44,6 +43,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static nxt.blockchain.ChildChain.BITSWIFT;
 import static nxt.blockchain.ChildChain.IGNIS;
 import static nxt.blockchain.FxtChain.FXT;
 
@@ -66,6 +66,7 @@ public class StandbyShufflingTest extends BlockchainTest {
         AccessController.doPrivileged((PrivilegedAction<Void>) () -> {
             Map<String, String> properties = new HashMap<>();
             properties.put("nxt.addOns", "nxt.addons.StandbyShuffling");
+            properties.put("nxt.disableSecurityPolicy", "true");
             initNxt(properties);
             initBlockchainTest();
 
@@ -94,6 +95,9 @@ public class StandbyShufflingTest extends BlockchainTest {
         JO response = new APICall.Builder("stopStandbyShuffler").call();
         Logger.logDebugMessage("Stopped %d StandbyShufflers.", response.get("stopped"));
         Assert.assertNotNull(response.get("stopped"));
+        response = new APICall.Builder("stopShuffler").call();
+        Assert.assertTrue(response.getBoolean("stoppedAllShufflers"));
+        Logger.logDebugMessage("Stopped all Shufflers.");
     }
 
     @Test
@@ -335,6 +339,9 @@ public class StandbyShufflingTest extends BlockchainTest {
 
         Assert.assertNull(response.get("errorCode"));
         Assert.assertEquals(1, response.getInt("stopped"));
+
+        JA standbyShufflers = getAllStandbyShufflers();
+        Assert.assertTrue(standbyShufflers.isEmpty());
     }
 
     @Test
@@ -433,7 +440,7 @@ public class StandbyShufflingTest extends BlockchainTest {
     }
 
     @Test
-    public void getAll() {
+    public void getSameChainDifferentHoldingType() {
         List<String> recipients = allRecipientsPublicKeys();
 
         JO response = new APICall.Builder("startStandbyShuffler")
@@ -477,6 +484,40 @@ public class StandbyShufflingTest extends BlockchainTest {
     }
 
     @Test
+    public void getDifferentChains() {
+        JO response = new APICall.Builder("startStandbyShuffler")
+                .chain(IGNIS.getId())
+                .secretPhrase(ALICE.getSecretPhrase())
+                .param("holdingType", HoldingType.COIN.getCode())
+                .param("holding", IGNIS.getId())
+                .feeRateNQTPerFXT(0)
+                .param("recipientPublicKeys", Collections.singletonList(RECIPIENT1.getPublicKeyStr()))
+                .call();
+        Assert.assertNull(response.get("errorCode"));
+        Assert.assertTrue(response.getBoolean("started"));
+
+        response = new APICall.Builder("startStandbyShuffler")
+                .chain(BITSWIFT.getId())
+                .secretPhrase(BOB.getSecretPhrase())
+                .param("holdingType", HoldingType.COIN.getCode())
+                .param("holding", BITSWIFT.getId())
+                .feeRateNQTPerFXT(0)
+                .param("recipientPublicKeys", Collections.singletonList(RECIPIENT2.getPublicKeyStr()))
+                .call();
+        Assert.assertNull(response.get("errorCode"));
+        Assert.assertTrue(response.getBoolean("started"));
+
+        JA standbyShufflers = getAllStandbyShufflers();
+        Assert.assertEquals(2, standbyShufflers.size());
+
+        response = new APICall.Builder("getStandbyShufflers").chain(BITSWIFT.getId()).call();
+        Assert.assertNull(response.get("errorCode"));
+        standbyShufflers = response.getArray("standbyShufflers");
+        Assert.assertNotNull(standbyShufflers);
+        Assert.assertEquals(1, standbyShufflers.size());
+    }
+
+    @Test
     public void testShuffling() {
         JO response = new APICall.Builder("startStandbyShuffler")
                 .chain(IGNIS.getId())
@@ -489,15 +530,15 @@ public class StandbyShufflingTest extends BlockchainTest {
         Assert.assertNull(response.get("errorCode"));
         Assert.assertTrue(response.getBoolean("started"));
 
-        JSONObject shufflingCreate = ShufflingUtil.create(BOB, 3);
-        String shufflingFullHash = (String)shufflingCreate.get("fullHash");
+        JO shufflingCreate = ShufflingUtil.create(BOB, 3);
+        String shufflingFullHash = shufflingCreate.getString("fullHash");
         generateBlock();
         generateBlock();
 
-        JSONObject shuffling = ShufflingUtil.getShuffling(shufflingFullHash);
-        Assert.assertEquals((long) ShufflingStage.REGISTRATION.getCode(), shuffling.get("stage"));
-        JSONObject getParticipantsResponse = ShufflingUtil.getShufflingParticipants(shufflingFullHash);
-        JSONArray participants = (JSONArray)getParticipantsResponse.get("participants");
+        JO shuffling = ShufflingUtil.getShuffling(shufflingFullHash);
+        Assert.assertEquals(ShufflingStage.REGISTRATION.getCode(), shuffling.getByte("stage"));
+        JO getParticipantsResponse = ShufflingUtil.getShufflingParticipants(shufflingFullHash);
+        JA participants = getParticipantsResponse.getArray("participants");
         Assert.assertEquals(2, participants.size());
 
         response = GetShufflersCall.create()
@@ -510,5 +551,102 @@ public class StandbyShufflingTest extends BlockchainTest {
         Assert.assertEquals(ALICE.getRsAccount(), shuffler.getString("accountRS"));
         Assert.assertEquals(RECIPIENT1.getStrId(), shuffler.getString("recipient"));
         Assert.assertEquals(RECIPIENT1.getRsAccount(), shuffler.getString("recipientRS"));
+    }
+
+    @Test
+    public void testNormalStandbyShufflerShutdown() {
+        new APICall.Builder("startStandbyShuffler")
+                .chain(IGNIS.getId())
+                .secretPhrase(ALICE.getSecretPhrase())
+                .param("holdingType", HoldingType.COIN.getCode())
+                .param("holding", IGNIS.getId())
+                .feeRateNQTPerFXT(IGNIS.ONE_COIN)
+                .param("recipientPublicKeys", Collections.singletonList(RECIPIENT1.getPublicKeyStr()))
+                .call();
+
+        new APICall.Builder("startStandbyShuffler")
+                .chain(IGNIS.getId())
+                .secretPhrase(BOB.getSecretPhrase())
+                .param("holdingType", HoldingType.COIN.getCode())
+                .param("holding", IGNIS.getId())
+                .feeRateNQTPerFXT(IGNIS.ONE_COIN)
+                .param("recipientPublicKeys", Arrays.asList(RECIPIENT2.getPublicKeyStr(), RECIPIENT3.getPublicKeyStr()))
+                .call();
+
+        JO shufflingCreate = ShufflingUtil.create(CHUCK, 3); // shuffling creation tx
+        String shufflingFullHash = shufflingCreate.getString("fullHash");
+        ShufflingUtil.startShuffler(CHUCK, RECIPIENT4, shufflingFullHash);
+
+        generateBlockAndSleep(); // will include shuffling creation (with Chuck's registration as the shuffling creator)
+                                 // and will trigger Alice & Bob's shufflers and generate both shuffling registration tx
+        Assert.assertEquals(2, getAllStandbyShufflers().size());
+        JO shuffling = ShufflingUtil.getShuffling(shufflingFullHash);
+        Assert.assertEquals(ShufflingStage.REGISTRATION.getCode(), shuffling.getByte("stage"));
+        JA participants = ShufflingUtil.getShufflingParticipants(shufflingFullHash).getArray("participants");
+        Assert.assertEquals(1, participants.size());
+
+        generateBlockAndSleep(); // will include registration from ALICE and BOB
+        shuffling = ShufflingUtil.getShuffling(shufflingFullHash);
+        Assert.assertEquals(ShufflingStage.PROCESSING.getCode(), shuffling.getByte("stage"));
+        participants = ShufflingUtil.getShufflingParticipants(shufflingFullHash).getArray("participants");
+        Assert.assertEquals(3, participants.size());
+        for (JO participant : participants.objects()) {
+            Assert.assertEquals(ShufflingParticipantHome.State.REGISTERED.getCode(), participant.getByte("state"));
+        }
+
+        for (int i = 0; i < 3; i++) {
+            generateBlockAndSleep();
+        }
+        Assert.assertEquals(1, getAllStandbyShufflers().size());
+        shuffling = ShufflingUtil.getShuffling(shufflingFullHash);
+        Assert.assertEquals(ShufflingStage.VERIFICATION.getCode(), shuffling.getByte("stage"));
+    }
+
+    @Test
+    public void testRecoverPublicKey() {
+        new APICall.Builder("startStandbyShuffler")
+                .chain(IGNIS.getId())
+                .secretPhrase(ALICE.getSecretPhrase())
+                .param("holdingType", HoldingType.COIN.getCode())
+                .param("holding", IGNIS.getId())
+                .feeRateNQTPerFXT(IGNIS.ONE_COIN)
+                .param("recipientPublicKeys", Collections.singletonList(RECIPIENT1.getPublicKeyStr()))
+                .call();
+
+        JA standbyShufflers = getAllStandbyShufflers();
+        Assert.assertEquals(1, standbyShufflers.size());
+        Assert.assertEquals(1, standbyShufflers.get(0).getArray("recipientPublicKeys").size());
+
+        JO shufflingCreate = ShufflingUtil.create(CHUCK, 3); // shuffling creation tx
+        String shufflingFullHash = shufflingCreate.getString("fullHash");
+
+        generateBlocks(9);
+
+        standbyShufflers = getAllStandbyShufflers();
+        Assert.assertEquals(1, standbyShufflers.size());
+        Assert.assertEquals(0, standbyShufflers.get(0).getArray("recipientPublicKeys").size());
+        JO shuffling = ShufflingUtil.getShuffling(shufflingFullHash);
+        Assert.assertEquals(ShufflingStage.REGISTRATION.getCode(), shuffling.getByte("stage"));
+
+        generateBlockAndSleep();
+
+        standbyShufflers = getAllStandbyShufflers();
+        Assert.assertEquals(1, standbyShufflers.size());
+        Assert.assertEquals(0, standbyShufflers.get(0).getArray("recipientPublicKeys").size());
+        shuffling = ShufflingUtil.getShuffling(shufflingFullHash);
+        Assert.assertEquals(ShufflingStage.CANCELLED.getCode(), shuffling.getByte("stage"));
+
+        generateBlock();
+        standbyShufflers = getAllStandbyShufflers();
+        Assert.assertEquals(1, standbyShufflers.size());
+        Assert.assertEquals(1, standbyShufflers.get(0).getArray("recipientPublicKeys").size());
+    }
+
+    private JA getAllStandbyShufflers() {
+        JO response = new APICall.Builder("getStandbyShufflers").chain("").call();
+        Assert.assertNull(response.get("errorCode"));
+        JA standbyShufflers = response.getArray("standbyShufflers");
+        Assert.assertNotNull(standbyShufflers);
+        return standbyShufflers;
     }
 }

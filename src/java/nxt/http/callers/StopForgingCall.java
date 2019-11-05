@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class StopForgingCall extends APICall.Builder<StopForgingCall> {
     private StopForgingCall() {
-        super("stopForging");
+        super(ApiSpec.stopForging);
     }
 
     public static StopForgingCall create() {

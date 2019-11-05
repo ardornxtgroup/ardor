@@ -31,6 +31,8 @@ import java.sql.SQLException;
 
 public final class VoteHome {
 
+    private static final boolean deleteProcessedVotes = Nxt.getBooleanProperty("nxt.deleteProcessedVotes");
+
     public static VoteHome forChain(ChildChain childChain) {
         if (childChain.getVoteHome() != null) {
             throw new IllegalStateException("already set");
@@ -64,15 +66,23 @@ public final class VoteHome {
             @Override
             public void trim(int height) {
                 super.trim(height);
-                try (Connection con = voteTable.getConnection();
-                     DbIterator<PollHome.Poll> polls = pollHome.getPollsFinishingAtOrBefore(height, 0, Integer.MAX_VALUE);
-                     PreparedStatement pstmt = con.prepareStatement("DELETE FROM vote WHERE poll_id = ?")) {
-                    for (PollHome.Poll poll : polls) {
-                        pstmt.setLong(1, poll.getId());
-                        pstmt.executeUpdate();
+                if (deleteProcessedVotes) {
+                    try (Connection con = voteTable.getConnection();
+                         PreparedStatement pstmtMinHeight = con.prepareStatement("SELECT MIN(height) as min_height FROM vote");
+                         PreparedStatement pstmt = con.prepareStatement("DELETE FROM vote WHERE poll_id = ?");
+                         ResultSet rs = pstmtMinHeight.executeQuery()) {
+                        rs.next();
+                        int minHeight = rs.getInt("min_height");
+                        if (!rs.wasNull()) {
+                            DbIterator<PollHome.Poll> polls = pollHome.getPollsFinishingBetween(minHeight, height, 0, Integer.MAX_VALUE);
+                            for (PollHome.Poll poll : polls) {
+                                pstmt.setLong(1, poll.getId());
+                                pstmt.executeUpdate();
+                            }
+                        }
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e.toString(), e);
                     }
-                } catch (SQLException e) {
-                    throw new RuntimeException(e.toString(), e);
                 }
             }
         };

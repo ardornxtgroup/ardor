@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class ClearUnconfirmedTransactionsCall extends APICall.Builder<ClearUnconfirmedTransactionsCall> {
     private ClearUnconfirmedTransactionsCall() {
-        super("clearUnconfirmedTransactions");
+        super(ApiSpec.clearUnconfirmedTransactions);
     }
 
     public static ClearUnconfirmedTransactionsCall create() {

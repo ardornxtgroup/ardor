@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class DecryptFromCall extends APICall.Builder<DecryptFromCall> {
     private DecryptFromCall() {
-        super("decryptFrom");
+        super(ApiSpec.decryptFrom);
     }
 
     public static DecryptFromCall create() {

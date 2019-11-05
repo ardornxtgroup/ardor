@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class StopShufflerCall extends APICall.Builder<StopShufflerCall> {
     private StopShufflerCall() {
-        super("stopShuffler");
+        super(ApiSpec.stopShuffler);
     }
 
     public static StopShufflerCall create() {

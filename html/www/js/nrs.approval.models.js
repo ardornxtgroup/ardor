@@ -18,8 +18,12 @@
  * @depends {nrs.js}
  */
 var NRS = (function(NRS, $) {
-
+    let _password = null;
 	var approvalModels = {};
+
+	NRS.setApprovalModelsPassword = function (password) {
+        _password = password;
+    };
 
 	NRS.loadApprovalModels = function() {
 		approvalModels = NRS.getJSONItem("approvalModels");
@@ -31,16 +35,12 @@ var NRS = (function(NRS, $) {
 
     function loadApprovalModels() {
         $("#approval_approval_table_container").show();
-        if (NRS.isExportApprovalModelsAvailable()) {
-            $("#export_approval_models_button").show();
-        } else {
-            $("#export_approval_models_button").hide();
-        }
         var rows = "";
         if (!NRS.isJSONObjectEmpty(approvalModels)) {
             Object.keys(approvalModels).sort().forEach(function(name) {
+                name = String(name).escapeHTML();
                 var approvalModel = approvalModels[name];
-                var description = approvalModel.description;
+                var description = String(approvalModel.description).escapeHTML();
                 if (description && description.length > 100) {
                     description = description.substring(0, 100) + "...";
                 } else if (!description) {
@@ -70,8 +70,17 @@ var NRS = (function(NRS, $) {
         $(this).find('#approval_model_modal a:first').click(); // Set the default tab
     });
 
+    $("#approval_model_modal a.at_hash").on('shown.bs.tab', () => {
+        if (NRS.rememberPassword) {
+            $('#add_approval_model_password').val(_password).change();
+        }
+    });
+
 	NRS.forms.addApprovalModel = function($modal) {
 		var data = NRS.getFormData($modal.find("form:first"));
+		if (data.secretPhrase === "") {
+		    delete data.secretPhrase;
+        }
 		var name = NRS.escapeRespStr(data.name);
 		var description = NRS.escapeRespStr(data.description);
 		var nonce = data.secretNonce;
@@ -218,13 +227,17 @@ var NRS = (function(NRS, $) {
 
 	NRS.exportApprovalModels = function() {
 		if (!NRS.isJSONObjectEmpty(approvalModels)) {
-			var models_download = document.createElement('a');
-			models_download.href = 'data:text/json,' + JSON.stringify(approvalModels, null, 2);
-			models_download.target = '_blank';
-			models_download.download = 'approval.models.json';
-			document.body.appendChild(models_download);
-			models_download.click();
-			document.body.removeChild(models_download);
+		    if (window.java) {
+		        window.java.downloadTextFile(JSON.stringify(approvalModels, null, 2), 'approval.models.json');
+            } else {
+                var models_download = document.createElement('a');
+                models_download.href = 'data:text/json,' + JSON.stringify(approvalModels, null, 2);
+                models_download.target = '_blank';
+                models_download.download = 'approval.models.json';
+                document.body.appendChild(models_download);
+                models_download.click();
+                document.body.removeChild(models_download);
+            }
 		} else {
 			$.growl($.t("error_no_models_available"), {"type":"warning"}).show();
 		}
@@ -296,6 +309,7 @@ var NRS = (function(NRS, $) {
 			var imported_models = JSON.parse(read_event.target.result);
 			NRS.importApprovalModels(imported_models);
             loadApprovalModels();
+            $.growl($.t("approval_models_were_imported_from_file"));
 		};
 		reader.readAsText(file);
 		importModelsButtonField.replaceWith(importModelsButtonFieldClone.clone(true) ); // Recreate button to clean it
@@ -307,16 +321,27 @@ var NRS = (function(NRS, $) {
 		if (NRS.isFileReaderSupported()) {
             $("#import_approval_models_button_field").click();
         } else if (window.java) {
-            var result = java.readApprovalModelsFile();
-            var models = JSON.parse(result);
-            if (models.error) {
-                if (models.type == 1) {
-                    $.growl($.t(models.error, { file: models.file, folder: models.folder }));
-                } else {
-                    $.growl(models.error);
+            const result = window.java.readApprovalModelsFile();
+            if (result !== null) {
+                let models;
+                try {
+                    models = JSON.parse(result);
+                } catch (e) {
+                    NRS.logConsole(e);
+                    $.growl($.t('cannot_parse_json'), {type:'warning'});
                 }
-            } else {
-                NRS.importApprovalModels(models);
+                if (models.error) {
+                    $.growl($.t('error') + ': ' + models.error, {type:'error'});
+                } else {
+                    const values = Object.values(models);
+                    if (!values || values.length === 0 || values[0].phasingHolding === undefined) {
+                        $.growl($.t('wrong_file_format'), {type:'warning'});
+                    } else {
+                        NRS.importApprovalModels(models);
+                        loadApprovalModels();
+                        $.growl($.t("approval_models_were_imported_from_file"));
+                    }
+                }
             }
         }
 	});
@@ -349,8 +374,8 @@ var NRS = (function(NRS, $) {
         });
     }
 
-    $("#approved_by_hashed_secret_password").change(function() {
-        var secretPhrase = $("#approved_by_hashed_secret_password").val();
+    $("#add_approval_model_password").change(function() {
+        const secretPhrase = $(this).val();
         if (NRS.accountRS != NRS.getAccountId(secretPhrase, true)) {
             $.growl($.t("generate_secret_wrong_passphrase", { account: NRS.accountRS } ));
             return;
@@ -426,7 +451,10 @@ var NRS = (function(NRS, $) {
         $("#reproduce_secret_nonce").val(model.secretNonce);
         $("#reproduce_secret_block_id").val(model.secretBlockId);
         $("#reproduce_secret_hashed_secret").val(model.phasingHashedSecret);
-        $("#reproduce_secret_hash_algorithm").val(model.phasingHashedSecretAlgorithm);
+        $("#reproduce_secret_hash_algorithm").val(NRS.getHashAlgorithm(model.phasingHashedSecretAlgorithm));
+        if (NRS.rememberPassword) {
+            $('#reproduce_secret_password').val(_password).change();
+        }
         NRS.sendRequest("getHashedSecretPhasedTransactions", {
             phasingHashedSecret: model.phasingHashedSecret,
             phasingHashedSecretAlgorithm: model.phasingHashedSecretAlgorithm
@@ -448,7 +476,7 @@ var NRS = (function(NRS, $) {
         var calculateSecret = NRS.calculateSecret(secretPhrase, $("#reproduce_secret_nonce").val(), $("#reproduce_secret_block_id").val());
         $("#reproduce_secret_generated_secret").val(calculateSecret);
         var $modal = $("#reproduce_secret_modal");
-        hashSecret(calculateSecret, $("#reproduce_secret_hash_algorithm").val(), function (hash) {
+        hashSecret(calculateSecret, NRS.constants.PHASING_HASH_ALGORITHMS[$("#reproduce_secret_hash_algorithm").val()], function (hash) {
             if (hash == $("#reproduce_secret_hashed_secret").val()) {
                 $modal.find(".error_message").html("").hide();
                 $modal.find(".info_message").html($.t("secret_reproduced")).show();

@@ -117,6 +117,14 @@ NRS.loadServerConstants(function() {
         assert.equal(NRS.amountToPrecision(12.3456, 3), "12.345", "multiplication");
         assert.equal(NRS.amountToPrecision(12.3456, 2), "12.34", "multiplication");
         assert.equal(NRS.amountToPrecision(12.3006, 2), "12.30", "multiplication");
+        assert.equal(NRS.amountToPrecision("12", 0), "12", "multiplication");
+        assert.equal(NRS.amountToPrecision("12.", 0), "12", "multiplication");
+        assert.equal(NRS.amountToPrecision("12.0", 0), "12", "multiplication");
+        assert.equal(NRS.amountToPrecision("12.345600", 4), "12.3456", "multiplication");
+        assert.equal(NRS.amountToPrecision("12.3456", 4), "12.3456", "multiplication");
+        assert.equal(NRS.amountToPrecision("12.3456", 3), "12.345", "multiplication");
+        assert.equal(NRS.amountToPrecision("12.3456", 2), "12.34", "multiplication");
+        assert.equal(NRS.amountToPrecision("12.3006", 2), "12.30", "multiplication");
     });
 
     QUnit.test("convertToNQT", function (assert) {

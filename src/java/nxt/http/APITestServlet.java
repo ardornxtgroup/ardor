@@ -214,7 +214,7 @@ public class APITestServlet extends HttpServlet {
                         bufJSCalls.append("    ATS.apiCalls.push('").append(type).append("');\n");
                     }
                 } else {
-                    writer.print(fullTextMessage("No API calls selected.", "info"));
+                    writer.print("<div class='alert alert-info' role='alert'>No API calls selected.</div>\n");
                 }
             }
             writer.print(footer1);
@@ -224,12 +224,7 @@ public class APITestServlet extends HttpServlet {
 
     }
 
-    private static String fullTextMessage(String msg, String msgType) {
-        return "<div class='alert alert-" + msgType + "' role='alert'>" + msg + "</div>\n";
-    }
-
     private static String form(HttpServletRequest req, String requestType, boolean singleView, APIServlet.APIRequestHandler requestHandler) {
-        String className = requestHandler.getClass().getName();
         List<String> parameters = requestHandler.getParameters();
         boolean requirePost = requestHandler.requirePost();
         String fileParameter = requestHandler.getFileParameter();
@@ -244,11 +239,9 @@ public class APITestServlet extends HttpServlet {
         buf.append("<span style='float:right;font-weight:normal;font-size:14px;'>\n");
         if (!singleView) {
             buf.append("<a href='/test?requestType=").append(requestType);
-            buf.append("' target='_blank' style='font-weight:normal;font-size:14px;color:#777;'>\n<span class='glyphicon glyphicon-new-window'></span>\n</a>");
+            buf.append("' target='_blank' style='font-weight:normal;font-size:14px;color:#777;'><span class='glyphicon glyphicon-new-window'></span></a>");
             buf.append(" &nbsp;&nbsp;\n");
         }
-        buf.append("<a style='font-weight:normal;font-size:14px;color:#777;' href='/doc/");
-        buf.append(className.replace('.', '/').replace('$', '.')).append(".html' target='_blank'>javadoc</a>&nbsp;&nbsp;\n");
         buf.append("<a style='font-weight:normal;font-size:14px;color:#777;' href='");
         buf.append("https://ardordocs.jelurida.com/");
         buf.append(requestHandler.getDocsUrlPath());

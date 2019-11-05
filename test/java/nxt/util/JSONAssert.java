@@ -17,6 +17,7 @@
 package nxt.util;
 
 import nxt.Tester;
+import nxt.addons.JO;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
@@ -28,6 +29,10 @@ public class JSONAssert {
 
     public JSONAssert(JSONObject obj) {
         this.obj = obj;
+    }
+
+    public JSONAssert(JO jo) {
+        this(jo.toJSONObject());
     }
 
     public JSONAssert subObj(String key) {

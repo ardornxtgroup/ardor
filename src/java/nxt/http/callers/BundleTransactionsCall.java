@@ -3,7 +3,7 @@ package nxt.http.callers;
 
 public class BundleTransactionsCall extends CreateTransactionCallBuilder<BundleTransactionsCall> {
     private BundleTransactionsCall() {
-        super("bundleTransactions");
+        super(ApiSpec.bundleTransactions);
     }
 
     public static BundleTransactionsCall create(int chain) {

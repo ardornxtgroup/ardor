@@ -290,10 +290,10 @@ var NRS = (function (NRS, $, undefined) {
     NRS.getTypeIcons = function (type) {
         var typeIcons = "";
         if (NRS.isExchangeable(type)) {
-            typeIcons += "<i title='" + $.t('exchangeable') + "' class='fa fa-exchange'></i> ";
+            typeIcons += "<i title='" + $.t('exchangeable') + "' class='far fa-exchange-alt'></i> ";
         }
         if (NRS.isControllable(type)) {
-            typeIcons += "<i title='" + $.t('controllable') + "' class='fa fa-sliders'></i> ";
+            typeIcons += "<i title='" + $.t('controllable') + "' class='far fa-sliders'></i> ";
         }
         if (NRS.isReservable(type)) {
             typeIcons += "<i title='" + $.t('reservable') + "' class='fa fa-university'></i> ";
@@ -302,7 +302,7 @@ var NRS = (function (NRS, $, undefined) {
             typeIcons += "<i title='" + $.t('claimable') + "' class='ion-android-archive'></i> ";
         }
         if (NRS.isMintable(type)) {
-            typeIcons += "<i title='" + $.t('mintable') + "' class='fa fa-money'></i> ";
+            typeIcons += "<i title='" + $.t('mintable') + "' class='far fa-money-bill-alt'></i> ";
         }
         return typeIcons;
     };
@@ -765,31 +765,17 @@ var NRS = (function (NRS, $, undefined) {
         };
     };
 
-    $("#buy_currency_units_initial, #buy_currency_units_total, #buy_currency_offer_rate, #sell_currency_units_initial, #sell_currency_units_total, #sell_currency_offer_rate").keydown(function (e) {
+    $("#buy_currency_units_initial, #buy_currency_units_total, #buy_currency_offer_rate, #sell_currency_units_initial, #sell_currency_units_total, #sell_currency_offer_rate").decimalValidation(function () {
         var decimals = parseInt($("#publish_exchange_offer_decimals").val(), 10);
-
-        var charCode = !e.charCode ? e.which : e.charCode;
-        if (NRS.isControlKey(charCode) || e.ctrlKey || e.metaKey) {
-            return;
-        }
         var isUnitsField = /_units/i.test($(this).attr("id"));
-        var maxFractionLength = (isUnitsField ? decimals : NRS.getActiveChainDecimals());
-        var caretPos = $(this)[0].selectionStart;
-        return NRS.validateDecimals(maxFractionLength, charCode, $(this).val(), caretPos, e);
+        return (isUnitsField ? decimals : NRS.getActiveChainDecimals());
     });
 
     var unitFields = $(".currency_units");
-    unitFields.keydown(function (e) {
+    unitFields.decimalValidation(function () {
         var decimals = parseInt($("#currency_decimals").html(), 10);
-
-        var charCode = !e.charCode ? e.which : e.charCode;
-        if (NRS.isControlKey(charCode) || e.ctrlKey || e.metaKey) {
-            return;
-        }
         var isUnitsField = /_units/i.test($(this).attr("id"));
-        var maxFractionLength = (isUnitsField ? decimals : NRS.getActiveChainDecimals());
-        var caretPos = $(this)[0].selectionStart;
-        return NRS.validateDecimals(maxFractionLength, charCode, $(this).val(), caretPos, e);
+        return (isUnitsField ? decimals : NRS.getActiveChainDecimals());
     });
 
     unitFields.on("change", function() {
@@ -1181,7 +1167,7 @@ var NRS = (function (NRS, $, undefined) {
         var sidebarId = 'sidebar_monetary_system';
         var options = {
             "id": sidebarId,
-            "titleHTML": '<i class="fa fa-bank"></i><span data-i18n="monetary_system">Monetary System</span>',
+            "titleHTML": '<i class="fa fa-university"></i><span data-i18n="monetary_system">Monetary System</span>',
             "page": 'currencies',
             "desiredPosition": 40,
             "depends": { tags: [ NRS.constants.API_TAGS.MS ] }
@@ -1471,13 +1457,8 @@ var NRS = (function (NRS, $, undefined) {
     });
 
     var reserveCurrencyAmount = $("#reserve_currency_amount");
-    reserveCurrencyAmount.keydown(function (e) {
-        var charCode = !e.charCode ? e.which : e.charCode;
-        if (NRS.isControlKey(charCode) || e.ctrlKey || e.metaKey) {
-            return;
-        }
-        var caretPos = $(this)[0].selectionStart;
-        return NRS.validateDecimals(NRS.getActiveChainDecimals(), charCode, $(this).val(), caretPos, e);
+    reserveCurrencyAmount.decimalValidation(function () {
+        return NRS.getActiveChainDecimals();
     });
 
     reserveCurrencyAmount.blur(function () {
@@ -1530,15 +1511,8 @@ var NRS = (function (NRS, $, undefined) {
 
     });
 
-    $("#claim_currency_amount").keydown(function (e) {
-        var decimals = parseInt($("#claim_currency_decimals").val(), 10);
-
-        var charCode = !e.charCode ? e.which : e.charCode;
-        if (NRS.isControlKey(charCode) || e.ctrlKey || e.metaKey) {
-            return;
-        }
-        var caretPos = $(this)[0].selectionStart;
-        return NRS.validateDecimals(decimals, charCode, $(this).val(), caretPos, e);
+    $("#claim_currency_amount").decimalValidation(function (e) {
+        return parseInt($("#claim_currency_decimals").val(), 10);
     });
 
     /* Respect decimal positions on claiming a currency */

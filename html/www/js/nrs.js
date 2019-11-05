@@ -284,6 +284,8 @@ var NRS = (function(NRS, $, undefined) {
 			});
 
 			getStatePromise.then(function() {
+				NRS.showUrlParameterModal("lifetime_modal");
+
 				console.log("continue initialization");
 				var hasLocalStorage = false;
 				try {
@@ -739,7 +741,7 @@ var NRS = (function(NRS, $, undefined) {
 
 		if (NRS.pageNumber > 1) {
 			prevHTML += "<a href='#' data-page='" + (NRS.pageNumber - 1) + "' title='" + $.t("previous") + "' style='font-size:20px;'>";
-			prevHTML += "<i class='fa fa-arrow-circle-left'></i></a>";
+			prevHTML += "<i class='far fa-arrow-circle-left'></i></a>";
 		} else {
 			prevHTML += '&nbsp;';
 		}
@@ -792,9 +794,12 @@ var NRS = (function(NRS, $, undefined) {
 	};
 
 	function initUserDB() {
-		NRS.storageSelect("data", [{
+		var deferrs = [];
+		
+		deferrs.push(NRS.storageSelect("data", [{
 			"id": "asset_exchange_version"
 		}], function(error, result) {
+			
 			if (!result || !result.length) {
 				NRS.storageDelete("assets", [], function(error) {
 					if (!error) {
@@ -805,9 +810,9 @@ var NRS = (function(NRS, $, undefined) {
 					}
 				});
 			}
-		});
+		}));
 
-		NRS.storageSelect("data", [{
+		deferrs.push(NRS.storageSelect("data", [{
 			"id": "closed_groups"
 		}], function(error, result) {
 			if (result && result.length) {
@@ -818,8 +823,8 @@ var NRS = (function(NRS, $, undefined) {
 					contents: ""
 				});
 			}
-		});
-		NRS.loadContacts();
+		}));
+		deferrs.push(NRS.loadContacts());
 		NRS.loadApprovalModels();
 		NRS.getSettings(true);
 		NRS.updateNotifications();
@@ -838,12 +843,18 @@ var NRS = (function(NRS, $, undefined) {
 				});
 			}
 		}
-		if (NRS.getUrlParameter("modal")) {
+		NRS.showUrlParameterModal("modal");
+
+		return $.when.apply(null, deferrs);
+	}
+
+	NRS.showUrlParameterModal = function(parameterName) {
+		if (NRS.getUrlParameter(parameterName)) {
 			var urlParams = [];
 			if (window.location.search && window.location.search.length > 1) {
 				urlParams = window.location.search.substring(1).split('&');
 			}
-			var modalId = "#" + NRS.getUrlParameter("modal").escapeHTML();
+			var modalId = "#" + NRS.getUrlParameter(parameterName).escapeHTML();
 			var modal = $(modalId);
 			var attributes = {};
 			if (modal[0]) {
@@ -854,7 +865,7 @@ var NRS = (function(NRS, $, undefined) {
 						continue;
 					}
 					var key = paramKeyValue[0].escapeHTML();
-					if (key == "account" || key == "modal") {
+					if (key == "account" || key == parameterName) {
 						continue;
 					}
 					var value = paramKeyValue[1].escapeHTML();
@@ -899,6 +910,16 @@ var NRS = (function(NRS, $, undefined) {
 					$('body').append(a);
 					a.click();
 				}
+				if (parameterName == "lifetime_modal" && typeof androidModalInterface !== 'undefined') {
+					var requestType = modal.find('input[name="request_type"]').val();
+					var isSuccessfull = false;
+					NRS["forms"][requestType + "Complete"] = function() {
+						isSuccessfull = true;
+					};
+					modal.on("hidden.bs.modal", function () {
+						androidModalInterface.closeActivity(isSuccessfull);
+					});
+				}
 			} else {
 				$.growl($.t("modal") + " " + modalId + " " + $.t("does_not_exist"), {
 					"type": "danger",
@@ -906,12 +927,13 @@ var NRS = (function(NRS, $, undefined) {
 				});
 			}
 		}
-	}
+	};
 
 	NRS.initUserDBSuccess = function() {
 		NRS.databaseSupport = true;
-		initUserDB();
-        NRS.logConsole("IndexedDB initialized");
+		var dfr = initUserDB();
+		NRS.logConsole("IndexedDB initialized");
+		return dfr;
     };
 
 	NRS.initUserDBWithLegacyData = function() {
@@ -929,8 +951,9 @@ var NRS = (function(NRS, $, undefined) {
 	NRS.initLocalStorage = function() {
 		NRS.database = null;
 		NRS.databaseSupport = false;
-		initUserDB();
-        NRS.logConsole("local storage initialized");
+		var dfr = initUserDB();
+		NRS.logConsole("local storage initialized");
+		return dfr;
     };
 
 	NRS.createLegacyDatabase = function() {
@@ -1048,6 +1071,7 @@ var NRS = (function(NRS, $, undefined) {
 	}
 
 	function initUserDb(){
+		var dfr = $.Deferred();
 		NRS.logConsole("Database is open");
 		NRS.database.select("data", [{
 			"id": "settings"
@@ -1055,7 +1079,11 @@ var NRS = (function(NRS, $, undefined) {
 			if (result && result.length > 0) {
 				NRS.logConsole("Settings already exist");
 				NRS.databaseFirstStart = false;
-				NRS.initUserDBSuccess();
+				NRS.initUserDBSuccess().then(function() {
+					dfr.resolve();
+				}, function() {
+					dfr.resolve();
+				});
 			} else {
 				NRS.logConsole("Settings not found");
 				NRS.databaseFirstStart = true;
@@ -1064,15 +1092,20 @@ var NRS = (function(NRS, $, undefined) {
 				} else {
 					NRS.initUserDBSuccess();
 				}
+				dfr.resolve();
 			}
 		});
+		return dfr;
 	}
 
 	NRS.createDatabase = function (dbName) {
+		var dfr = $.Deferred(); 
 		if (!NRS.isIndexedDBSupported()) {
 			NRS.logConsole("IndexedDB not supported by the rendering engine, using localStorage instead");
-			NRS.initLocalStorage();
-			return;
+			NRS.initLocalStorage().then(function() {
+				dfr.resolve();
+			});
+			return dfr;
 		}
 		var schema = createSchema();
 		NRS.assetTableKeys = ["account", "accountRS", "asset", "description", "name", "position", "decimals", "quantityQNT", "groupName"];
@@ -1082,17 +1115,26 @@ var NRS = (function(NRS, $, undefined) {
             NRS.database = new WebDB(dbName, schema, NRS.constants.DB_VERSION, 4, function(error, db) {
                 if (!error) {
                     NRS.indexedDB = db;
-                    initUserDb();
+                    initUserDb().then(function() {
+						dfr.resolve();
+					});
                 } else {
                     NRS.logConsole("Error opening database " + error);
-                    NRS.initLocalStorage();
-                }
+                    NRS.initLocalStorage().then(function() {
+						dfr.resolve();
+					});
+				}
             });
             NRS.logConsole("Opening database " + NRS.database);
 		} catch (e) {
 			NRS.logConsole("Exception opening database " + e.message);
-			NRS.initLocalStorage();
+			NRS.initLocalStorage().then(function() {
+				dfr.resolve();
+			}, function() {
+				dfr.resolve();
+			});
 		}
+		return dfr;
 	};
 
 	/* Display connected state in Sidebar */
@@ -1131,18 +1173,35 @@ var NRS = (function(NRS, $, undefined) {
 	};
 
     NRS.setupChainWarning = function(target, availableOnParentChain) {
+		target.next('.feature-not-available-on-chain').remove();
         if (NRS.isParentChain() == availableOnParentChain) {
-            target.attr('data-toggle', 'modal');
+			target.attr('data-toggle', 'modal');
         } else {
-            target.attr('data-toggle', '');
-        }
+			target.attr('data-toggle', '');
+		}
         target.off("click").on("click", function (e) {
             e.preventDefault();
             if (availableOnParentChain) {
                 if (!NRS.isParentChain()) {
-                    $.growl($.t("parent_chain_feature"), {
-                        "type": "warning"
-                    });
+					var currentChainId = NRS.getActiveChainId();
+					var $modal = $(e.target).closest(".modal");
+					var $navItem = $modal.find('.modal-body > ul > li.active');
+					var targetDialogId = target.data('target');
+					NRS.switchAccount(NRS.accountRS, '1').always(function() {
+						target.attr('data-toggle', 'modal').click()
+						$(targetDialogId).one("hide.bs.modal", function(e) {
+							NRS.switchAccount(NRS.accountRS, currentChainId).done(function() {
+								//we need to reopen dialog this link was clicked from
+								if ($modal.length) {
+									$modal.modal("show");
+									// we need to reopen tab this link was clicked from
+									if ($navItem.length) {
+										$navItem.click();
+									}
+								}
+							});
+						});
+					});
                 }
             } else {
                 if (NRS.isParentChain()) {
@@ -1153,7 +1212,7 @@ var NRS = (function(NRS, $, undefined) {
             }
 
         });
-    };
+	};
 
     NRS.getAccountBalances = function(callback) {
         // Currently there is no way to get balances for all chains, so we need to specify each chain separately
@@ -1480,7 +1539,6 @@ var NRS = (function(NRS, $, undefined) {
 				} else {
 					accountName.html($.t("set_account_info"));
 				}
-                NRS.setupChainWarning(accountName, false);
 			}
 
 			if (firstRun) {
@@ -1626,9 +1684,9 @@ var NRS = (function(NRS, $, undefined) {
 				rows += "<tr>" +
 					"<td>" + NRS.getAccountLink({ lessorRS: lessor }, "lessor") + "</td>" +
 					"<td>" + NRS.escapeRespStr(lessorInfo.effectiveBalanceFXT) + "</td>" +
-					"<td><label>" + String(blocksLeft).escapeHTML() + " <i class='fa fa-question-circle show_popover' data-toggle='tooltip' title='" + blocksLeftTooltip + "' data-placement='right' style='color:#4CAA6E'></i></label></td>" +
+					"<td><label>" + String(blocksLeft).escapeHTML() + " <i class='far fa-question-circle show_popover' data-toggle='tooltip' title='" + blocksLeftTooltip + "' data-placement='right' style='color:#4CAA6E'></i></label></td>" +
 					"<td>" + expirationTime + "</td>" +
-					"<td><label>" + String(nextLessee).escapeHTML() + " <i class='fa fa-question-circle show_popover' data-toggle='tooltip' title='" + nextTooltip + "' data-placement='right' style='color:#4CAA6E'></i></label></td>" +
+					"<td><label>" + String(nextLessee).escapeHTML() + " <i class='far fa-question-circle show_popover' data-toggle='tooltip' title='" + nextTooltip + "' data-placement='right' style='color:#4CAA6E'></i></label></td>" +
 				"</tr>";
 			}
 

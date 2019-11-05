@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetDataTagCountCall extends APICall.Builder<GetDataTagCountCall> {
     private GetDataTagCountCall() {
-        super("getDataTagCount");
+        super(ApiSpec.getDataTagCount);
     }
 
     public static GetDataTagCountCall create(int chain) {

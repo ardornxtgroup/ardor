@@ -89,7 +89,7 @@ var NRS = (function(NRS, $) {
                         transaction.fee = new BigInteger(transaction.feeNQT);
                         var decimals = NRS.getChain(transaction.chain).decimals;
                         rows += "<tr>" +
-                            "<td>" + transaction.transactionIndex + " " + (transaction.phased ? "<i class='fa fa-gavel' title='" + $.t("phased") + "'></i>" : "") + "</td>" +
+                            "<td>" + transaction.transactionIndex + " " + (transaction.phased ? "<i class='far fa-gavel' title='" + $.t("phased") + "'></i>" : "") + "</td>" +
                             "<td>" + NRS.getTransactionLink(transaction.fullHash, NRS.formatTimestamp(transaction.timestamp), false, transaction.chain) + "</td>" +
                             "<td>" + NRS.getTransactionIconHTML(transaction.type, transaction.subtype) + "</td>" +
                             "<td>" + NRS.formatQuantity(transaction.amount, decimals) + "</td>" +

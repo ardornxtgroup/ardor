@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class DecodeTokenCall extends APICall.Builder<DecodeTokenCall> {
     private DecodeTokenCall() {
-        super("decodeToken");
+        super(ApiSpec.decodeToken);
     }
 
     public static DecodeTokenCall create() {

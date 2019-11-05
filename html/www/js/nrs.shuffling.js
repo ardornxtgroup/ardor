@@ -151,7 +151,8 @@ var NRS = (function(NRS, $) {
             minParticipants: NRS.escapeRespStr(response.minParticipants),
             publicKeysLeft: NRS.escapeRespStr(response.recipientPublicKeys.length),
             holdingType: NRS.escapeRespStr(response.holdingType),
-            holding: NRS.escapeRespStr(response.holding)
+            holding: NRS.escapeRespStr(response.holding),
+            reservedPublicKeys: NRS.escapeRespStr(response.reservedPublicKeysCount)
         };
     };
 
@@ -164,7 +165,7 @@ var NRS = (function(NRS, $) {
         var sidebarId = 'sidebar_shuffling';
         NRS.addTreeviewSidebarMenuItem({
             "id": sidebarId,
-            "titleHTML": '<i class="fa fa-random"></i> <span data-i18n="shuffling">Shuffling</span>',
+            "titleHTML": '<i class="far fa-random"></i> <span data-i18n="shuffling">Shuffling</span>',
             "page": 'active_shufflings',
             "desiredPosition": 80,
             "depends": { tags: [ NRS.constants.API_TAGS.SHUFFLING ] }
@@ -422,6 +423,14 @@ var NRS = (function(NRS, $) {
                     isEmpty: false,
                     standbyShufflers: []
                 });
+                if (NRS.constants.REQUEST_TYPES.getStandbyShufflers === undefined) {
+                    view.render({
+                        errorMessage: $.t("standbyshuffling_disabled"),
+                        isLoading: false,
+                        isEmpty: false
+                    });
+                    return;
+                }
                 NRS.sendRequest("getStandbyShufflers", {"account": NRS.account, "adminPassword": NRS.getAdminPassword(), "includeHoldingInfo": "true"},
                     function(response) {
                         if (NRS.isErrorResponse(response)) {

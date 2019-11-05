@@ -87,6 +87,7 @@ public interface SubSystem {
                     "file.encoding",
                     "java.security.policy",
                     "java.security.manager",
+                    "java.specification.vendor",
                     RuntimeEnvironment.RUNTIME_MODE_ARG,
                     RuntimeEnvironment.DIRPROVIDER_ARG
             };

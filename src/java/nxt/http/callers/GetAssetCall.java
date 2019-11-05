@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetAssetCall extends APICall.Builder<GetAssetCall> {
     private GetAssetCall() {
-        super("getAsset");
+        super(ApiSpec.getAsset);
     }
 
     public static GetAssetCall create() {

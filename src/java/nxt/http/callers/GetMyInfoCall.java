@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetMyInfoCall extends APICall.Builder<GetMyInfoCall> {
     private GetMyInfoCall() {
-        super("getMyInfo");
+        super(ApiSpec.getMyInfo);
     }
 
     public static GetMyInfoCall create() {

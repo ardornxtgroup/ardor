@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class BlacklistAPIProxyPeerCall extends APICall.Builder<BlacklistAPIProxyPeerCall> {
     private BlacklistAPIProxyPeerCall() {
-        super("blacklistAPIProxyPeer");
+        super(ApiSpec.blacklistAPIProxyPeer);
     }
 
     public static BlacklistAPIProxyPeerCall create() {

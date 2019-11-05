@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class ShutdownCall extends APICall.Builder<ShutdownCall> {
     private ShutdownCall() {
-        super("shutdown");
+        super(ApiSpec.shutdown);
     }
 
     public static ShutdownCall create() {

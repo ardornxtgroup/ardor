@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class HexConvertCall extends APICall.Builder<HexConvertCall> {
     private HexConvertCall() {
-        super("hexConvert");
+        super(ApiSpec.hexConvert);
     }
 
     public static HexConvertCall create() {

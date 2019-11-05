@@ -3,7 +3,7 @@ package nxt.http.callers;
 
 public class DgsDelistingCall extends CreateTransactionCallBuilder<DgsDelistingCall> {
     private DgsDelistingCall() {
-        super("dgsDelisting");
+        super(ApiSpec.dgsDelisting);
     }
 
     public static DgsDelistingCall create(int chain) {

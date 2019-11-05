@@ -27,7 +27,6 @@ import java.util.Date;
 import java.util.TimeZone;
 
 public class EpochTimeTest {
-    
     private static final int testTime = 1333920;
 
     @Test

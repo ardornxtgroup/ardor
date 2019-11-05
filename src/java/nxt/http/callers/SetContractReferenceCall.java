@@ -3,7 +3,7 @@ package nxt.http.callers;
 
 public class SetContractReferenceCall extends CreateTransactionCallBuilder<SetContractReferenceCall> {
     private SetContractReferenceCall() {
-        super("setContractReference");
+        super(ApiSpec.setContractReference);
     }
 
     public static SetContractReferenceCall create(int chain) {

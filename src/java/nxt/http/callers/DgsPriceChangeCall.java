@@ -3,7 +3,7 @@ package nxt.http.callers;
 
 public class DgsPriceChangeCall extends CreateTransactionCallBuilder<DgsPriceChangeCall> {
     private DgsPriceChangeCall() {
-        super("dgsPriceChange");
+        super(ApiSpec.dgsPriceChange);
     }
 
     public static DgsPriceChangeCall create(int chain) {

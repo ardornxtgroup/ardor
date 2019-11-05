@@ -563,6 +563,8 @@ public class FxtDbVersion extends DbVersion {
             case 170:
                 apply("UPDATE holding_migrate SET height = -1");
             case 171:
+                apply("UPDATE account_control_phasing SET max_fees=ARRAY[], max_fees_chains=ARRAY[] WHERE max_fees=ARRAY[0]");
+            case 172:
                 return;
             default:
                 throw new RuntimeException("Forging chain database inconsistent with code, at update " + nextUpdate

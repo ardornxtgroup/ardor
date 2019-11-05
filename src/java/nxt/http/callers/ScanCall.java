@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class ScanCall extends APICall.Builder<ScanCall> {
     private ScanCall() {
-        super("scan");
+        super(ApiSpec.scan);
     }
 
     public static ScanCall create() {
@@ -20,7 +20,7 @@ public class ScanCall extends APICall.Builder<ScanCall> {
         return param("adminPassword", adminPassword);
     }
 
-    public ScanCall validate(String validate) {
+    public ScanCall validate(boolean validate) {
         return param("validate", validate);
     }
 

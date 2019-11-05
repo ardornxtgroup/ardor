@@ -17,6 +17,7 @@ package nxt.util;
 
 import nxt.Nxt;
 import nxt.addons.JO;
+import nxt.env.RuntimeEnvironment;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -28,6 +29,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class ResourceLookup {
+    public final static boolean USE_SYSTEM_CLASS_LOADER = !RuntimeEnvironment.isAndroidRuntime();
 
     public static JO loadJsonResource(String resourceName) {
         try (Reader reader = loadResourceText(resourceName)) {
@@ -91,6 +93,14 @@ public class ResourceLookup {
             return readInputStream(is);
         } catch (IOException e) {
             throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    public static InputStream getSystemResourceAsStream(String resourceName) {
+        if (USE_SYSTEM_CLASS_LOADER) {
+            return ClassLoader.getSystemResourceAsStream(resourceName);
+        } else {
+            return ResourceLookup.class.getClassLoader().getResourceAsStream(resourceName);
         }
     }
 

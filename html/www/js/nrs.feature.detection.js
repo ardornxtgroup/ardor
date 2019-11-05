@@ -85,14 +85,6 @@ var NRS = (function (NRS) {
         return !isLoadedOverHttps;
     };
 
-    NRS.isExportContactsAvailable = function() {
-        return !isDesktopApplication; // When using JavaFX you cannot export the contact list
-    };
-
-    NRS.isExportApprovalModelsAvailable = function() {
-        return !isDesktopApplication; // When using JavaFX you cannot export the approval models
-	};
-	
     NRS.isFileEncryptionSupported = function() {
         return !isDesktopApplication; // When using JavaFX you cannot read the file to encrypt
     };
@@ -175,14 +167,6 @@ var NRS = (function (NRS) {
         return device && device.platform == "Android" && device.version >= "6.0.0";
     };
 
-    NRS.getShapeShiftUrl = function() {
-        return NRS.settings.shape_shift_url;
-    };
-
-    NRS.getChangellyUrl = function() {
-        return NRS.settings.changelly_url;
-    };
-
     NRS.changeNow_url = function() {
         return NRS.settings.changeNow_url;
     };
@@ -249,7 +233,8 @@ var NRS = (function (NRS) {
     };
 
     NRS.isFileReaderSupported = function() {
-        return !isDesktopApplication;
+        return (isDesktopApplication && window.java && window.java.isFileReaderSupported())  ||
+               (!isDesktopApplication && !!(window.File && window.FileList && window.FileReader)); // https://github.com/Modernizr/Modernizr/blob/master/feature-detects/file/api.js
     };
 
     NRS.isVideoSupported = function() {

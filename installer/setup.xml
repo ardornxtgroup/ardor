@@ -199,9 +199,13 @@
             <file src="sign.sh" targetdir="${INSTALL_PATH}" override="true"/>
             <executable targetfile="${INSTALL_PATH}/sign.sh"/>
             <file src="passphraseRecovery.sh" targetdir="${INSTALL_PATH}" override="true"/>
-            <file src="contractManager.sh" targetdir="${INSTALL_PATH}" override="true"/>
-            <file src="generateAPICalls.sh" targetdir="${INSTALL_PATH}" override="true"/>
             <executable targetfile="${INSTALL_PATH}/passphraseRecovery.sh"/>
+            <file src="contractManager.sh" targetdir="${INSTALL_PATH}" override="true"/>
+            <executable targetfile="${INSTALL_PATH}/contractManager.sh"/>
+            <file src="generateAPICalls.sh" targetdir="${INSTALL_PATH}" override="true"/>
+            <executable targetfile="${INSTALL_PATH}/generateAPICalls.sh"/>
+            <file src="pem.to.pkcs12.keystore.certbot.hook.sh" targetdir="${INSTALL_PATH}" override="true"/>
+            <executable targetfile="${INSTALL_PATH}/pem.to.pkcs12.keystore.certbot.hook.sh"/>
         </pack>
 
         <pack name="server.mac" os="mac_osx" required="yes" uninstall="false" hidden="true">

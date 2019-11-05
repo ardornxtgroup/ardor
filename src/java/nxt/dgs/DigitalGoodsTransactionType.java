@@ -160,7 +160,8 @@ public abstract class DigitalGoodsTransactionType extends ChildTransactionType {
                 throw new NxtException.NotValidException("Invalid digital goods listing: " + attachment.getJSONObject());
             }
             PrunablePlainMessageAppendix prunablePlainMessage = transaction.getPrunablePlainMessage();
-            if (prunablePlainMessage != null) {
+            if (!Constants.DISABLE_METADATA_DETECTION && prunablePlainMessage != null
+                    && Nxt.getBlockchain().getHeight() < Constants.MISSING_TX_SENDER_BLOCK) {
                 byte[] image = prunablePlainMessage.getMessage();
                 if (image != null) {
                     String mediaType = Search.detectMimeType(image);

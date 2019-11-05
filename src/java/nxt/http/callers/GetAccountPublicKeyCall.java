@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetAccountPublicKeyCall extends APICall.Builder<GetAccountPublicKeyCall> {
     private GetAccountPublicKeyCall() {
-        super("getAccountPublicKey");
+        super(ApiSpec.getAccountPublicKey);
     }
 
     public static GetAccountPublicKeyCall create() {

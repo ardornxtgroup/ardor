@@ -41,6 +41,9 @@ public final class AddOns {
         List<AddOn> addOnsList = new ArrayList<>();
         Nxt.getStringListProperty("nxt.addOns").forEach(addOn -> {
             try {
+                if (addOn.indexOf('.') == -1) {
+                    addOn = "nxt.addons." + addOn;
+                }
                 addOnsList.add((AddOn)Class.forName(addOn).getConstructor().newInstance());
             } catch (ReflectiveOperationException e) {
                 Logger.logErrorMessage(e.getMessage(), e);

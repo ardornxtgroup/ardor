@@ -46,7 +46,6 @@ nrs.polls.js
 nrs.recipient.js
 nrs.remote.nodes.js
 nrs.settings.js
-nrs.shape.shift.js
 nrs.shuffling.js
 nrs.sidebar.js
 nrs.simpleview.js

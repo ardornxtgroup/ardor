@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class AddPeerCall extends APICall.Builder<AddPeerCall> {
     private AddPeerCall() {
-        super("addPeer");
+        super(ApiSpec.addPeer);
     }
 
     public static AddPeerCall create() {

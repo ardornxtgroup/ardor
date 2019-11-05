@@ -1153,7 +1153,7 @@ public final class JSONData {
         return response;
     }
 
-    public static JSONObject accountMonitor(FundingMonitor monitor, boolean includeMonitoredAccounts) {
+    public static JSONObject accountMonitor(FundingMonitor monitor, boolean includeMonitoredAccounts, boolean includeHoldingInfo) {
         JSONObject json = new JSONObject();
         json.put("chain", monitor.getChain().getId());
         json.put("holdingType", monitor.getHoldingType().getCode());
@@ -1170,6 +1170,9 @@ public final class JSONData {
             List<FundingMonitor.MonitoredAccount> accountList = FundingMonitor.getMonitoredAccounts(monitor);
             accountList.forEach(account -> jsonAccounts.add(JSONData.monitoredAccount(account)));
             json.put("monitoredAccounts", jsonAccounts);
+        }
+        if (includeHoldingInfo) {
+            json.put("holdingInfo", holdingInfoJson(monitor.getHoldingType(), monitor.getHoldingId()));
         }
         return json;
     }
@@ -1534,6 +1537,7 @@ public final class JSONData {
         if (includeHoldingInfo) {
             json.put("holdingInfo", holdingInfoJson(holdingType, standbyShuffler.getHoldingId()));
         }
+        json.put("reservedPublicKeysCount", standbyShuffler.getReservedPublicKeysCount());
         return json;
     }
 

@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class SetAPIProxyPeerCall extends APICall.Builder<SetAPIProxyPeerCall> {
     private SetAPIProxyPeerCall() {
-        super("setAPIProxyPeer");
+        super(ApiSpec.setAPIProxyPeer);
     }
 
     public static SetAPIProxyPeerCall create() {

@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class SearchAccountsCall extends APICall.Builder<SearchAccountsCall> {
     private SearchAccountsCall() {
-        super("searchAccounts");
+        super(ApiSpec.searchAccounts);
     }
 
     public static SearchAccountsCall create() {

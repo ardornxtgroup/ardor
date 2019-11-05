@@ -26,6 +26,7 @@ import org.json.simple.JSONStreamAware;
 import javax.servlet.http.HttpServletRequest;
 
 import static nxt.http.JSONResponses.MISSING_PEER;
+import static nxt.http.JSONResponses.PEERS_NETWORKING_DISABLED;
 
 public class AddPeer extends APIRequestHandler {
 
@@ -44,6 +45,9 @@ public class AddPeer extends APIRequestHandler {
         JSONObject response = new JSONObject();
         Peer peer = Peers.findOrCreatePeer(peerAddress, true);
         if (peer != null) {
+            if (!Peers.isNetworkingEnabled()) {
+                return PEERS_NETWORKING_DISABLED;
+            }
             boolean isNewlyAdded = Peers.addPeer(peer);
             if (peer.getState() != Peer.State.CONNECTED &&  peer.getAnnouncedAddress() != null) {
                 peer.connectPeer();

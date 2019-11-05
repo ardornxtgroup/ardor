@@ -22,12 +22,17 @@ import nxt.blockchain.ChildChain;
 import nxt.crypto.Crypto;
 import nxt.crypto.EncryptedData;
 import nxt.util.Convert;
+import nxt.util.JSONAssert;
 import nxt.util.Logger;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Collections;
+
 public class SendMessageTest extends BlockchainTest {
+
+    public static final String NON_EXISTENT_ACCOUNT_SECRET = "NonExistentAccount.jkgdkjgdjkfgfkjgfjkdfgkjjdk";
 
     @Test
     public void sendMessage() {
@@ -148,7 +153,7 @@ public class SendMessageTest extends BlockchainTest {
 
     @Test
     public void publicKeyAnnouncement() {
-        byte[] publicKey = Crypto.getPublicKey("NonExistentAccount.jkgdkjgdjkfgfkjgfjkdfgkjjdk");
+        byte[] publicKey = Crypto.getPublicKey(NON_EXISTENT_ACCOUNT_SECRET);
         String publicKeyStr = Convert.toHexString(publicKey);
         long id = Account.getId(publicKey);
         String rsAccount = Convert.rsAccount(id);
@@ -173,5 +178,22 @@ public class SendMessageTest extends BlockchainTest {
                 build().invoke();
         Logger.logDebugMessage("getAccount: " + response);
         Assert.assertEquals(publicKeyStr, response.get("publicKey"));
+    }
+
+    @Test
+    public void sendFromNotExistingAccount() {
+        APICall.Builder builder = new APICall.Builder("sendMessage").
+                param("secretPhrase", NON_EXISTENT_ACCOUNT_SECRET).
+                param("message", "hello world").
+                param("recipient", ALICE.getRsAccount()).
+                feeNQT(ChildChain.IGNIS.ONE_COIN);
+        JSONAssert result = new JSONAssert(builder.build().invoke());
+        Assert.assertEquals("Not enough funds", result.str("errorDescription"));
+
+        builder.feeNQT(0);
+        result = new JSONAssert(builder.build().invoke());
+        bundleTransactions(Collections.singletonList(result.fullHash()));
+
+        generateBlock();
     }
 }

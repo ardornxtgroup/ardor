@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetAccountPropertiesCall extends APICall.Builder<GetAccountPropertiesCall> {
     private GetAccountPropertiesCall() {
-        super("getAccountProperties");
+        super(ApiSpec.getAccountProperties);
     }
 
     public static GetAccountPropertiesCall create() {

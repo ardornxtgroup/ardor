@@ -5,7 +5,7 @@
 -libraryjars <java.home>/lib/jce.jar
 -libraryjars <java.home>/lib/ext/jfxrt.jar
 -libraryjars conf
--libraryjars lib
+-libraryjars lib(!META-INF/versions/**)
 
 -dontoptimize
 -printmapping ../nxt.map

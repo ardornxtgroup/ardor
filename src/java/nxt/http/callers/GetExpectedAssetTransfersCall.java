@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetExpectedAssetTransfersCall extends APICall.Builder<GetExpectedAssetTransfersCall> {
     private GetExpectedAssetTransfersCall() {
-        super("getExpectedAssetTransfers");
+        super(ApiSpec.getExpectedAssetTransfers);
     }
 
     public static GetExpectedAssetTransfersCall create(int chain) {

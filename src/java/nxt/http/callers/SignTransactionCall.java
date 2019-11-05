@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class SignTransactionCall extends APICall.Builder<SignTransactionCall> {
     private SignTransactionCall() {
-        super("signTransaction");
+        super(ApiSpec.signTransaction);
     }
 
     public static SignTransactionCall create() {
@@ -36,7 +36,7 @@ public class SignTransactionCall extends APICall.Builder<SignTransactionCall> {
         return param("requireBlock", requireBlock);
     }
 
-    public SignTransactionCall validate(String validate) {
+    public SignTransactionCall validate(boolean validate) {
         return param("validate", validate);
     }
 }

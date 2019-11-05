@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetNextBlockGeneratorsCall extends APICall.Builder<GetNextBlockGeneratorsCall> {
     private GetNextBlockGeneratorsCall() {
-        super("getNextBlockGenerators");
+        super(ApiSpec.getNextBlockGenerators);
     }
 
     public static GetNextBlockGeneratorsCall create() {

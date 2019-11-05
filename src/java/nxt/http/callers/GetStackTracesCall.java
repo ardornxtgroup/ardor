@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetStackTracesCall extends APICall.Builder<GetStackTracesCall> {
     private GetStackTracesCall() {
-        super("getStackTraces");
+        super(ApiSpec.getStackTraces);
     }
 
     public static GetStackTracesCall create() {

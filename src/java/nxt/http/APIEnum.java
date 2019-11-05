@@ -314,7 +314,8 @@ public enum APIEnum {
     DELETE_ASSET_PROPERTY("deleteAssetProperty", DeleteAssetProperty.instance),
     GET_HASHED_SECRET_PHASED_TRANSACTIONS("getHashedSecretPhasedTransactions", GetHashedSecretPhasedTransactions.instance),
     SPLIT_SECRET("splitSecret", SplitSecret.instance),
-    COMBINE_SECRET("combineSecret", CombineSecret.instance);
+    COMBINE_SECRET("combineSecret", CombineSecret.instance),
+    MANAGE_PEERS_NETWORKING("managePeersNetworking", ManagePeersNetworking.instance);
 
     private static final Map<String, APIEnum> apiByName = new HashMap<>();
 
@@ -365,7 +366,7 @@ public enum APIEnum {
         }
         byte[] decoded = Base64.getDecoder().decode(apiSetBase64);
         BitSet bs = BitSet.valueOf(decoded);
-        for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i+1)) {
+        for (int i = bs.nextSetBit(0); i >= 0 && i < APIEnum.values().length; i = bs.nextSetBit(i+1)) {
             result.add(APIEnum.values()[i]);
             if (i == Integer.MAX_VALUE) {
                 break; // or (i+1) would overflow

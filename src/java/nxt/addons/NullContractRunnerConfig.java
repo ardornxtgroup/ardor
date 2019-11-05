@@ -15,6 +15,7 @@
 
 package nxt.addons;
 
+import nxt.Constants;
 import nxt.crypto.EncryptedData;
 
 class NullContractRunnerConfig implements ContractRunnerConfig {
@@ -51,7 +52,27 @@ class NullContractRunnerConfig implements ContractRunnerConfig {
     }
 
     @Override
+    public boolean isAutoFeeRate() {
+        return false;
+    }
+
+    @Override
+    public long getMinBundlerBalanceFXT() {
+        return Constants.minBundlerBalanceFXT;
+    }
+
+    @Override
+    public long getMinBundlerFeeLimitFQT() {
+        return Constants.minBundlerFeeLimitFXT * Constants.ONE_FXT;
+    }
+
+    @Override
     public long getFeeRateNQTPerFXT(int chainId) {
+        return 0;
+    }
+
+    @Override
+    public long getCurrentFeeRateNQTPerFXT(int chainId) {
         return 0;
     }
 

@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class StartBundlerCall extends APICall.Builder<StartBundlerCall> {
     private StartBundlerCall() {
-        super("startBundler");
+        super(ApiSpec.startBundler);
     }
 
     public static StartBundlerCall create(int chain) {

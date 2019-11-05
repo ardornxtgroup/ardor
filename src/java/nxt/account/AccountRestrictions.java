@@ -16,6 +16,7 @@
 
 package nxt.account;
 
+import nxt.Constants;
 import nxt.Nxt;
 import nxt.NxtException;
 import nxt.NxtException.AccountControlException;
@@ -122,7 +123,9 @@ public final class AccountRestrictions {
             }
             Account.getAccount(accountId).addControl(Account.ControlType.PHASING_ONLY);
             Map<Integer, Long> maxFeesMap = new HashMap<>();
-            maxFeesMap.put(ChildChain.IGNIS.getId(), maxFees);
+            if (maxFees > 0) {
+                maxFeesMap.put(ChildChain.IGNIS.getId(), maxFees);
+            }
             PhasingOnly phasingOnly = new PhasingOnly(accountId, new PhasingParams(new VoteWeighting((byte)0, 0, 0, (byte)0), quorum, whitelist, null, null, null, null, null), maxFeesMap,
                     (short)minDuration, (short)maxDuration);
             phasingControlTable.insert(phasingOnly);
@@ -189,13 +192,14 @@ public final class AccountRestrictions {
         @Override
         protected void checkTransaction(ChildTransaction transaction) throws AccountControlException {
             ChildChain childChain = transaction.getChain();
-            long maxFee = Convert.nullToZero(maxFees.get(childChain.getId()));
-            if (maxFee > 0) {
+            Long maxFee = maxFees.get(childChain.getId());
+            if (maxFee != null) {
                 long totalFee = Math.addExact(transaction.getFee(),
                         childChain.getPhasingPollHome().getSenderPhasedTransactionFees(transaction.getSenderId()));
                 if (totalFee > maxFee) {
-                    throw new AccountControlException(String.format("Maximum total fees limit of %f %s exceeded, total fees are %f %s",
-                            ((double) maxFee) / childChain.ONE_COIN, childChain.getName(), ((double)totalFee) / childChain.ONE_COIN, childChain.getName()));
+                    throw new AccountControlException(String.format("Maximum total fees limit of %f %s (%d NQT) exceeded, total fees are %f %s (%d NQT)",
+                            ((double) maxFee) / childChain.ONE_COIN, childChain.getName(), maxFee,
+                            ((double)totalFee) / childChain.ONE_COIN, childChain.getName(), totalFee));
                 }
             }
             if (transaction.getType() == VotingTransactionType.PHASING_VOTE_CASTING) {
@@ -326,7 +330,11 @@ public final class AccountRestrictions {
     public static void checkTransaction(ChildTransaction transaction) throws NxtException.NotCurrentlyValidException {
         Account senderAccount = Account.getAccount(transaction.getSenderId());
         if (senderAccount == null) {
-            throw new NxtException.NotCurrentlyValidException("Account " + Convert.rsAccount(transaction.getSenderId()) + " does not exist yet");
+            if (Nxt.getBlockchain().getHeight() >= Constants.MISSING_TX_SENDER_BLOCK) {
+                return;
+            } else {
+                throw new NxtException.NotCurrentlyValidException("Account " + Convert.rsAccount(transaction.getSenderId()) + " does not exist yet");
+            }
         }
         if (senderAccount.getControls().contains(Account.ControlType.PHASING_ONLY)) {
             PhasingOnly phasingOnly = PhasingOnly.get(transaction.getSenderId());
@@ -347,6 +355,9 @@ public final class AccountRestrictions {
 
     public static boolean isBlockDuplicate(Transaction transaction, Map<TransactionType, Map<String, Integer>> duplicates) {
         Account senderAccount = Account.getAccount(transaction.getSenderId());
+        if (senderAccount == null) {
+            return false;
+        }
         if (!senderAccount.getControls().contains(Account.ControlType.PHASING_ONLY)) {
             return false;
         }

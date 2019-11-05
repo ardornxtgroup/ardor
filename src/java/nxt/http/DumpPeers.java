@@ -33,6 +33,8 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static nxt.http.JSONResponses.PEERS_NETWORKING_DISABLED;
+
 public final class DumpPeers extends APIServlet.APIRequestHandler {
 
     static final DumpPeers instance = new DumpPeers();
@@ -69,6 +71,9 @@ public final class DumpPeers extends APIServlet.APIRequestHandler {
         final long services = serviceCodes;
         boolean connect = "true".equalsIgnoreCase(req.getParameter("connect")) && API.checkPassword(req);
         if (connect) {
+            if (!Peers.isNetworkingEnabled()) {
+                return PEERS_NETWORKING_DISABLED;
+            }
             List<Callable<Object>> connects = new ArrayList<>();
             Peers.getAllPeers().forEach(peer -> connects.add(() -> {
                 peer.connectPeer();

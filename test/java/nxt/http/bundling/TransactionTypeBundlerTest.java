@@ -2,12 +2,12 @@ package nxt.http.bundling;
 
 import nxt.BlockchainTest;
 import nxt.Tester;
+import nxt.addons.JO;
 import nxt.blockchain.ChildChain;
 import nxt.http.APICall;
 import nxt.http.shuffling.ShufflingUtil;
 import nxt.shuffling.ShufflingStage;
 import nxt.util.JSONAssert;
-import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -28,7 +28,7 @@ public class TransactionTypeBundlerTest extends BlockchainTest {
 
         processing(shufflingFullHash);
 
-        JSONObject shufflingResponse = getShuffling(shufflingFullHash);
+        JO shufflingResponse = getShuffling(shufflingFullHash);
         Assert.assertEquals((long) ShufflingStage.VERIFICATION.getCode(), shufflingResponse.get("stage"));
         String shufflingStateHash = (String)shufflingResponse.get("shufflingStateHash");
 
@@ -48,7 +48,7 @@ public class TransactionTypeBundlerTest extends BlockchainTest {
         process(shufflingFullHash, ALICE, ALICE_RECIPIENT);
         generateBlock();
 
-        JSONObject shufflingResponse = getShuffling(shufflingFullHash);
+        JO shufflingResponse = getShuffling(shufflingFullHash);
         Assert.assertEquals(ALICE.getStrId(), shufflingResponse.get("assignee"));
     }
 

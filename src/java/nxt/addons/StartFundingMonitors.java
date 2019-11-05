@@ -60,7 +60,7 @@ public final class StartFundingMonitors extends StartAuto {
             throw new RuntimeException("Monitor secretPhrase not defined");
         }
         return StartFundingMonitorCall.create(monitorJSON.getInt("chain"))
-                .holdingType(monitorJSON.getString("holdingType"))
+                .holdingType(monitorJSON.getByte("holdingType"))
                 .holding(monitorJSON.getEntityId("holding"))
                 .property(monitorJSON.getString("property"))
                 .amount(monitorJSON.getString("amount"))

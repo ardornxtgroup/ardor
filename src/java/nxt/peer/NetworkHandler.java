@@ -269,12 +269,7 @@ public final class NetworkHandler implements Runnable {
             if ((API.isIsOpenAPI()) && !Constants.isLightClient) {
                 EnumSet<APIEnum> disabledAPISet = EnumSet.noneOf(APIEnum.class);
 
-                API.getDisabledApis().forEach(apiName -> {
-                    APIEnum api = APIEnum.fromName(apiName);
-                    if (api != null) {
-                        disabledAPISet.add(api);
-                    }
-                });
+                disabledAPISet.addAll(API.getDisabledApis());
                 API.getDisabledApiTags().forEach(apiTag -> {
                     for (APIEnum api : APIEnum.values()) {
                         if (api.getHandler() != null && api.getHandler().getAPITags().contains(apiTag)) {
@@ -358,6 +353,10 @@ public final class NetworkHandler implements Runnable {
         }
     }
 
+    private static boolean isNetworkEnabled() {
+        return !networkShutdown && Peers.isNetworkingEnabled();
+    }
+
     /**
      * Wakes up the network listener
      */
@@ -415,10 +414,10 @@ public final class NetworkHandler implements Runnable {
             // each selection key.
             //
             count = networkSelector.select();
-            if (count > 0 && !networkShutdown) {
+            if (count > 0 && isNetworkEnabled()) {
                 Set<SelectionKey> selectedKeys = networkSelector.selectedKeys();
                 Iterator<SelectionKey> keyIterator = selectedKeys.iterator();
-                while (keyIterator.hasNext() && !networkShutdown) {
+                while (keyIterator.hasNext() && isNetworkEnabled()) {
                     SelectionKey key = keyIterator.next();
                     SelectableChannel channel = key.channel();
                     if (channel.isOpen() && key.isValid()) {

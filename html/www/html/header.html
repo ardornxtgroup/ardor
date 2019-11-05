@@ -70,7 +70,7 @@
                     <a href="#" id="unconfirmed_notification_menu" class="goto-page" data-page="transactions" data-subpage="unconfirmed" style="display:none;">
                         <span class="badge nm_inner_subtype" style="background-color: #fff;">
                             <span style="color:#337ab7;">
-                                <i class="fa fa-circle-o"></i>&nbsp;
+                                <i class="far fa-circle"></i>&nbsp;
                             </span>
                             <span style="color:#666;" id="unconfirmed_notification_counter"></span>
                         </span>
@@ -92,52 +92,53 @@
                         <span class="badge nm_inner_total"></span>
                     </a>
                 </li>
-                <li id="contacts_menu_li" role="presentation" class="active show_popover" data-toggle="popover" data-delay="250" data-placement="bottom" data-content="CONTACTS" data-container="#header_right" data-i18n="[data-content]contacts">
+                <li id="contacts_menu_li" role="presentation" class="active show_popover" data-toggle="popover" data-placement="bottom" data-content="CONTACTS" data-container="#header_right" data-i18n="[data-content]contacts">
                     <a href="#" class="goto-page" data-page="contacts">
                         <i class="fa fa-user"></i>
                     </a>
                 </li>
-                <li class="dropdown show_popover" role="presentation" data-toggle="popover" data-delay="250" data-placement="bottom" data-content="SETTINGS" data-container="#header_right" data-i18n="[data-content]settings">
+                <li class="dropdown show_popover" role="presentation" data-toggle="popover" data-placement="bottom" data-content="SETTINGS" data-container="#header_right" data-i18n="[data-content]settings">
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown">
                         <i class="fa fa-cog"></i>
                     </a>
                     <ul class="dropdown-menu" role="menu">
                         <li><a role="menuitem" tabindex="-1" href="#" class="goto-page" data-page="blocks"><i class="fa fa-bars"></i><span data-i18n="blocks">Blocks</span></a></li>
                         <li><a role="menuitem" tabindex="-1" href="#" class="goto-page" data-page="peers"><i class="fa fa-cloud"></i><span data-i18n="peers">Peers</span></a></li>
-                        <li><a role="menuitem" tabindex="-1" href="#" class="goto-page" data-page="generators"><i class="fa fa-code-fork"></i><span data-i18n="generators">Generators</span></a></li>
-                        <li id="funding_monitor_menu_item"><a role="menuitem" tabindex="-1" href="#" class="goto-page" data-page="funding_monitors"><i class="fa fa-shekel"></i><span data-i18n="monitors">Monitors</span></a></li>
+                        <li><a role="menuitem" tabindex="-1" href="#" class="goto-page" data-page="generators"><i class="fa fa-code-branch"></i><span data-i18n="generators">Generators</span></a></li>
+                        <li id="funding_monitor_menu_item"><a role="menuitem" tabindex="-1" href="#" class="goto-page" data-page="funding_monitors"><i class="fa fa-shekel-sign"></i><span data-i18n="monitors">Monitors</span></a></li>
                         <li id="bundler_menu_item"><a role="menuitem" tabindex="-1" href="#" class="goto-page" data-page="bundlers"><i class="fa fa-suitcase"></i><span data-i18n="bundlers">Bundlers</span></a></li>
+                        <li><a role="menuitem" tabindex="-1" href="#" class="goto-page" data-page="node_processes_config"><i class="fa fa-tasks"></i><span data-i18n="node_processes_config">Processes</span></a></li>
                         <li role="presentation" class="divider"></li>
                         <li><a href="#" class="goto-page" data-page="plugins_overview"><i class="fa fa-plug"></i><span data-i18n="plugins">Plugins</span></a></li>
                         <li><a role="menuitem" tabindex="-1" href="#" class="goto-page" data-page="contracts"><i class="fa fa-address-card"></i><span data-i18n="contracts">Contracts</span></a></li>
                         <li role="presentation" class="divider"></li>
                         <li><a href="#" class="goto-page" data-page="settings"><i class="fa fa-cog"></i><span data-i18n="account_settings">Account Settings</span></a></li>
-                        <li id="mobile_settings_li"><a href="#" data-toggle="modal" data-target="#mobile_settings_modal"><i class="fa fa-mobile"></i><span data-i18n="device_settings">Device Settings</span></a></li>
+                        <li id="mobile_settings_li"><a href="#" data-toggle="modal" data-target="#mobile_settings_modal"><i class="far fa-mobile"></i><span data-i18n="device_settings">Device Settings</span></a></li>
                         <li role="presentation" class="divider"></li>
                         <li><a href="#" data-toggle="modal" data-target="#load_voucher_modal"><i class="fa fa-address-book"></i><span data-i18n="load_voucher">Load Voucher</span></a></li>
-                        <li><a href="#" data-toggle="modal" data-target="#token_modal"><i class="fa fa-code"></i><span data-i18n="generate_token">Generate Token</span></a></li>
-                        <li><a href="#" data-toggle="modal" data-target="#hash_modal"><i class="fa fa-calculator"></i><span data-i18n="calculate_hash">Calculate Hash</span></a></li>
+                        <li><a href="#" data-toggle="modal" data-target="#token_modal"><i class="far fa-code"></i><span data-i18n="generate_token">Generate Token</span></a></li>
+                        <li><a href="#" data-toggle="modal" data-target="#hash_modal"><i class="far fa-calculator"></i><span data-i18n="calculate_hash">Calculate Hash</span></a></li>
                         <li><a href="#" data-toggle="modal" data-target="#transaction_json_modal"><i class="fa fa-asterisk"></i><span data-i18n="transaction_operations">Transaction Operations</span></a></li>
                         <li role="presentation" class="divider"></li>
                         <li><a href="#" id="refreshSearchIndex"><i class="fa fa-search"></i><span data-i18n="refresh_search_index">Refresh Search Index</span></a></li>
                         <li id="api_console_li"><a href="/test" target="_blank"><i class="fa fa-magic"></i><span data-i18n="api_console">API Console</span></a></li>
                         <li id="database_shell_li"><a href="/dbshell" target="_blank"><i class="fa fa-database"></i><span data-i18n="database_shell">Database Shell</span></a></li>
                         <li role="presentation" class="divider"></li>
-                        <li><a class="external-link" role="menuitem" tabindex="-1" href="https://ardordocs.jelurida.com/" target="_blank"><i class="fa fa-at"></i><span data-i18n="wiki">Ardor Documentation</span></a></li>
+                        <li><a class="external-link" role="menuitem" tabindex="-1" href="https://ardordocs.jelurida.com/" target="_blank"><i class="far fa-at"></i><span data-i18n="wiki">Ardor Documentation</span></a></li>
                         <li><a href="#" data-toggle="modal" data-target="#about_modal"><i class="fa fa-info-circle "></i><span data-i18n="about_ardor">About Ardor</span></a></li>
                     </ul>
                 </li>
-                <li class="dropdown show_popover" role="presentation" data-toggle="popover" data-delay="250" data-placement="bottom" data-content="EXCHANGES" data-container="#header_right" data-i18n="[data-content]exchange">
+                <li class="dropdown show_popover" role="presentation" data-toggle="popover" data-placement="bottom" data-content="EXCHANGES" data-container="#header_right" data-i18n="[data-content]exchange">
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                        <i class="fa fa-exchange"></i>
+                        <i class="fa fa-exchange-alt"></i>
                     </a>
                     <ul class="dropdown-menu" role="menu">
-                        <li role="presentation" class="divider"></li>
                         <li><a href="#" class="goto-page" data-page="exchange_changelly"><span>Changelly</span></a></li>
                         <li><a href="#" class="goto-page" data-page="exchange_changenow"><span>ChangeNOW</span></a></li>
+                        <li><a href="#" class="goto-page" data-page="exchange_changehero"><span>ChangeHero</span></a></li>
                     </ul>
                 </li>
-                <li class="dropdown show_popover" id="web_wallet_li" role="presentation" data-toggle="popover" data-delay="250" data-placement="bottom" data-content="WEB WALLET" data-container="#header_right" data-i18n="[data-content]web_wallet">
+                <li class="dropdown show_popover" id="web_wallet_li" role="presentation" data-toggle="popover" data-placement="bottom" data-content="WEB WALLET" data-container="#header_right" data-i18n="[data-content]web_wallet">
                     <a href="#" class="dropdown-toggle"  data-toggle="dropdown" id="header_open_web_wallet">
                         <i class="fa fa-sitemap"></i>
                     </a>

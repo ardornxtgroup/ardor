@@ -24,16 +24,25 @@ var NRS = (function (NRS) {
     }
 
     NRS.storageSelect = function (table, query, callback) {
+        var dfr = $.Deferred();
         if (isIndexedDBSupported()) {
-            NRS.database.select(table, query, callback);
-            return;
+            NRS.database.select(table, query, function(error, result) {
+                callback(error, result);
+                if (error) {
+                    dfr.resolve(error);
+                } else {
+                    dfr.resolve(result);
+                }
+            });
+            return dfr;
         }
         var items = NRS.getAccountJSONItem(table);
         if (!items) {
             if (callback) {
                 callback("No items to select", []);
             }
-            return;
+            dfr.resolve("No items to select");
+            return dfr;
         }
         var response = [];
         for (var i=0; i<items.length; i++) {
@@ -52,6 +61,8 @@ var NRS = (function (NRS) {
         if (callback) {
             callback(null, response);
         }
+        dfr.resolve(response);
+        return dfr;
     };
 
     NRS.storageInsert = function(table, key, data, callback, isAutoIncrement) {

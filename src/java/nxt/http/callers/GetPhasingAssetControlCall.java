@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class GetPhasingAssetControlCall extends APICall.Builder<GetPhasingAssetControlCall> {
     private GetPhasingAssetControlCall() {
-        super("getPhasingAssetControl");
+        super(ApiSpec.getPhasingAssetControl);
     }
 
     public static GetPhasingAssetControlCall create() {

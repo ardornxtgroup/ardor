@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class HashCall extends APICall.Builder<HashCall> {
     private HashCall() {
-        super("hash");
+        super(ApiSpec.hash);
     }
 
     public static HashCall create() {

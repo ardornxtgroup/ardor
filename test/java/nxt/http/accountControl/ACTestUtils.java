@@ -232,7 +232,7 @@ public class ACTestUtils {
             builder.param("control" + subPollName + "Whitelisted", Arrays.stream(whitelist).mapToObj(Long::toUnsignedString).toArray(String[]::new));
         }
 
-        if (subPollName.isEmpty() && maxFees > 0) {
+        if (subPollName.isEmpty() && maxFees >= 0) {
             builder.param("controlMaxFees", ChildChain.IGNIS.getId() + ":" + maxFees);
         }
 

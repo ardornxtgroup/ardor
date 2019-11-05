@@ -5,7 +5,7 @@ import nxt.http.APICall;
 
 public class FullResetCall extends APICall.Builder<FullResetCall> {
     private FullResetCall() {
-        super("fullReset");
+        super(ApiSpec.fullReset);
     }
 
     public static FullResetCall create() {

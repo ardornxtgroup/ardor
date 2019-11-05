@@ -3,7 +3,7 @@ package nxt.http.callers;
 
 public class DgsFeedbackCall extends CreateTransactionCallBuilder<DgsFeedbackCall> {
     private DgsFeedbackCall() {
-        super("dgsFeedback");
+        super(ApiSpec.dgsFeedback);
     }
 
     public static DgsFeedbackCall create(int chain) {
